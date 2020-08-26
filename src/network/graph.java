@@ -7,6 +7,9 @@ import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.jgrapht.graph.SimpleGraph;
 import org.jgrapht.util.SupplierUtil;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 import java.util.function.Supplier;
 
 /**
@@ -17,7 +20,7 @@ public class graph
 {
 	private Graph<Integer, DefaultEdge> g;
 	
-	public graph(Graph<Integer, DefaultEdge> g)
+	public graph()
 	{
 		this.g = new DefaultUndirectedGraph<>(DefaultEdge.class);
 	}
@@ -76,6 +79,32 @@ public class graph
 		}
 	}
 	
+	public void buildGraphFromFile(String filename)
+	{
+		String data;
+		int source, destination;
+		try
+		{
+			File myObj = new File(filename);
+			Scanner myReader = new Scanner(myObj);
+			while (myReader.hasNextLine())
+			{
+				data = myReader.nextLine();
+				String[] tokens = data.split(",");
+				source = Integer.parseInt(tokens[0]);
+				destination = Integer.parseInt(tokens[1]);
+				g.addVertex(source);
+				g.addVertex(destination);
+				g.addEdge(source, destination);
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			System.out.println("An error occurred while trying to read the file \""+filename+"\":");
+			e.printStackTrace();
+		}
+	}
+	
 	public Graph<Integer, DefaultEdge> getG()
 	{
 		return g;
@@ -103,6 +132,6 @@ public class graph
 	@Override
 	public String toString()
 	{
-		return "graph:g<"+g.vertexSet()+">, <"+g.edgeSet()+">";
+		return "graph:g<"+g.vertexSet()+", "+g.edgeSet()+">";
 	}
 }
