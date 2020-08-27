@@ -19,10 +19,12 @@ import java.util.function.Supplier;
 public class graph
 {
 	private Graph<Integer, DefaultEdge> g;
+	private String networkName;
 	
-	public graph()
+	public graph(String networkName)
 	{
 		this.g = new DefaultUndirectedGraph<>(DefaultEdge.class);
+		this.networkName = networkName;
 	}
 	
 	/**
@@ -127,6 +129,15 @@ public class graph
 	public Graph<Integer, DefaultEdge> getG()
 	{
 		return g;
+	}
+	
+	/**
+	 * Getter method for networkName.
+	 * @return returns the network name as String
+	 */
+	public String getNetworkName()
+	{
+		return networkName;
 	}
 	
 	/**

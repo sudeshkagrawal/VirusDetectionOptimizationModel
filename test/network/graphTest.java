@@ -1,5 +1,7 @@
 package network;
 
+import java.util.Arrays;
+
 class graphTest
 {
 	
@@ -7,7 +9,7 @@ class graphTest
 	void initializeCompleteGraph() throws Exception
 	{
 		int size = 4;
-		graph network = new graph();
+		graph network = new graph("CompleteGraph_size"+size);
 		network.initializeCompleteGraph(size);
 		for (int i=0; i<size; i++)
 			for (int j = 0; j < size; j++)
@@ -19,7 +21,7 @@ class graphTest
 	{
 		int size = 7;
 		int[] offsets = {2, 4};
-		graph network = new graph();
+		graph network = new graph("CirculantGraph_size"+size+"_offsets_"+Arrays.toString(offsets));
 		network.initializeCirculantGraph(size, offsets);
 		assert network.getG().containsEdge(0, 5);
 		assert network.getG().containsEdge(0, 2);
@@ -60,7 +62,7 @@ class graphTest
 	@org.junit.jupiter.api.Test
 	void buildGraphFromFile() throws Exception
 	{
-		graph network = new graph();
+		graph network = new graph("testNetwork");
 		network.buildGraphFromFile("./files/networks/testNetworkFile.txt");
 		
 		// check vertex set
