@@ -1,0 +1,28 @@
+/files/networks/EUemailcomm_1-core.txt
+/files/networks/EUemailcomm_2-core.txt
+/files/networks/EUemailcomm_4-core.txt
+/files/networks/EUemailcomm_6-core.txt
+/files/networks/EUemailcomm_8-core.txt
+/files/networks/EUemailcomm_10-core.txt
+/files/networks/EUemailcomm_20-core.txt
+/files/networks/EUemailcomm_30-core.txt
+/files/networks/EUemailcomm_35-core.txt
+/files/networks/Facebookcombined_1-core.txt
+/files/networks/Facebookcombined_2-core.txt
+/files/networks/Facebookcombined_10-core.txt
+/files/networks/Facebookcombined_20-core.txt
+/files/networks/Facebookcombined_25-core.txt
+/files/networks/Twittercombined_1-core.txt
+/files/networks/Twittercombined_2-core.txt
+/files/networks/Twittercombined_10-core.txt
+/files/networks/Twittercombined_20-core.txt
+/files/networks/Twittercombined_30-core.txt
+/files/networks/Twittercombined_40-core.txt
+/files/networks/Twittercombined_50-core.txt
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
+

@@ -4,4 +4,11 @@
 # Datasource local storage ignored files
 /../../../../../../:\Google Drive\My Codes\IntelliJ Projects\VirusDetectionOptimizationModel\.idea/dataSources/
 /dataSources.local.xml
-../files/networks/
+
+/uiDesigner.xml
+
+# Compiled class file
+*.class
+
+# Log file
+*.log
