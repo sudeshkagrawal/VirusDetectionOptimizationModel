@@ -82,7 +82,6 @@ public class graph
 	public void buildGraphFromFile(String filename)
 	{
 		String data;
-		int source, destination;
 		try
 		{
 			File myObj = new File(filename);
@@ -90,12 +89,15 @@ public class graph
 			while (myReader.hasNextLine())
 			{
 				data = myReader.nextLine();
+				if (data.equals(""))
+					continue;
 				String[] tokens = data.split(",");
-				source = Integer.parseInt(tokens[0]);
-				destination = Integer.parseInt(tokens[1]);
+				int source = Integer.parseInt(tokens[0]);
+				int destination = Integer.parseInt(tokens[1]);
 				g.addVertex(source);
 				g.addVertex(destination);
 				g.addEdge(source, destination);
+				
 			}
 		}
 		catch (FileNotFoundException e)
