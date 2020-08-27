@@ -26,3 +26,5 @@
 # Log file
 *.log
 
+/out/production/VirusDetectionOptimizationModel/networks/
+/out/
