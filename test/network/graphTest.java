@@ -58,7 +58,7 @@ class graphTest
 	}
 	
 	@org.junit.jupiter.api.Test
-	void buildGraphFromFile()
+	void buildGraphFromFile() throws Exception
 	{
 		graph network = new graph();
 		network.buildGraphFromFile("./files/networks/testNetworkFile.txt");

@@ -79,34 +79,51 @@ public class graph
 		}
 	}
 	
-	public void buildGraphFromFile(String filename)
+	/**
+	 * Build network from a text file.
+	 * Each line in the text file is an edge, where the vertices are separated by commas.
+	 * @param filename path to file to be read
+	 * @throws Exception exception thrown if vertex set of g is not empty
+	 */
+	public void buildGraphFromFile(String filename) throws Exception
 	{
-		String data;
-		try
+		if (g.vertexSet().size()>0)
 		{
-			File myObj = new File(filename);
-			Scanner myReader = new Scanner(myObj);
-			while (myReader.hasNextLine())
+			throw new Exception("Graph is not empty!");
+		}
+		else
+		{
+			try
 			{
-				data = myReader.nextLine();
-				if (data.equals(""))
-					continue;
-				String[] tokens = data.split(",");
-				int source = Integer.parseInt(tokens[0]);
-				int destination = Integer.parseInt(tokens[1]);
-				g.addVertex(source);
-				g.addVertex(destination);
-				g.addEdge(source, destination);
-				
+				File myObj = new File(filename);
+				Scanner myReader = new Scanner(myObj);
+				while (myReader.hasNextLine())
+				{
+					String data = myReader.nextLine();
+					if (data.equals(""))
+						continue;
+					String[] tokens = data.split(",");
+					int source = Integer.parseInt(tokens[0]);
+					int destination = Integer.parseInt(tokens[1]);
+					g.addVertex(source);
+					g.addVertex(destination);
+					g.addEdge(source, destination);
+					
+				}
+			}
+			catch (FileNotFoundException e)
+			{
+				System.out.println("An error occurred while trying to read the file \""+filename+"\":");
+				e.printStackTrace();
 			}
 		}
-		catch (FileNotFoundException e)
-		{
-			System.out.println("An error occurred while trying to read the file \""+filename+"\":");
-			e.printStackTrace();
-		}
+		
 	}
 	
+	/**
+	 * Getter method for g.
+	 * @return returns the graph
+	 */
 	public Graph<Integer, DefaultEdge> getG()
 	{
 		return g;
@@ -130,6 +147,19 @@ public class graph
 	{
 		g.addEdge(s, t);
 	}
+	
+	/**
+	 * Removes self-loops from the graph.
+	 */
+	public void removeSelfLoops()
+	{
+		for (Integer v: g.vertexSet())
+			g.removeEdge(v, v);
+	}
+	
+	// TODO: c-core decomposition
+	
+	// TODO: largest connected component
 	
 	@Override
 	public String toString()

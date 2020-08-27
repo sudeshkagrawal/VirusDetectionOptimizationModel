@@ -2,7 +2,7 @@ import network.graph;
 
 public class run
 {
-	public static void main(String[] args)
+	public static void main(String[] args) throws Exception
 	{
 		graph network = new graph();
 		network.buildGraphFromFile("./files/networks/testnetwork3.txt");
