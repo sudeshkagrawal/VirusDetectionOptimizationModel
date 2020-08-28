@@ -11,11 +11,13 @@ public class run
 {
 	public static void main(String[] args) throws Exception
 	{
-		graph network = new graph("testnetwork3");
-		network.buildGraphFromFile("./files/networks/testnetwork3.txt");
-		System.out.println(network.toString());
+		String networkName = "EUemailcomm_1-core";
+		graph network = new graph(networkName);
+		network.buildGraphFromFile("./files/networks/"+networkName+".txt");
+		// System.out.println(network.toString());
 		
-		int[] runs = {5, 10, 15};
+		
+		 int[] runs = {1000, 5000, 10000, 30000, 50000};
 		int[] t_0 = {3, 4};
 		int[] seed = {2507, 2101};
 		boolean doNotUseSerialFile = false;
@@ -31,7 +33,7 @@ public class run
 			// Check we have runs for all t0_runs
 			simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, seed);
 		}
-		System.out.println(simulationResults.getDictModelNetworkT0RunsFalseNegative().toString());
+		// System.out.println(simulationResults.getDictModelNetworkT0RunsFalseNegative().toString());
 		simulationResults.serializeSimulationRuns(serialFilename);
 	}
 	

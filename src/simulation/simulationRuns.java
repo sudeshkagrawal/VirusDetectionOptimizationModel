@@ -43,8 +43,6 @@ public class simulationRuns
 		g.removeSelfLoops();
 		System.out.print("Removed self-loops (if any) from the graph: ");
 		final int n = g.getG().vertexSet().size();
-		final int minNode = g.getG().vertexSet().stream().mapToInt(v->v).min().orElseThrow(NoSuchElementException::new);
-		final int maxNode = g.getG().vertexSet().stream().mapToInt(v->v).max().orElseThrow(NoSuchElementException::new);
 		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		
 		if (seed.length!=2)
@@ -57,7 +55,7 @@ public class simulationRuns
 			int rep = v.getValue1();
 			SplittableRandom initialLocationGenChoice = new SplittableRandom(seed[0]+time0+rep);
 			SplittableRandom neighborGenChoice = new SplittableRandom(seed[1]+time0+rep);
-			int[] initialLocationRuns = initialLocationGenChoice.ints(rep, minNode, maxNode+1).toArray();
+			int[] initialLocationRuns = getInitialLocationRuns(g, initialLocationGenChoice, rep);
 			
 			List<List<Integer>> samplePathRuns = new ArrayList<>(rep);
 			
@@ -87,6 +85,13 @@ public class simulationRuns
 					+" time step for each run on the \""+g.getNetworkName()+"\" network...");
 			dictModelNetworkT0RunsFalseNegative.put(new Quintet<>("TN11C", g.getNetworkName(), time0, rep, 0.0), samplePathRuns);
 		}
+	}
+	
+	private int[] getInitialLocationRuns(graph g, SplittableRandom initialLocationGenChoice, int size)
+	{
+		List<Integer> vertices = new ArrayList<>(g.getG().vertexSet());
+		int[] initialLocationRunsIndices = initialLocationGenChoice.ints(size, 0, g.getG().vertexSet().size()).toArray();
+		return Arrays.stream(initialLocationRunsIndices).map(vertices::get).toArray();
 	}
 	
 	/**
