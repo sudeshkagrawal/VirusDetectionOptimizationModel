@@ -23,8 +23,6 @@ public class simulationRuns
 		dictT0Runs = new HashMap<>();
 	}
 	
-	
-	
 	public Map<Pair<Integer, Integer>, List<List<Integer>>> getDictT0Runs()
 	{
 		return dictT0Runs;
@@ -38,6 +36,7 @@ public class simulationRuns
 	 * @param t0_runs array of a pair of (t0, runs), where t0 is simulation time, and runs is number of repetitions of simulation
 	 * @param seed an array of length 2; the first seed is for the initial random location of the virus,
 	 *             and the second is for random choice of neighbor while spreading
+	 * @throws Exception exception thrown if length of seed[] is not 2
 	 */
 	public void simulateTN11CRuns(graph g, List<Pair<Integer, Integer>> t0_runs, int[] seed) throws Exception
 	{
@@ -79,7 +78,7 @@ public class simulationRuns
 				for (int t=1; t<=time0; t++)
 				{
 					//System.out.println("\t\t Time: "+t);
-					currentInfected = getRandomInfectedNeighbor(g, neighborGenChoice, infected, currentInfected);
+					currentInfected = getRandomInfectedNeighbor(g, neighborGenChoice, currentInfected);
 					infected.add(currentInfected);
 					//System.out.println("\t\t Current infected node: "+currentInfected);
 				}
@@ -91,7 +90,14 @@ public class simulationRuns
 		}
 	}
 	
-	private int getRandomInfectedNeighbor(graph g, SplittableRandom neighborGenChoice, List<Integer> infected, int currentInfected)
+	/**
+	 * Chooses a neighbor uniformly at random to infect.
+	 * @param g network graph
+	 * @param neighborGenChoice an instance of SplittableRandom
+	 * @param currentInfected the current infected node  (one of its neighboring vertex is randomly infected)
+	 * @return returns the vertex that is infected
+	 */
+	private int getRandomInfectedNeighbor(graph g, SplittableRandom neighborGenChoice, int currentInfected)
 	{
 		List<Integer> currentNeighbors = Graphs.neighborListOf(g.getG(), currentInfected);
 		int rnd = neighborGenChoice.nextInt(currentNeighbors.size());
@@ -99,6 +105,31 @@ public class simulationRuns
 		return currentInfected;
 	}
 	
+	/**
+	 *
+	 * @param g network graph
+	 * @param t0_runs array of a pair of (t0, runs), where t0 is simulation time, and runs is number of repetitions of simulation
+	 * @param seed an array of length 2; the first seed is for the initial random location of the virus,
+	 *              and the second is for random choice of neighbor while spreading
+	 * @throws Exception exception thrown if length of seed[] is not 2
+	 */
+	public void simulateOnlyNecessaryTN11CRuns(graph g, List<Pair<Integer, Integer>> t0_runs, int[] seed) throws Exception
+	{
+		List<Pair<Integer, Integer>> new_t0_runs = new ArrayList<>();
+		for (Pair<Integer, Integer> time0_run : t0_runs)
+			if (!dictT0Runs.containsKey(time0_run))
+				new_t0_runs.add(time0_run);
+		if (new_t0_runs.size() > 0)
+		{
+			System.out.println("Running more simulations for: "+new_t0_runs.toString());
+			simulateTN11CRuns(g, new_t0_runs, seed);
+		}
+	}
+	
+	/**
+	 * Serializes dictT0Runs
+	 * @param serialFilename path of the file where the serialized object is to be stored
+	 */
 	public void serializeSimulationRuns(String serialFilename)
 	{
 		try
