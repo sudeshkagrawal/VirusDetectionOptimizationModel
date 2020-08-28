@@ -4,6 +4,10 @@ import network.graph;
 import org.javatuples.Pair;
 import org.jgrapht.Graphs;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
 public class simulationRuns
@@ -93,6 +97,37 @@ public class simulationRuns
 		int rnd = neighborGenChoice.nextInt(currentNeighbors.size());
 		currentInfected = currentNeighbors.get(rnd);
 		return currentInfected;
+	}
+	
+	public void serializeSimulationRuns(String serialFilename)
+	{
+		try
+		{
+			FileOutputStream fout = new FileOutputStream(serialFilename);
+			BufferedOutputStream bout = new BufferedOutputStream(fout);
+			ObjectOutputStream objout = new ObjectOutputStream(bout);
+			objout.writeObject(dictT0Runs);
+			objout.close();
+			bout.close();
+			fout.close();
+			System.out.println("Simulation results serialized at \""+ serialFilename +"\".");
+		}
+		catch (IOException e1)
+		{
+			System.out.println("Input-Output Exception:");
+			e1.printStackTrace();
+			System.out.print("Writing of serial file to disk failed!");
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
+		catch (Exception e2)
+		{
+			System.out.println("An exception occurred:");
+			e2.printStackTrace();
+			System.out.print("Writing of serial file to disk failed!");
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
 	}
 	
 	/**
