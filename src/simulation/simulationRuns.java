@@ -4,10 +4,7 @@ import network.graph;
 import org.javatuples.Pair;
 import org.jgrapht.Graphs;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.*;
 
 public class simulationRuns
@@ -123,6 +120,37 @@ public class simulationRuns
 		{
 			System.out.println("Running more simulations for: "+new_t0_runs.toString());
 			simulateTN11CRuns(g, new_t0_runs, seed);
+		}
+	}
+	
+	/**
+	 * Loads any simulation runs from serialized object in file.
+	 * @param serialFilename path of the file where the serialized object is stored
+	 */
+	public void loadTN11CRunsFromFile(String serialFilename)
+	{
+		try
+		{
+			FileInputStream fin = new FileInputStream(serialFilename);
+			BufferedInputStream bin = new BufferedInputStream(fin);
+			ObjectInputStream objin = new ObjectInputStream(bin);
+			dictT0Runs = (Map) objin.readObject();
+			objin.close();
+			bin.close();
+			fin.close();
+			System.out.println("Using simulation results in \""+serialFilename+"\".");
+		}
+		catch (FileNotFoundException e1)
+		{
+			System.out.println("Error, file not found!");
+			System.out.println(e1.getMessage());
+		}
+		catch (Exception e2)
+		{
+			System.out.println("An exception occurred:");
+			e2.printStackTrace();
+			System.out.println("Exiting the program...");
+			System.exit(0);
 		}
 	}
 	
