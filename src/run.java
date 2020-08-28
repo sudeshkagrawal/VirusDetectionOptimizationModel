@@ -17,23 +17,21 @@ public class run
 		
 		int[] runs = {5, 10, 15};
 		int[] t_0 = {3, 4};
-		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
 		int[] seed = {2507, 2101};
 		boolean doNotUseSerialFile = false;
+		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
 		String folder = "./out/production/VirusDetectionOptimizationModel/";
 		String serialFilename = folder +network.getNetworkName()+"_simulationresults_fixedt0.ser";
 		simulationRuns simulationResults = new simulationRuns();
 		if (doNotUseSerialFile)
-		{
 			simulationResults.simulateTN11CRuns(network, t0_runs, seed);
-		}
 		else
 		{
 			simulationResults.loadTN11CRunsFromFile(serialFilename);
 			// Check we have runs for all t0_runs
 			simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, seed);
 		}
-		System.out.println(simulationResults.getDictT0Runs().toString());
+		System.out.println(simulationResults.getDictModelNetworkT0RunsFalseNegative().toString());
 		simulationResults.serializeSimulationRuns(serialFilename);
 	}
 	

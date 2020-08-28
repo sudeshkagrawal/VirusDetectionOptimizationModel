@@ -2,6 +2,7 @@ package simulation;
 
 import network.graph;
 import org.javatuples.Pair;
+import org.javatuples.Quintet;
 import org.jgrapht.Graphs;
 
 import java.io.*;
@@ -9,20 +10,21 @@ import java.util.*;
 
 public class simulationRuns
 {
-	Map<Pair<Integer, Integer>, List<List<Integer>>> dictT0Runs;
+	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability
+	Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> dictModelNetworkT0RunsFalseNegative;
 	
-	public simulationRuns(Map<Pair<Integer, Integer>, List<List<Integer>>> dictT0Runs)
+	public simulationRuns(Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> dictModelNetworkT0RunsFalseNegative)
 	{
-		this.dictT0Runs = dictT0Runs;
+		this.dictModelNetworkT0RunsFalseNegative = dictModelNetworkT0RunsFalseNegative;
 	}
 	public simulationRuns()
 	{
-		dictT0Runs = new HashMap<>();
+		dictModelNetworkT0RunsFalseNegative = new HashMap<>();
 	}
 	
-	public Map<Pair<Integer, Integer>, List<List<Integer>>> getDictT0Runs()
+	public Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> getDictModelNetworkT0RunsFalseNegative()
 	{
-		return dictT0Runs;
+		return dictModelNetworkT0RunsFalseNegative;
 	}
 	
 	/**
@@ -83,7 +85,7 @@ public class simulationRuns
 			}
 			System.out.println("Ending "+rep+" runs of simulating TN11C spread upto "+time0
 					+" time step for each run on the \""+g.getNetworkName()+"\" network...");
-			dictT0Runs.put(new Pair<>(time0, rep), samplePathRuns);
+			dictModelNetworkT0RunsFalseNegative.put(new Quintet<>("TN11C", g.getNetworkName(), time0, rep, 0.0), samplePathRuns);
 		}
 	}
 	
@@ -114,8 +116,12 @@ public class simulationRuns
 	{
 		List<Pair<Integer, Integer>> new_t0_runs = new ArrayList<>();
 		for (Pair<Integer, Integer> time0_run : t0_runs)
-			if (!dictT0Runs.containsKey(time0_run))
+		{
+			Quintet<String, String, Integer, Integer, Double> newKey;
+			newKey = new Quintet<>("TN11C", g.getNetworkName(), time0_run.getValue0(), time0_run.getValue1(), 0.0);
+			if (!dictModelNetworkT0RunsFalseNegative.containsKey(newKey))
 				new_t0_runs.add(time0_run);
+		}
 		if (new_t0_runs.size() > 0)
 		{
 			System.out.println("Running more simulations for: "+new_t0_runs.toString());
@@ -134,11 +140,12 @@ public class simulationRuns
 			FileInputStream fin = new FileInputStream(serialFilename);
 			BufferedInputStream bin = new BufferedInputStream(fin);
 			ObjectInputStream objin = new ObjectInputStream(bin);
-			dictT0Runs = (Map) objin.readObject();
+			dictModelNetworkT0RunsFalseNegative = (Map) objin.readObject();
 			objin.close();
 			bin.close();
 			fin.close();
 			System.out.println("Using simulation results in \""+serialFilename+"\".");
+			// dictModelNetworkT0RunsFalseNegative.entrySet().stream().forEach(System.out::println);
 		}
 		catch (FileNotFoundException e1)
 		{
@@ -155,7 +162,7 @@ public class simulationRuns
 	}
 	
 	/**
-	 * Serializes dictT0Runs
+	 * Serializes dictModelNetworkT0RunsFalseNegative
 	 * @param serialFilename path of the file where the serialized object is to be stored
 	 */
 	public void serializeSimulationRuns(String serialFilename)
@@ -165,7 +172,7 @@ public class simulationRuns
 			FileOutputStream fout = new FileOutputStream(serialFilename);
 			BufferedOutputStream bout = new BufferedOutputStream(fout);
 			ObjectOutputStream objout = new ObjectOutputStream(bout);
-			objout.writeObject(dictT0Runs);
+			objout.writeObject(dictModelNetworkT0RunsFalseNegative);
 			objout.close();
 			bout.close();
 			fout.close();
