@@ -123,7 +123,7 @@ public class graph
 	}
 	
 	/**
-	 * Getter method for g.
+	 * Getter for g.
 	 * @return returns the graph
 	 */
 	public Graph<Integer, DefaultEdge> getG()
@@ -132,12 +132,21 @@ public class graph
 	}
 	
 	/**
-	 * Getter method for networkName.
+	 * Getter for networkName.
 	 * @return returns the network name as String
 	 */
 	public String getNetworkName()
 	{
 		return networkName;
+	}
+	
+	/**
+	 * Setter for networkName.
+	 * @param networkName network name as String
+	 */
+	public void setNetworkName(String networkName)
+	{
+		this.networkName = networkName;
 	}
 	
 	/**
@@ -175,7 +184,7 @@ public class graph
 	@Override
 	public String toString()
 	{
-		return "graph:g<"+g.vertexSet()+", "+g.edgeSet()+">";
+		return networkName+":g<"+g.vertexSet()+", "+g.edgeSet()+">";
 	}
 	
 }
