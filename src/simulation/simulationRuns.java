@@ -11,20 +11,20 @@ import java.util.*;
 public class simulationRuns
 {
 	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability
-	Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> dictModelNetworkT0RunsFalseNegative;
+	Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> mapModelNetworkT0RunsFalseNegativeToSimulationRuns;
 	
-	public simulationRuns(Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> dictModelNetworkT0RunsFalseNegative)
+	public simulationRuns(Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> mapModelNetworkT0RunsFalseNegativeToSimulationRuns)
 	{
-		this.dictModelNetworkT0RunsFalseNegative = dictModelNetworkT0RunsFalseNegative;
+		this.mapModelNetworkT0RunsFalseNegativeToSimulationRuns = mapModelNetworkT0RunsFalseNegativeToSimulationRuns;
 	}
 	public simulationRuns()
 	{
-		dictModelNetworkT0RunsFalseNegative = new HashMap<>();
+		mapModelNetworkT0RunsFalseNegativeToSimulationRuns = new HashMap<>();
 	}
 	
-	public Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> getDictModelNetworkT0RunsFalseNegative()
+	public Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>> getMapModelNetworkT0RunsFalseNegativeToSimulationRuns()
 	{
-		return dictModelNetworkT0RunsFalseNegative;
+		return mapModelNetworkT0RunsFalseNegativeToSimulationRuns;
 	}
 	
 	/**
@@ -83,7 +83,7 @@ public class simulationRuns
 			}
 			System.out.println("Ending "+rep+" runs of simulating TN11C spread upto "+time0
 					+" time step for each run on the \""+g.getNetworkName()+"\" network...");
-			dictModelNetworkT0RunsFalseNegative.put(new Quintet<>("TN11C", g.getNetworkName(), time0, rep, 0.0), samplePathRuns);
+			mapModelNetworkT0RunsFalseNegativeToSimulationRuns.put(new Quintet<>("TN11C", g.getNetworkName(), time0, rep, 0.0), samplePathRuns);
 		}
 	}
 	
@@ -117,21 +117,24 @@ public class simulationRuns
 	 *              and the second is for random choice of neighbor while spreading
 	 * @throws Exception exception thrown if length of seed[] is not 2
 	 */
-	public void simulateOnlyNecessaryTN11CRuns(graph g, List<Pair<Integer, Integer>> t0_runs, int[] seed) throws Exception
+	public boolean simulateOnlyNecessaryTN11CRuns(graph g, List<Pair<Integer, Integer>> t0_runs, int[] seed) throws Exception
 	{
+		boolean ranNewSimulations = false;
 		List<Pair<Integer, Integer>> new_t0_runs = new ArrayList<>();
 		for (Pair<Integer, Integer> time0_run : t0_runs)
 		{
 			Quintet<String, String, Integer, Integer, Double> newKey;
 			newKey = new Quintet<>("TN11C", g.getNetworkName(), time0_run.getValue0(), time0_run.getValue1(), 0.0);
-			if (!dictModelNetworkT0RunsFalseNegative.containsKey(newKey))
+			if (!mapModelNetworkT0RunsFalseNegativeToSimulationRuns.containsKey(newKey))
 				new_t0_runs.add(time0_run);
 		}
 		if (new_t0_runs.size() > 0)
 		{
 			System.out.println("Running more simulations for: "+new_t0_runs.toString());
 			simulateTN11CRuns(g, new_t0_runs, seed);
+			ranNewSimulations = true;
 		}
+		return ranNewSimulations;
 	}
 	
 	/**
@@ -145,12 +148,12 @@ public class simulationRuns
 			FileInputStream fin = new FileInputStream(serialFilename);
 			BufferedInputStream bin = new BufferedInputStream(fin);
 			ObjectInputStream objin = new ObjectInputStream(bin);
-			dictModelNetworkT0RunsFalseNegative = (Map) objin.readObject();
+			mapModelNetworkT0RunsFalseNegativeToSimulationRuns = (Map) objin.readObject();
 			objin.close();
 			bin.close();
 			fin.close();
 			System.out.println("Using simulation results in \""+serialFilename+"\".");
-			// dictModelNetworkT0RunsFalseNegative.entrySet().stream().forEach(System.out::println);
+			// mapModelNetworkT0RunsFalseNegativeToSimulationRuns.entrySet().stream().forEach(System.out::println);
 		}
 		catch (FileNotFoundException e1)
 		{
@@ -167,17 +170,17 @@ public class simulationRuns
 	}
 	
 	/**
-	 * Serializes dictModelNetworkT0RunsFalseNegative
+	 * Serializes mapModelNetworkT0RunsFalseNegativeToSimulationRuns
 	 * @param serialFilename path of the file where the serialized object is to be stored
 	 */
-	public void serializeSimulationRuns(String serialFilename)
+	public void serializeTN11CRuns(String serialFilename)
 	{
 		try
 		{
 			FileOutputStream fout = new FileOutputStream(serialFilename);
 			BufferedOutputStream bout = new BufferedOutputStream(fout);
 			ObjectOutputStream objout = new ObjectOutputStream(bout);
-			objout.writeObject(dictModelNetworkT0RunsFalseNegative);
+			objout.writeObject(mapModelNetworkT0RunsFalseNegativeToSimulationRuns);
 			objout.close();
 			bout.close();
 			fout.close();

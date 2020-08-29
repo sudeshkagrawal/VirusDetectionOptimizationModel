@@ -11,30 +11,32 @@ public class run
 {
 	public static void main(String[] args) throws Exception
 	{
-		String networkName = "EUemailcomm_1-core";
+		String networkName = "EUemailcomm_6-core";
 		graph network = new graph(networkName);
 		network.buildGraphFromFile("./files/networks/"+networkName+".txt");
 		// System.out.println(network.toString());
 		
 		
-		 int[] runs = {1000, 5000, 10000, 30000, 50000};
-		int[] t_0 = {3, 4};
+		int[] runs = {1000, 5000, 10000, 30000, 50000};
+		int[] t_0 = {3, 4, 5};
 		int[] seed = {2507, 2101};
 		boolean doNotUseSerialFile = false;
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
 		String folder = "./out/production/VirusDetectionOptimizationModel/";
 		String serialFilename = folder +network.getNetworkName()+"_simulationresults_fixedt0.ser";
 		simulationRuns simulationResults = new simulationRuns();
+		boolean ranNewSimulations = true;
 		if (doNotUseSerialFile)
 			simulationResults.simulateTN11CRuns(network, t0_runs, seed);
 		else
 		{
 			simulationResults.loadTN11CRunsFromFile(serialFilename);
 			// Check we have runs for all t0_runs
-			simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, seed);
+			ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, seed);
 		}
-		// System.out.println(simulationResults.getDictModelNetworkT0RunsFalseNegative().toString());
-		simulationResults.serializeSimulationRuns(serialFilename);
+		// System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().toString());
+		if (ranNewSimulations)
+			simulationResults.serializeTN11CRuns(serialFilename);
 	}
 	
 	private static List<Pair<Integer, Integer>> getTimeRunPair(int[] runs, int[] t_0)
