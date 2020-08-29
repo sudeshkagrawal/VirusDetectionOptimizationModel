@@ -17,9 +17,11 @@ public class run
 		// System.out.println(network.toString());
 		
 		
-		int[] runs = {1000, 5000, 10000, 30000, 50000};
-		int[] t_0 = {3, 4, 5};
-		int[] seed = {2507, 2101};
+		//int[] runs = {1000, 5000, 10000, 30000, 50000};
+		int[] runs = {10};
+		int[] t_0 = {3, 4};
+		double r = 0.5;
+		int[] seed = {2507, 2101, 3567};
 		boolean doNotUseSerialFile = false;
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
 		String folder = "./out/production/VirusDetectionOptimizationModel/";
@@ -27,16 +29,17 @@ public class run
 		simulationRuns simulationResults = new simulationRuns();
 		boolean ranNewSimulations = true;
 		if (doNotUseSerialFile)
-			simulationResults.simulateTN11CRuns(network, t0_runs, seed);
+			simulationResults.simulateTN11CRuns(network, t0_runs, r, seed);
 		else
 		{
 			simulationResults.loadTN11CRunsFromFile(serialFilename);
 			// Check we have runs for all t0_runs
-			ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, seed);
+			ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, r, seed);
 		}
 		// System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().toString());
 		if (ranNewSimulations)
 			simulationResults.serializeTN11CRuns(serialFilename);
+		// System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().toString());
 	}
 	
 	private static List<Pair<Integer, Integer>> getTimeRunPair(int[] runs, int[] t_0)

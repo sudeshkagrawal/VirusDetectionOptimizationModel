@@ -13,8 +13,8 @@ import java.util.Scanner;
 import java.util.function.Supplier;
 
 /**
- * @author Sudesh Agrawal
- * Last Updated: Aug 26, 2020
+ * @author Sudesh Agrawal (sudesh@utexas.edu)
+ * Last Updated: Aug 29, 2020
  */
 public class graph
 {
@@ -30,7 +30,7 @@ public class graph
 	/**
 	 * Initialize an empty graph g with a complete graph of given size.
 	 * @param size number of vertices (nodes) in the complete graph
-	 * @throws Exception exception thrown if vertex set of g is not empty
+	 * @throws Exception exception thrown if vertex set of {@code g} is not empty
 	 */
 	public void initializeCompleteGraph(int size) throws Exception
 	{
@@ -55,12 +55,12 @@ public class graph
 	}
 	
 	/**
-	 * Initialize an empty graph g with a circulant graph of given size.
-	 * A circulant graph is a graph of n (=size) vertices in which the i-th vertex is adjacent to the (i+j)-th and the (i-j)-th vertices for each j in the array offsets.
+	 * Initialize an empty graph {@code g} with a circulant graph of given size.
+	 * A circulant graph is a graph of n (={@code size}) vertices in which the i-th vertex is adjacent to the (i+j)-th and the (i-j)-th vertices for each j in the array offsets.
 	 *
 	 * @param size number of vertices (nodes) in the circulant graph
 	 * @param offsets defines the list of all distances in any edge
-	 * @throws Exception exception thrown if vertex set of g is not empty
+	 * @throws Exception exception thrown if vertex set of {@code g} is not empty
 	 */
 	public void initializeCirculantGraph(int size, int[] offsets) throws Exception
 	{
@@ -85,7 +85,7 @@ public class graph
 	 * Build network from a text file.
 	 * Each line in the text file is an edge, where the vertices are separated by commas.
 	 * @param filename path to file to be read
-	 * @throws Exception exception thrown if vertex set of g is not empty
+	 * @throws Exception exception thrown if vertex set of {@code g} is not empty
 	 */
 	public void buildGraphFromFile(String filename) throws Exception
 	{
@@ -123,7 +123,7 @@ public class graph
 	}
 	
 	/**
-	 * Getter for g.
+	 * Getter for {@code g}.
 	 * @return returns the graph
 	 */
 	public Graph<Integer, DefaultEdge> getG()
@@ -132,7 +132,7 @@ public class graph
 	}
 	
 	/**
-	 * Getter for networkName.
+	 * Getter for {@code networkName}.
 	 * @return returns the network name as String
 	 */
 	public String getNetworkName()
@@ -141,7 +141,7 @@ public class graph
 	}
 	
 	/**
-	 * Setter for networkName.
+	 * Setter for {@code networkName}.
 	 * @param networkName network name as String
 	 */
 	public void setNetworkName(String networkName)
@@ -150,7 +150,7 @@ public class graph
 	}
 	
 	/**
-	 * Adds a vertex to the @NursingHome
+	 * Adds a vertex to the {}@code NursingHome}.
 	 * @param v vertex (node) to be added to the network
 	 */
 	private void addVertex(Integer v)
