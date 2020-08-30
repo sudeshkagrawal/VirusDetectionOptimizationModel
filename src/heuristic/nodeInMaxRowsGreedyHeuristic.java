@@ -176,16 +176,15 @@ public class nodeInMaxRowsGreedyHeuristic
 		return output;
 	}
 	
-	private int findMaxRowFrequencyNode(List<List<Integer>> arr, List<Integer> nodes)
+	private int findMaxRowFrequencyNodeOld(List<List<Integer>> arr, List<Integer> nodes)
 	{
 		int maxNode = nodes.get(0);
 		int maxNodeFrequency = 0;
-		for (int k = 0, nodesSize = nodes.size(); k < nodesSize; k++)
+		for (Integer node : nodes)
 		{
-			Integer node = nodes.get(k);
 			int count;
 			int currentNode = node;
-			count = (int) IntStream.range(0, arr.size())
+			count = (int) IntStream.range(0, arr.size()).parallel()
 					.filter(i -> IntStream.range(0, arr.get(i).size()).anyMatch(j -> arr.get(i).get(j) == currentNode)).count();
 			if (count > maxNodeFrequency)
 			{
@@ -194,6 +193,16 @@ public class nodeInMaxRowsGreedyHeuristic
 			}
 		}
 		return maxNode;
+	}
+	
+	private int findMaxRowFrequencyNode(List<List<Integer>> arr, List<Integer> nodes)
+	{
+		Map<Integer, Integer> rowCount = nodes.stream().collect(Collectors.toMap(node -> node, node -> 0, (a, b) -> b, () -> new HashMap<>(nodes.size())));
+		for (List<Integer> row : arr)
+			for (int key : row)
+				if (rowCount.containsKey(key))
+					rowCount.put(key, rowCount.get(key) + 1);
+		return rowCount.entrySet().stream().max((e1, e2) -> e1.getValue()-e2.getValue()).get().getKey();
 	}
 	
 	private List<Integer> findRowOccurrenceIndices(List<List<Integer>> arr, int node)
