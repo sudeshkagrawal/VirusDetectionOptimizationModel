@@ -16,7 +16,7 @@ import java.util.stream.IntStream;
 
 /**
  * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: Aug 30, 2020.
+ * Last Updated: Aug 31, 2020.
  * Class for heuristics.
  */
 public class nodeInMaxRowsGreedyHeuristic
@@ -59,15 +59,17 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * Solves the sample-average approximation model using a greedy heuristic.
 	 * See model 4.6 in Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
-	 * @param modelName Name of virus spread model (TN11C, RAEPC, etc.)
+	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
 	 * @param g network graph
 	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
 	 * @param k_t0_runs list of a 3-tuple of (k, t0, runs),
-	 *                  where k is number of honeypots, t0 is simulation time, and runs is number of repetitions of simulation
+	 *                  where k is number of honeypots, t0 is simulation time,
+	 *                  and runs is number of repetitions of simulation
 	 * @param r false negative probability.
 	 * @throws Exception exception thrown in node labels are negative integers.
 	 */
-	public void runSAAUsingHeuristic(String modelName, graph g, simulationRuns simulationResults, List<Triple<Integer, Integer, Integer>> k_t0_runs, double r) throws Exception
+	public void runSAAUsingHeuristic(String modelName, graph g, simulationRuns simulationResults,
+	                                 List<Triple<Integer, Integer, Integer>> k_t0_runs, double r) throws Exception
 	{
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
@@ -89,10 +91,13 @@ public class nodeInMaxRowsGreedyHeuristic
 			int k = v.getFirst();
 			int t_0 = v.getSecond();
 			int run = v.getThird();
-			Quintet<String, String, Integer, Integer, Double> key = new Quintet<>(modelName, g.getNetworkName(), t_0, run, r);
-			Sextet<String, String, Integer, Integer, Double, Integer> fullKey = new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, k);
+			Quintet<String, String, Integer, Integer, Double> key =
+														new Quintet<>(modelName, g.getNetworkName(), t_0, run, r);
+			Sextet<String, String, Integer, Integer, Double, Integer> fullKey =
+														new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, k);
 			
-			System.out.println("Using greedy heuristic (false negative prob = "+r+") for "+k+" honeypots and "+run+" samples...");
+			System.out.println("Using greedy heuristic (false negative prob = "+r+") for "
+								+k+" honeypots and "+run+" samples...");
 			List<List<Integer>> virusSpreadSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
@@ -104,18 +109,21 @@ public class nodeInMaxRowsGreedyHeuristic
 			{
 				if (zeroNode)
 				{
-					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream().map(virusSpreadSample -> virusSpreadSample.stream()
-																.map(integer -> integer + 1)
-																.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
-																.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
-					successfulDetectMatrix = elementwiseMultiplyMatrix(Collections.unmodifiableList(newVirusSpreadSamples),
-																		Collections.unmodifiableList(virtualDetectionSamples));
+					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
+								.map(virusSpreadSample -> virusSpreadSample.stream()
+								.map(integer -> integer + 1)
+								.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
+								.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
+					successfulDetectMatrix = elementwiseMultiplyMatrix(
+							Collections.unmodifiableList(newVirusSpreadSamples),
+							Collections.unmodifiableList(virtualDetectionSamples));
 					candidates = g.getG().vertexSet().stream().map(e -> e+1).collect(Collectors.toSet());
 				}
 				else
 				{
-					successfulDetectMatrix = elementwiseMultiplyMatrix(Collections.unmodifiableList(virusSpreadSamples),
-																		Collections.unmodifiableList(virtualDetectionSamples));
+					successfulDetectMatrix = elementwiseMultiplyMatrix(
+												Collections.unmodifiableList(virusSpreadSamples),
+												Collections.unmodifiableList(virtualDetectionSamples));
 					candidates = new HashSet<>(g.getG().vertexSet());
 				}
 			}
@@ -137,13 +145,16 @@ public class nodeInMaxRowsGreedyHeuristic
 			while (numberOfHoneypotsFound<k)
 			{
 				List<List<Integer>> samplesToBeConsidered = IntStream.range(0, successfulDetectMatrix.size())
-						.filter(indicesOfSamplesToBeConsidered::contains).mapToObj(successfulDetectMatrix::get).collect(Collectors.toList());
-				int currentCandidate = findMaxRowFrequencyNode(Collections.unmodifiableList(samplesToBeConsidered), List.copyOf(candidates));
+						.filter(indicesOfSamplesToBeConsidered::contains)
+						.mapToObj(successfulDetectMatrix::get).collect(Collectors.toList());
+				int currentCandidate = findMaxRowFrequencyNode(Collections.unmodifiableList(samplesToBeConsidered),
+										List.copyOf(candidates));
 				// System.out.println("Current candidate: "+currentCandidate);
 				honeypots.add(currentCandidate);
 				numberOfHoneypotsFound++;
 				candidates.remove(currentCandidate);
-				indicesOfSamplesToBeRemoved = new HashSet<>(findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix), currentCandidate));
+				indicesOfSamplesToBeRemoved = new HashSet<>(
+						findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix), currentCandidate));
 				indicesOfSamplesToBeConsidered.removeAll(indicesOfSamplesToBeRemoved);
 			}
 			Instant toc = Instant.now();
@@ -153,12 +164,12 @@ public class nodeInMaxRowsGreedyHeuristic
 			indicesOfSamplesCovered.removeAll(indicesOfSamplesToBeConsidered);
 			double objectiveValue = indicesOfSamplesCovered.size()*1.0/run;
 			System.out.println("Objective value = "+objectiveValue);
-			double wallTimeinSeconds = 1.0*Duration.between(tic, toc).toMillis()/1000;
-			System.out.println("Wall time (second) = "+wallTimeinSeconds);
+			double wallTimeInSeconds = 1.0*Duration.between(tic, toc).toMillis()/1000;
+			System.out.println("Wall time (second) = "+ wallTimeInSeconds);
 			
 			mapToObjectiveValue.put(fullKey, objectiveValue);
 			mapToHoneypots.put(fullKey, honeypots);
-			mapToWallTime.put(fullKey, wallTimeinSeconds);
+			mapToWallTime.put(fullKey, wallTimeInSeconds);
 		}
 	}
 	
@@ -168,7 +179,8 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * @param b the second list of lists.
 	 * @return returns a list of lists.
 	 * @throws Exception exception thrown if outer lists {@code a} and {@code b} not of same size.
-	 *          Corresponding inner lists should also be of same size, but that exception is not thrown since the check would be expensive.
+	 *          Corresponding inner lists should also be of same size,
+	 *          but that exception is not thrown since the check would be expensive.
 	 */
 	private List<List<Integer>> elementwiseMultiplyMatrix(List<List<Integer>> a, List<List<Integer>> b) throws Exception
 	{
@@ -201,7 +213,8 @@ public class nodeInMaxRowsGreedyHeuristic
 			int count;
 			int currentNode = node;
 			count = (int) IntStream.range(0, arr.size()).parallel()
-					.filter(i -> IntStream.range(0, arr.get(i).size()).anyMatch(j -> arr.get(i).get(j) == currentNode)).count();
+					.filter(i -> IntStream.range(0, arr.get(i).size())
+							.anyMatch(j -> arr.get(i).get(j) == currentNode)).count();
 			if (count > maxNodeFrequency)
 			{
 				maxNode = currentNode;
@@ -219,12 +232,14 @@ public class nodeInMaxRowsGreedyHeuristic
 	 */
 	private int findMaxRowFrequencyNode(List<List<Integer>> arr, List<Integer> nodes)
 	{
-		Map<Integer, Integer> rowCount = nodes.stream().collect(Collectors.toMap(node -> node, node -> 0, (a, b) -> b, () -> new HashMap<>(nodes.size())));
+		Map<Integer, Integer> rowCount = nodes.stream().collect(Collectors
+							.toMap(node -> node, node -> 0, (a, b) -> b, () -> new HashMap<>(nodes.size())));
 		for (List<Integer> row : arr)
 			for (int key : row)
 				if (rowCount.containsKey(key))
 					rowCount.put(key, rowCount.get(key) + 1);
-		return Objects.requireNonNull(rowCount.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).orElse(null)).getKey();
+		return Objects.requireNonNull(rowCount.entrySet()
+				.stream().max(Comparator.comparingInt(Map.Entry::getValue)).orElse(null)).getKey();
 	}
 	
 	/**
@@ -236,7 +251,8 @@ public class nodeInMaxRowsGreedyHeuristic
 	private List<Integer> findRowOccurrenceIndices(List<List<Integer>> arr, int node)
 	{
 		return IntStream.range(0, arr.size())
-				.filter(i -> IntStream.range(0, arr.get(i).size()).anyMatch(j -> arr.get(i).get(j) == node)).boxed().collect(Collectors.toList());
+				.filter(i -> IntStream.range(0, arr.get(i).size())
+						.anyMatch(j -> arr.get(i).get(j) == node)).boxed().collect(Collectors.toList());
 	}
 	
 	/**
@@ -313,16 +329,18 @@ public class nodeInMaxRowsGreedyHeuristic
 	
 	/**
 	 * Writes heuristic results to csv file.
-	 * @param filename output filename
+	 *
+	 * @param filename path to output file
 	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @throws IOException exception thrown if error in input-output operation.
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
 	{
 		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
 		if (!append)
 		{
-			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability", "no. of honeypots",
-					"objective value", "honeypots", "Wall time (s)", "UTC"};
+			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
+								"no. of honeypots", "objective value", "honeypots", "Wall time (s)", "UTC"};
 			writer.writeNext(header);
 			writer.flush();
 		}
@@ -343,12 +361,12 @@ public class nodeInMaxRowsGreedyHeuristic
 		}
 		writer.flush();
 		writer.close();
-		System.out.println("Results successfully written to \""+filename+"\".");
+		System.out.println("Heuristic results successfully written to \""+filename+"\".");
 	}
 	
 	/**
 	 * Overrides {@code toString()}.
-	 * @return returns string representation of class.
+	 * @return returns string representation of values in class.
 	 */
 	@Override
 	public String toString()

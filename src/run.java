@@ -20,11 +20,11 @@ public class run
 		// System.out.println(network.toString());
 		
 		//int[] runs = {1000, 5000, 10000, 30000, 50000};
-		int[] runs = {50000};
+		int[] runs = {100};
 		int[] t_0 = {4};
 		double r = 0.1;
 		int[] seed = {2507, 2101, 3567};
-		boolean doNotUseSerialFile = false;
+		boolean doNotUseSerialFile = true;
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
 		String folder = "./out/production/VirusDetectionOptimizationModel/";
 		String serialFilename = folder + network.getNetworkName()+"_simulationresults_fixedt0.ser";
@@ -38,13 +38,14 @@ public class run
 			// Check we have runs for all t0_runs
 			ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, r, seed);
 		}
-		// System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().toString());
+		//System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().toString());
+		//System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().toString());
 		if (ranNewSimulations)
 			simulationResults.serializeTN11CRuns(serialFilename);
-		// System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().toString());
+		
 
 		// int[] k = {100, 200, 250};
-		int[] k = {100};
+		int[] k = {10};
 		String modelName = "TN11C";
 		List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
 		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
@@ -56,9 +57,14 @@ public class run
 		
 		
 		String logFilename = folder + "mip.log";
+		String mipFormulationFilename = folder + "TN11C_mip.lp";
+		String mipOutputFilename = folder + "mip_results.csv";
+		int threads = 16;
+		append = false;
 		gurobiSolver mipResults = new gurobiSolver();
-		mipResults.solveSAA("TN11C", network, simulationResults, k_t0_runs, r, logFilename);
-		System.out.println(mipResults.toString());
+		mipResults.solveSAA("TN11C", network, simulationResults, k_t0_runs, r, threads, logFilename);
+		//System.out.println(mipResults.toString());
+		mipResults.writeToCSV(mipOutputFilename, append);
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)

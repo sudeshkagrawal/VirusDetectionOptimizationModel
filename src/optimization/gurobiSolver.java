@@ -1,5 +1,6 @@
 package optimization;
 
+import com.opencsv.CSVWriter;
 import gurobi.*;
 import network.graph;
 import org.javatuples.Quintet;
@@ -7,10 +8,20 @@ import org.javatuples.Sextet;
 import org.jgrapht.alg.util.Triple;
 import simulation.simulationRuns;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+
+/**
+ * @author Sudesh Agrawal (sudesh@utexas.edu)
+ * Last Updated: Aug 31, 2020.
+ * Class for solving optimization formulation.
+ */
 public class gurobiSolver
 {
 	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability; number of honeypots
@@ -45,17 +56,23 @@ public class gurobiSolver
 	}
 	
 	/**
+	 * Solves the sample-average approximation model.
+	 * Optimization formulation written using Gurobi API.
+	 * See model 4.6 in Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
-	 * @param modelName
-	 * @param g
-	 * @param simulationResults
-	 * @param k_t0_runs
-	 * @param r
-	 * @param logFilename
-	 * @throws Exception
+	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
+	 * @param g network graph
+	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
+	 * @param k_t0_runs list of a 3-tuple of (k, t0, runs),
+	 *                  where k is number of honeypots, t0 is simulation time, and runs is number of repetitions of simulation
+	 * @param r false negative probability
+	 * @param threads number of threads solver should use
+	 * @param logFilename file path to log file; logs from solver written here.
+	 * @throws Exception exception thrown in node labels are negative integers.
 	 */
 	public void solveSAA(String modelName, graph g, simulationRuns simulationResults,
-	                     List<Triple<Integer, Integer, Integer>> k_t0_runs, double r, String logFilename) throws Exception
+	                     List<Triple<Integer, Integer, Integer>> k_t0_runs, double r,
+	                     int threads, String logFilename) throws Exception
 	{
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
@@ -75,7 +92,9 @@ public class gurobiSolver
 		// Create empty environment, set options, and start
 		GRBEnv env = new GRBEnv(true);
 		env.set("logFile", logFilename);
-		env.set(GRB.IntParam.valueOf("OutputFlag"), 0);
+		env.set(GRB.IntParam.LogToConsole, 0);
+		// OutputFlag turns on/off both console and log file output
+		// env.set(GRB.IntParam.valueOf("OutputFlag"), 0);
 		env.start();
 		
 		for (Triple<Integer, Integer, Integer> v : k_t0_runs)
@@ -83,10 +102,13 @@ public class gurobiSolver
 			int k = v.getFirst();
 			int t_0 = v.getSecond();
 			int run = v.getThird();
-			Quintet<String, String, Integer, Integer, Double> key = new Quintet<>(modelName, g.getNetworkName(), t_0, run, r);
-			Sextet<String, String, Integer, Integer, Double, Integer> fullKey = new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, k);
+			Quintet<String, String, Integer, Integer, Double> key =
+															new Quintet<>(modelName, g.getNetworkName(), t_0, run, r);
+			Sextet<String, String, Integer, Integer, Double, Integer> fullKey =
+														new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, k);
 			
-			System.out.println("Solving MIP model (false negative prob = "+r+") for "+k+" honeypots and "+run+" samples...");
+			System.out.println("Solving MIP model (false negative prob = "+r+") for "
+								+k+" honeypots and "+run+" samples...");
 			List<List<Integer>> virusSpreadSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
@@ -99,12 +121,14 @@ public class gurobiSolver
 			{
 				if (zeroNode)
 				{
-					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream().map(virusSpreadSample -> virusSpreadSample.stream()
+					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
+							.map(virusSpreadSample -> virusSpreadSample.stream()
 							.map(integer -> integer + 1)
 							.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
 							.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
-					successfulDetectMatrix = elementwiseMultiplyMatrix(Collections.unmodifiableList(newVirusSpreadSamples),
-							Collections.unmodifiableList(virtualDetectionSamples));
+					successfulDetectMatrix = elementwiseMultiplyMatrix(Collections
+											.unmodifiableList(newVirusSpreadSamples),
+											Collections.unmodifiableList(virtualDetectionSamples));
 					candidates = g.getG().vertexSet().stream().map(e -> e+1).collect(Collectors.toSet());
 				}
 				else
@@ -155,7 +179,6 @@ public class gurobiSolver
 				model.addConstr(expr, GRB.GREATER_EQUAL, 0, "Honeypot in sample "+(i+1)+" constraint");
 			}
 			
-			
 			// honeypot budget constraint
 			expr  = new GRBLinExpr();
 			for (int node : candidates)
@@ -166,7 +189,7 @@ public class gurobiSolver
 			
 			// Solve the model
 			double intFeasTol = 1e-9, mipGap = 1e-2, timeLimit=300;
-			int threads = 8, presolve=-1;
+			int presolve=-1;
 			model.set(GRB.DoubleParam.IntFeasTol, intFeasTol);
 			model.set(GRB.DoubleParam.MIPGap, mipGap);
 			model.set(GRB.IntParam.Threads, threads);
@@ -174,12 +197,17 @@ public class gurobiSolver
 			model.set(GRB.IntParam.Presolve, presolve);
 			model.set(GRB.DoubleParam.TimeLimit, timeLimit);
 			
+			// model.write("mip.lp");
+			Instant tic = Instant.now();
 			model.optimize();
+			Instant toc = Instant.now();
+			double timeInSeconds = 1.0* Duration.between(tic, toc).toMillis()/1000;
 			
 			// Display/Return the results
 			mapToObjectiveValue.put(fullKey, model.get(GRB.DoubleAttr.ObjVal));
 			mapToBestUpperBound.put(fullKey, model.get(GRB.DoubleAttr.ObjBound));
 			mapToWallTime.put(fullKey, model.get(GRB.DoubleAttr.Runtime));
+			mapToTime.put(fullKey, timeInSeconds);
 			List<Integer> honeypots = new ArrayList<>();;
 			for (int node : candidates)
 			{
@@ -209,6 +237,52 @@ public class gurobiSolver
 				case 6, 8, 10, 11, 12, 15 -> mapToSolverMessage.put(fullKey, "Others");
 				default -> throw new IllegalStateException("Unexpected value: " + model.get(GRB.IntAttr.Status));
 			}
+			
+			// find average run time over several optimization calls
+			List<Double> wallTimes = new ArrayList<>(5);
+			List<Double> times = new ArrayList<>(5);
+			double currentWallTime = model.get(GRB.DoubleAttr.Runtime);
+			wallTimes.add(currentWallTime);
+			times.add(timeInSeconds);
+			int timerRepeat = 0;
+			if (currentWallTime <= 1)
+			{
+				timerRepeat = 5;
+			}
+			else
+			{
+				if (currentWallTime <= 10)
+					timerRepeat = 3;
+				else
+					timerRepeat = 0;
+			}
+			for (int i=1; i<=timerRepeat; i++)
+			{
+//				// reset the value of variables
+//				for (int node : candidates)
+//				{
+//					x.get(node).set(GRB.DoubleAttr.LB, 0.0);
+//					x.get(node).set(GRB.DoubleAttr.UB, 0.0);
+//				}
+//				for (int j=0; j<run; j++)
+//				{
+//					u.get(j + 1).set(GRB.DoubleAttr.LB, 0.0);
+//					u.get(j + 1).set(GRB.DoubleAttr.UB, 0.0);
+//				}
+				model.reset(0);
+				tic = Instant.now();
+				model.optimize();
+				// System.out.println("Last Objective Value = "+model.get(GRB.DoubleAttr.ObjVal));
+				toc = Instant.now();
+				wallTimes.add(model.get(GRB.DoubleAttr.Runtime));
+				timeInSeconds = 1.0* Duration.between(tic, toc).toMillis()/1000;
+				times.add(timeInSeconds);
+			}
+			//System.out.println("Wall Times (s): "+wallTimes.toString());
+			//System.out.println("Times (s): "+times.toString());
+			mapToWallTime.put(fullKey, wallTimes.stream().mapToDouble(e -> e).average().getAsDouble());
+			mapToTime.put(fullKey, times.stream().mapToDouble(e -> e).average().getAsDouble());
+			
 			model.dispose();
 		}
 		env.dispose();
@@ -220,7 +294,8 @@ public class gurobiSolver
 	 * @param b the second list of lists.
 	 * @return returns a list of lists.
 	 * @throws Exception exception thrown if outer lists {@code a} and {@code b} not of same size.
-	 *          Corresponding inner lists should also be of same size, but that exception is not thrown since the check would be expensive.
+	 *          Corresponding inner lists should also be of same size,
+	 *          but that exception is not thrown since the check would be expensive.
 	 */
 	private List<List<Integer>> elementwiseMultiplyMatrix(List<List<Integer>> a, List<List<Integer>> b) throws Exception
 	{
@@ -237,14 +312,53 @@ public class gurobiSolver
 		return output;
 	}
 	
-//	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToObjectiveValue;
-//	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToBestUpperBound;
-//	Map<Sextet<String, String, Integer, Integer, Double, Integer>, List<Integer>> mapToHoneypots;
-//	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToWallTime;
-//	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToTime;
-//	Map<Sextet<String, String, Integer, Integer, Double, Integer>, String> mapToSolverOptions;
-//	Map<Sextet<String, String, Integer, Integer, Double, Integer>, String> mapToSolverMessage;
+	/**
+	 * Writes MIP results to csv file.
+	 *
+	 * @param filename path to output file
+	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @throws IOException exception thrown if error in input-output operation.
+	 */
+	public void writeToCSV(String filename, boolean append) throws IOException
+	{
+		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
+		if (!append)
+		{
+			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
+								"no. of honeypots", "solver", "solver options", "objective value", "best UB",
+								"solver message", "honeypots", "Wall time (s)", "Time (s)", "UTC"};
+			writer.writeNext(header);
+			writer.flush();
+		}
+		for (Sextet<String, String, Integer, Integer, Double, Integer> key : mapToObjectiveValue.keySet())
+		{
+			String[] line = new String[15];
+			line[0] = key.getValue0();                      // Model (TN11C, RAEPC, etc.)
+			line[1] = key.getValue1();                      // network name
+			line[2] = key.getValue2().toString();           // t_0
+			line[3] = key.getValue3().toString();           // reps
+			line[4] = key.getValue4().toString();           // false negative probs.
+			line[5] = key.getValue5().toString();           // no. of honeypots
+			line[6] = "gurobi";
+			line[7] = mapToSolverOptions.get(key).toString();
+			line[8] = mapToObjectiveValue.get(key).toString();
+			line[9] = mapToBestUpperBound.get(key).toString();
+			line[10] = mapToSolverMessage.get(key);
+			line[11] = mapToHoneypots.get(key).toString();
+			line[12] = mapToWallTime.get(key).toString();
+			line[13] = mapToTime.get(key).toString();
+			line[14] = Instant.now().toString();
+			writer.writeNext(line);
+		}
+		writer.flush();
+		writer.close();
+		System.out.println("MIP results successfully written to \""+filename+"\".");
+	}
 	
+	/**
+	 * Overrides {@code toString()}.
+	 * @return returns string representation of values in class.
+	 */
 	@Override
 	public String toString()
 	{
