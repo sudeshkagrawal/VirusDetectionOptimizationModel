@@ -1,5 +1,6 @@
 package heuristic;
 
+import com.opencsv.CSVWriter;
 import network.graph;
 import org.javatuples.Quintet;
 import org.javatuples.Sextet;
@@ -10,6 +11,7 @@ import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -115,16 +117,16 @@ public class nodeInMaxRowsGreedyHeuristic
 				{
 					successfulDetectMatrix = elementwiseMultiplyMatrix(Collections.unmodifiableList(virusSpreadSamples),
 																		Collections.unmodifiableList(virtualDetectionSamples));
-					candidates = g.getG().vertexSet();
+					candidates = g.getG().vertexSet().stream().map(Function.identity()).collect(Collectors.toSet());;
 				}
 			}
 			else
 			{
 				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
-				candidates = g.getG().vertexSet();
+				candidates = g.getG().vertexSet().stream().map(Function.identity()).collect(Collectors.toSet());
 			}
-			// System.out.println("Successful detection matrix: \n"+successfulDetectMatrix.toString()+"\n---------------------------");
-			// System.out.println("Candidate nodes: \n"+candidates.toString()+"\n---------------------------");
+			 // System.out.println("Successful detection matrix: \n"+successfulDetectMatrix.toString()+"\n---------------------------");
+			 // System.out.println("Candidate nodes: \n"+candidates.toString()+"\n---------------------------");
 			
 			List<Integer> honeypots = new ArrayList<>();
 			int numberOfHoneypotsFound = 0;
@@ -138,6 +140,7 @@ public class nodeInMaxRowsGreedyHeuristic
 				List<List<Integer>> samplesToBeConsidered = IntStream.range(0, successfulDetectMatrix.size())
 						.filter(indicesOfSamplesToBeConsidered::contains).mapToObj(successfulDetectMatrix::get).collect(Collectors.toList());
 				int currentCandidate = findMaxRowFrequencyNode(Collections.unmodifiableList(samplesToBeConsidered), List.copyOf(candidates));
+				// System.out.println("Current candidate: "+currentCandidate);
 				honeypots.add(currentCandidate);
 				numberOfHoneypotsFound++;
 				candidates.remove(currentCandidate);
@@ -147,7 +150,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			Instant toc = Instant.now();
 			if ((r>0) && (zeroNode))
 				honeypots = honeypots.stream().map(e -> e - 1).collect(Collectors.toList());
-			System.out.println("Honeypots: \n"+honeypots.toString()+"\n---------------------------");
+			// System.out.println("Honeypots: \n"+honeypots.toString()+"\n---------------------------");
 			indicesOfSamplesCovered.removeAll(indicesOfSamplesToBeConsidered);
 			double objectiveValue = indicesOfSamplesCovered.size()*1.0/run;
 			System.out.println("Objective value = "+objectiveValue);
@@ -158,8 +161,6 @@ public class nodeInMaxRowsGreedyHeuristic
 			mapToHoneypots.put(fullKey, honeypots);
 			mapToWallTime.put(fullKey, wallTimeinSeconds);
 		}
-		
-		
 	}
 	
 	/**
@@ -312,12 +313,38 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
-	 *
-	 * @param filename output filename.
+	 * Writes heuristic results to csv file.
+	 * @param filename output filename
+	 * @param append true, if you wish to append to existing file; false, otherwise.
 	 */
-	public void writeToCSV(String filename)
+	public void writeToCSV(String filename, boolean append) throws IOException
 	{
-		// TODO: write results to csv file
+		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
+		if (!append)
+		{
+			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability", "no. of honeypots",
+					"objective value", "honeypots", "Wall time (s)", "UTC"};
+			writer.writeNext(header);
+			writer.flush();
+		}
+		for (Sextet<String, String, Integer, Integer, Double, Integer> key : mapToObjectiveValue.keySet())
+		{
+			String[] line = new String[10];
+			line[0] = (key.getValue0().toString());   // Model (TN11C, RAEPC, etc.)
+			line[1] = (key.getValue1().toString());   // network name
+			line[2] = (key.getValue2().toString());   // t_0
+			line[3] = (key.getValue3().toString());   // reps
+			line[4] = (key.getValue4().toString());   // false negative probs.
+			line[5] = (key.getValue5().toString());   // no. of honeypots
+			line[6] = (mapToObjectiveValue.get(key).toString());
+			line[7] = (mapToHoneypots.get(key).toString());
+			line[8] = (mapToWallTime.get(key).toString());
+			line[9] = (Instant.now().toString());
+			writer.writeNext(line);
+		}
+		writer.flush();
+		writer.close();
+		System.out.println("Results successfully written to \""+filename+"\".");
 	}
 	
 	/**
