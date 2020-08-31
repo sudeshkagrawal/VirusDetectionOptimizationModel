@@ -30,5 +30,6 @@
     </orderEntry>
     <orderEntry type="library" name="org.javatuples:javatuples:1.2" level="project" />
     <orderEntry type="library" name="com.opencsv:opencsv:5.2" level="project" />
+    <orderEntry type="library" name="gurobi" level="project" />
   </component>
 </module>

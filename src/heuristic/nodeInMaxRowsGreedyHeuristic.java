@@ -11,7 +11,6 @@ import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -117,13 +116,13 @@ public class nodeInMaxRowsGreedyHeuristic
 				{
 					successfulDetectMatrix = elementwiseMultiplyMatrix(Collections.unmodifiableList(virusSpreadSamples),
 																		Collections.unmodifiableList(virtualDetectionSamples));
-					candidates = g.getG().vertexSet().stream().map(Function.identity()).collect(Collectors.toSet());;
+					candidates = new HashSet<>(g.getG().vertexSet());
 				}
 			}
 			else
 			{
 				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
-				candidates = g.getG().vertexSet().stream().map(Function.identity()).collect(Collectors.toSet());
+				candidates = new HashSet<>(g.getG().vertexSet());
 			}
 			 // System.out.println("Successful detection matrix: \n"+successfulDetectMatrix.toString()+"\n---------------------------");
 			 // System.out.println("Candidate nodes: \n"+candidates.toString()+"\n---------------------------");
@@ -229,7 +228,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
-	 * Finds indices of rows where {@node} occurs in {@code arr}.
+	 * Finds indices of rows where {@code node} occurs in {@code arr}.
 	 * @param arr a list of lists
 	 * @param node a list of integers (nodes).
 	 * @return returns a list of indices.
@@ -330,16 +329,16 @@ public class nodeInMaxRowsGreedyHeuristic
 		for (Sextet<String, String, Integer, Integer, Double, Integer> key : mapToObjectiveValue.keySet())
 		{
 			String[] line = new String[10];
-			line[0] = (key.getValue0().toString());   // Model (TN11C, RAEPC, etc.)
-			line[1] = (key.getValue1().toString());   // network name
-			line[2] = (key.getValue2().toString());   // t_0
-			line[3] = (key.getValue3().toString());   // reps
-			line[4] = (key.getValue4().toString());   // false negative probs.
-			line[5] = (key.getValue5().toString());   // no. of honeypots
-			line[6] = (mapToObjectiveValue.get(key).toString());
-			line[7] = (mapToHoneypots.get(key).toString());
-			line[8] = (mapToWallTime.get(key).toString());
-			line[9] = (Instant.now().toString());
+			line[0] = key.getValue0();   // Model (TN11C, RAEPC, etc.)
+			line[1] = key.getValue1();   // network name
+			line[2] = key.getValue2().toString();   // t_0
+			line[3] = key.getValue3().toString();   // reps
+			line[4] = key.getValue4().toString();   // false negative probs.
+			line[5] = key.getValue5().toString();   // no. of honeypots
+			line[6] = mapToObjectiveValue.get(key).toString();
+			line[7] = mapToHoneypots.get(key).toString();
+			line[8] = mapToWallTime.get(key).toString();
+			line[9] = Instant.now().toString();
 			writer.writeNext(line);
 		}
 		writer.flush();
