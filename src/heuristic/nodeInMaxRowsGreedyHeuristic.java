@@ -6,6 +6,7 @@ import org.javatuples.Sextet;
 import org.jgrapht.alg.util.Triple;
 import simulation.simulationRuns;
 
+import java.io.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -14,7 +15,7 @@ import java.util.stream.IntStream;
 
 /**
  * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: Aug 29, 2020.
+ * Last Updated: Aug 30, 2020.
  * Class for heuristics.
  */
 public class nodeInMaxRowsGreedyHeuristic
@@ -54,13 +55,16 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
+	 * Solves the sample-average approximation model using a greedy heuristic.
+	 * See model 4.6 in Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
-	 * @param modelName
-	 * @param g
-	 * @param simulationResults
-	 * @param k_t0_runs
-	 * @param r
-	 * @throws Exception
+	 * @param modelName Name of virus spread model (TN11C, RAEPC, etc.)
+	 * @param g network graph
+	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
+	 * @param k_t0_runs list of a 3-tuple of (k, t0, runs),
+	 *                  where k is number of honeypots, t0 is simulation time, and runs is number of repetitions of simulation
+	 * @param r false negative probability.
+	 * @throws Exception exception thrown in node labels are negative integers.
 	 */
 	public void runSAAUsingHeuristic(String modelName, graph g, simulationRuns simulationResults, List<Triple<Integer, Integer, Integer>> k_t0_runs, double r) throws Exception
 	{
@@ -125,7 +129,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			List<Integer> honeypots = new ArrayList<>();
 			int numberOfHoneypotsFound = 0;
 			Set<Integer> indicesOfSamplesToBeConsidered = IntStream.range(0, run).boxed().collect(Collectors.toSet());
-			Set<Integer> indicesOfSamplesToBeRemoved = new HashSet<>();
+			Set<Integer> indicesOfSamplesToBeRemoved;
 			Set<Integer> indicesOfSamplesCovered = new HashSet<>(indicesOfSamplesToBeConsidered);
 			
 			Instant tic = Instant.now();
@@ -158,16 +162,21 @@ public class nodeInMaxRowsGreedyHeuristic
 		
 	}
 	
+	/**
+	 * Element-wise multiplication of two list of lists.
+	 * @param a the first list of lists
+	 * @param b the second list of lists.
+	 * @return returns a list of lists.
+	 * @throws Exception exception thrown if outer lists {@code a} and {@code b} not of same size.
+	 *          Corresponding inner lists should also be of same size, but that exception is not thrown since the check would be expensive.
+	 */
 	private List<List<Integer>> elementwiseMultiplyMatrix(List<List<Integer>> a, List<List<Integer>> b) throws Exception
 	{
 		List<List<Integer>> output = new ArrayList<>(a.size());
 		if (a.size()!=b.size())
 			throw new Exception("Inputs are not of the same size!");
-			
 		for (int i=0; i<a.size(); i++)
 		{
-			if (a.get(i).size() != b.get(i).size())
-				throw new Exception("Inputs are not of the same size for index "+i+"!");
 			List<Integer> colList = new ArrayList<>(a.get(i).size());
 			for (int j=0; j<a.get(0).size(); j++)
 				colList.add(a.get(i).get(j) * b.get(i).get(j));
@@ -176,6 +185,13 @@ public class nodeInMaxRowsGreedyHeuristic
 		return output;
 	}
 	
+	/**
+	 * Slower and older version of {@code findMaxRowFrequencyNode()}.
+	 * @param arr a list of lists
+	 * @param nodes a list of integers (nodes).
+	 * @return returns a node as {@code int}.
+	 */
+	@Deprecated
 	private int findMaxRowFrequencyNodeOld(List<List<Integer>> arr, List<Integer> nodes)
 	{
 		int maxNode = nodes.get(0);
@@ -195,6 +211,12 @@ public class nodeInMaxRowsGreedyHeuristic
 		return maxNode;
 	}
 	
+	/**
+	 * Finds a node (in {@code nodes}) which is present in the most rows (of {@code arr}.
+	 * @param arr a list of lists
+	 * @param nodes a list of integers (nodes).
+	 * @return returns a node as {@code int}.
+	 */
 	private int findMaxRowFrequencyNode(List<List<Integer>> arr, List<Integer> nodes)
 	{
 		Map<Integer, Integer> rowCount = nodes.stream().collect(Collectors.toMap(node -> node, node -> 0, (a, b) -> b, () -> new HashMap<>(nodes.size())));
@@ -202,13 +224,112 @@ public class nodeInMaxRowsGreedyHeuristic
 			for (int key : row)
 				if (rowCount.containsKey(key))
 					rowCount.put(key, rowCount.get(key) + 1);
-		return rowCount.entrySet().stream().max((e1, e2) -> e1.getValue()-e2.getValue()).get().getKey();
+		return Objects.requireNonNull(rowCount.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue)).orElse(null)).getKey();
 	}
 	
+	/**
+	 * Finds indices of rows where {@node} occurs in {@code arr}.
+	 * @param arr a list of lists
+	 * @param node a list of integers (nodes).
+	 * @return returns a list of indices.
+	 */
 	private List<Integer> findRowOccurrenceIndices(List<List<Integer>> arr, int node)
 	{
-		List<Integer> nodeIndices = IntStream.range(0, arr.size())
+		return IntStream.range(0, arr.size())
 				.filter(i -> IntStream.range(0, arr.get(i).size()).anyMatch(j -> arr.get(i).get(j) == node)).boxed().collect(Collectors.toList());
-		return nodeIndices;
+	}
+	
+	/**
+	 * Loads any results of heuristic from serialized object in file.
+	 * @param serialFilename path of the file where the serialized object is stored.
+	 */
+	public void loadHeuristicResultsFromFile(String serialFilename)
+	{
+		try
+		{
+			FileInputStream fin = new FileInputStream(serialFilename);
+			BufferedInputStream bin = new BufferedInputStream(fin);
+			ObjectInputStream objin = new ObjectInputStream(bin);
+			List<Object> serObject = (List<Object>) objin.readObject();
+			mapToObjectiveValue = (Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double>) serObject.get(0);
+			mapToHoneypots = (Map<Sextet<String, String, Integer, Integer, Double, Integer>, List<Integer>>) serObject.get(1);
+			mapToWallTime = (Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double>) serObject.get(2);
+			objin.close();
+			bin.close();
+			fin.close();
+			System.out.println("Using results of heuristic in \""+serialFilename+"\".");
+		}
+		catch (FileNotFoundException e1)
+		{
+			System.out.println("Error, file not found!");
+			System.out.println(e1.getMessage());
+		}
+		catch (Exception e2)
+		{
+			System.out.println("An exception occurred:");
+			e2.printStackTrace();
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
+	}
+	/**
+	 * Serializes all the fields of this class.
+	 * @param serialFilename path of the file where the serialized object is to be stored.
+	 */
+	public void serializeResults(String serialFilename)
+	{
+		try
+		{
+			FileOutputStream fout = new FileOutputStream(serialFilename);
+			BufferedOutputStream bout = new BufferedOutputStream(fout);
+			ObjectOutputStream objout = new ObjectOutputStream(bout);
+			List<Object> serObject = new ArrayList<>(3);
+			serObject.add(mapToObjectiveValue);
+			serObject.add(mapToHoneypots);
+			serObject.add(mapToWallTime);
+			objout.writeObject(serObject);
+			objout.close();
+			bout.close();
+			fout.close();
+			System.out.println("Heuristic results serialized at \""+ serialFilename +"\".");
+		}
+		catch (IOException e1)
+		{
+			System.out.println("Input-Output Exception:");
+			e1.printStackTrace();
+			System.out.print("Writing of serial file to disk failed!");
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
+		catch (Exception e2)
+		{
+			System.out.println("An exception occurred:");
+			e2.printStackTrace();
+			System.out.print("Writing of serial file to disk failed!");
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
+	}
+	
+	/**
+	 *
+	 * @param filename output filename.
+	 */
+	public void writeToCSV(String filename)
+	{
+		// TODO: write results to csv file
+	}
+	
+	/**
+	 * Overrides {@code toString()}.
+	 * @return returns string representation of class.
+	 */
+	@Override
+	public String toString()
+	{
+		return "nodeInMaxRowsGreedyHeuristic:"
+				+"\n\t Objective value:\n\t\t"+mapToObjectiveValue.toString()
+				+"\n\t Honeypots:\n\t\t"+mapToHoneypots.toString()
+				+"\n\t Wall time (second):\n\t\t"+mapToWallTime.toString();
 	}
 }
