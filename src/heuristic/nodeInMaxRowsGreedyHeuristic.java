@@ -345,7 +345,8 @@ public class nodeInMaxRowsGreedyHeuristic
 	public void writeToCSV(String filename, boolean append) throws IOException
 	{
 		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
-		if (!append)
+		File fileObj = new File(filename);
+		if ((!fileObj.exists()) || (!append))
 		{
 			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
 								"transmissability (p)", "no. of honeypots", "objective value", "honeypots",

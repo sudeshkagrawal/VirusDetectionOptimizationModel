@@ -8,6 +8,7 @@ import org.javatuples.Sextet;
 import org.jgrapht.alg.util.Triple;
 import simulation.simulationRuns;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
@@ -158,8 +159,6 @@ public class gurobiSolver
 			Map<Integer, GRBVar> u = new HashMap<>(run);
 			for (int i=0; i<run; i++)
 				u.put(i+1, model.addVar(0, 1, 0, GRB.BINARY, "u_" + (i+1)));
-			// x.entrySet().forEach(System.out::println);
-			// u.entrySet().forEach(System.out::println);
 			
 			// Create Objective
 			GRBLinExpr obj = new GRBLinExpr();
@@ -186,8 +185,6 @@ public class gurobiSolver
 			for (int node : candidates)
 				expr.addTerm(1.0, x.get(node));
 			model.addConstr(expr, GRB.EQUAL, k, "Honeypot budget constraint");
-			System.out.println("Constraints:");
-			// Arrays.stream(model.getConstrs()).forEach(System.out::println);
 			
 			// Solve the model
 			double intFeasTol = 1e-9, mipGap = 1e-2, timeLimit=300;
@@ -240,6 +237,7 @@ public class gurobiSolver
 				default -> throw new IllegalStateException("Unexpected value: " + model.get(GRB.IntAttr.Status));
 			}
 			
+			
 			// find average run time over several optimization calls
 			List<Double> wallTimes = new ArrayList<>(5);
 			List<Double> times = new ArrayList<>(5);
@@ -267,6 +265,8 @@ public class gurobiSolver
 			//System.out.println("Times (s): "+times.toString());
 			mapToWallTime.put(fullKey, wallTimes.stream().mapToDouble(e -> e).average().getAsDouble());
 			mapToTime.put(fullKey, times.stream().mapToDouble(e -> e).average().getAsDouble());
+			System.out.println("Objective value = "+mapToObjectiveValue.get(fullKey));
+			System.out.println("Wall time (second) = "+ mapToWallTime.get(fullKey));
 			
 			model.dispose();
 		}
@@ -307,7 +307,8 @@ public class gurobiSolver
 	public void writeToCSV(String filename, boolean append) throws IOException
 	{
 		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
-		if (!append)
+		File fileObj = new File(filename);
+		if ((!fileObj.exists()) || (!append))
 		{
 			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
 								"transmissability (p)", "no. of honeypots", "solver", "solver options",

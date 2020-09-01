@@ -16,19 +16,24 @@ public class run
 	{
 		String outputFolder = "./out/production/VirusDetectionOptimizationModel/";
 		String networkName = "EUemailcomm_6-core";
+		String modelName = "TN11C";
 		int[] runs = {1000, 5000, 10000, 30000, 50000};
 		int[] t_0 = {3, 4};
+		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
 		double r = 0.0;
-		int[] seed = {2507, 2101, 3567};
+		double p = 1.0;
 		boolean doNotUseSerialFile = false;
-		boolean append = false;
+		boolean append = true;
+		
+		String simulationsSerialFilename;
+		String heuristicOutputFilename = outputFolder + "heuristic_results.csv";
+		String mipLogFilename = outputFolder + modelName + "_mip.log";
+		String mipFormulationFilename = outputFolder + modelName + "_mip.lp";
+		String mipOutputFilename = outputFolder + "mip_results.csv";
 		
 		int[] k = {100, 200, 250};
-		String modelName = "TN11C";
-		String heuristicOutputFilename = outputFolder + "heuristic_results.csv";
-		String logFilename = outputFolder + "mip.log";
-		String mipFormulationFilename = outputFolder + modelName +"_mip.lp";
-		String mipOutputFilename = outputFolder + "mip_results.csv";
+		List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
+		
 		int threads = 16;
 		
 		// Read Network
@@ -37,34 +42,54 @@ public class run
 		//System.out.println(network.toString());
 		
 		// Simulations
-		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
-		String serialFilename = outputFolder + network.getNetworkName()+"_simulationresults_fixedt0.ser";
+		simulationsSerialFilename = outputFolder + network.getNetworkName()+"_"+modelName+"_simulationresults_fixedt0.ser";
 		simulationRuns simulationResults = new simulationRuns();
 		boolean ranNewSimulations = true;
-		if (doNotUseSerialFile)
-			simulationResults.simulateTN11CRuns(network, t0_runs, r, seed);
+		if (modelName=="TN11C")
+		{
+			int[]  seed = {2507, 2101, 3567};
+			if (doNotUseSerialFile)
+				simulationResults.simulateTN11CRuns(network, t0_runs, r, seed);
+			else
+			{
+				simulationResults.loadRunsFromFile(simulationsSerialFilename);
+				// Check we have runs for all t0_runs
+				ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, r, seed);
+			}
+		}
 		else
 		{
-			simulationResults.loadTN11CRunsFromFile(serialFilename);
-			// Check we have runs for all t0_runs
-			ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, r, seed);
+			if (modelName=="RA1PC")
+			{
+				int[] seed = {2507, 2101, 2101, 3567};
+				if (doNotUseSerialFile)
+					simulationResults.simulateRA1PCRuns(network, t0_runs, r, p, seed);
+				else
+				{
+					simulationResults.loadRunsFromFile(simulationsSerialFilename);
+					// Check we have runs for all t0_runs
+					ranNewSimulations = simulationResults.simulateOnlyNecessaryRA1PCRuns(network, t0_runs, r, p, seed);
+				}
+			}
+			else if (modelName=="RAEPC")
+			{
+				;
+			}
 		}
 		//System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().toString());
 		//System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().toString());
 		if (ranNewSimulations)
-			simulationResults.serializeTN11CRuns(serialFilename);
-		
+			simulationResults.serializeRuns(simulationsSerialFilename);
 		
 		// Heuristic
-		List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
 		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-		heuristicResults.runSAAUsingHeuristic(modelName, network, simulationResults, k_t0_runs, r);
+		heuristicResults.runSAAUsingHeuristic(modelName, network, simulationResults, k_t0_runs, r, p);
 		//System.out.println(heuristicResults.toString());
 		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 		
 		// MIP
 		gurobiSolver mipResults = new gurobiSolver();
-		mipResults.solveSAA(modelName, network, simulationResults, k_t0_runs, r, threads, logFilename);
+		mipResults.solveSAA(modelName, network, simulationResults, k_t0_runs, r,p, threads, mipLogFilename);
 		//System.out.println(mipResults.toString());
 		mipResults.writeToCSV(mipOutputFilename, append);
 	}
