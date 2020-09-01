@@ -270,4 +270,68 @@ public class simulationRuns
 			System.exit(0);
 		}
 	}
+	
+	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double p, double r, int[] seed) throws Exception
+	{
+		// Remove self-loops if any from the graph
+		g.removeSelfLoops();
+		System.out.print("Removed self-loops (if any) from the graph: ");
+		final int n = g.getG().vertexSet().size();
+		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
+		
+		if ((seed.length!=3) && (seed.length!=4))
+			throw new Exception("Seed array should either be of length 3 (for r=0) or of length 4 (for r>0)!");
+		
+		for (Pair<Integer, Integer> v: t0_runs)
+		{
+			int time0 = v.getValue0();
+			int rep = v.getValue1();
+			SplittableRandom initialLocationGenChoice = new SplittableRandom(seed[0]+time0+rep);
+			SplittableRandom neighborGenChoice = new SplittableRandom(seed[1]+time0+rep);
+			SplittableRandom transmissableGen = new SplittableRandom(seed[2]+time0+rep);
+			int[] initialLocationRuns = getInitialLocationRuns(g, initialLocationGenChoice, rep);
+			
+			List<List<Integer>> samplePathRuns = new ArrayList<>(rep);
+			
+			System.out.println("Starting "+rep+" runs of simulating RA1PC spread upto "+time0
+					+" time step for each run on the \""+g.getNetworkName()+"\" network...");
+			for (int x=0; x<rep; x++)
+			{
+				System.out.println("\t Simulation run "+(x+1));
+				int initialLocation = initialLocationRuns[x];
+				System.out.println("\t Initial location of virus: "+initialLocation);
+				SortedSet<Integer> infected = new TreeSet<>();
+				
+				// time step 0
+				infected.add(initialLocation);
+				
+				for (int t=1; t<=time0; t++)
+				{
+					System.out.println("\t\t Time: "+t);
+					List<Integer> tmpInfected = new ArrayList<>();
+					for (Integer node : infected)
+					{
+						int currentTarget = getRandomInfectedNeighbor(g, neighborGenChoice, node);
+						double currentTransmissable = transmissableGen.nextDouble();
+						if (currentTransmissable<=p)
+						{
+							tmpInfected.add(currentTarget);
+							System.out.println("\t\t\t Node "+node+" infected node "+currentTarget+".");
+						}
+						else
+						{
+							System.out.println("\t\t\t Node "+node+" was unsuccessful in infecting node "
+												+currentTarget+".");
+						}
+					}
+					infected.addAll(tmpInfected);
+					System.out.println("\n\t\t Infected nodes: "+infected.toString());
+					//System.out.println("\t\t Current infected node: "+currentInfected);
+				}
+				samplePathRuns.add(new ArrayList<>(infected));
+				
+			}
+			System.out.println("Sample paths: \n"+samplePathRuns.toString());
+		}
+	}
 }
