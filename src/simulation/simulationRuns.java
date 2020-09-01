@@ -2,7 +2,7 @@ package simulation;
 
 import network.graph;
 import org.javatuples.Pair;
-import org.javatuples.Quintet;
+import org.javatuples.Sextet;
 import org.jgrapht.Graphs;
 
 import java.io.*;
@@ -12,20 +12,20 @@ import java.util.stream.IntStream;
 
 /**
  * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: Aug 31, 2020.
+ * Last Updated: September 1, 2020.
  * Class for simulation.
  */
 public class simulationRuns
 {
-	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability
-	Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>
+	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability; transmissability (p)
+	Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 																	mapModelNetworkT0RunsFalseNegativeToSimulationRuns;
-	Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>
+	Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 																mapModelNetworkT0RunsFalseNegativeToVirtualDetections;
 	
-	public simulationRuns(Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>
+	public simulationRuns(Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 			                      mapModelNetworkT0RunsFalseNegativeToSimulationRuns,
-	                      Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>
+	                      Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 			                      mapModelNetworkT0RunsFalseNegativeToVirtualDetections)
 	{
 		this.mapModelNetworkT0RunsFalseNegativeToSimulationRuns = mapModelNetworkT0RunsFalseNegativeToSimulationRuns;
@@ -42,7 +42,7 @@ public class simulationRuns
 	 * Getter for {@code mapModelNetworkT0RunsFalseNegativeToSimulationRuns}.
 	 * @return returns {@code mapModelNetworkT0RunsFalseNegativeToSimulationRuns}.
 	 */
-	public Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>
+	public Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 																getMapModelNetworkT0RunsFalseNegativeToSimulationRuns()
 	{
 		return mapModelNetworkT0RunsFalseNegativeToSimulationRuns;
@@ -52,7 +52,7 @@ public class simulationRuns
 	 * Getter for {@code mapModelNetworkT0RunsFalseNegativeToVirtualDetections}.
 	 * @return returns {@code mapModelNetworkT0RunsFalseNegativeToVirtualDetections}.
 	 */
-	public Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>
+	public Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 															getMapModelNetworkT0RunsFalseNegativeToVirtualDetections()
 	{
 		return mapModelNetworkT0RunsFalseNegativeToVirtualDetections;
@@ -83,6 +83,9 @@ public class simulationRuns
 		
 		if ((seed.length!=2) && (seed.length!=3))
 			throw new Exception("Seed array should either be of length 2 (for r=0) or of length 3 (for r>0)!");
+		
+		// transmissability
+		double p = 1.0;
 		
 		for (Pair<Integer, Integer> v: t0_runs)
 		{
@@ -118,8 +121,8 @@ public class simulationRuns
 			}
 			System.out.println("Ending "+rep+" runs of simulating TN11C spread upto "+time0
 					+" time step for each run on the \""+g.getNetworkName()+"\" network...");
-			Quintet<String, String, Integer, Integer, Double> key =
-													new Quintet<>("TN11C", g.getNetworkName(), time0, rep, r);
+			Sextet<String, String, Integer, Integer, Double, Double> key =
+													new Sextet<>("TN11C", g.getNetworkName(), time0, rep, r, p);
 			mapModelNetworkT0RunsFalseNegativeToSimulationRuns.put(key, samplePathRuns);
 			//virtual detections
 			SplittableRandom reliabilityGenChoice = new SplittableRandom(seed[2]+time0+rep);
@@ -177,12 +180,14 @@ public class simulationRuns
 	public boolean simulateOnlyNecessaryTN11CRuns(graph g, List<Pair<Integer, Integer>> t0_runs,
 	                                              double r, int[] seed) throws Exception
 	{
+		// transmissability
+		double p = 1.0;
 		boolean ranNewSimulations = false;
 		List<Pair<Integer, Integer>> new_t0_runs = new ArrayList<>();
 		for (Pair<Integer, Integer> time0_run : t0_runs)
 		{
-			Quintet<String, String, Integer, Integer, Double> newKey;
-			newKey = new Quintet<>("TN11C", g.getNetworkName(), time0_run.getValue0(), time0_run.getValue1(), r);
+			Sextet<String, String, Integer, Integer, Double, Double> newKey;
+			newKey = new Sextet<>("TN11C", g.getNetworkName(), time0_run.getValue0(), time0_run.getValue1(), r, p);
 			if (!mapModelNetworkT0RunsFalseNegativeToSimulationRuns.containsKey(newKey))
 				new_t0_runs.add(time0_run);
 		}
@@ -206,8 +211,8 @@ public class simulationRuns
 			FileInputStream fin = new FileInputStream(serialFilename);
 			BufferedInputStream bin = new BufferedInputStream(fin);
 			ObjectInputStream objin = new ObjectInputStream(bin);
-			List<Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>> serObject =
-					(List<Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>>) objin.readObject();
+			List<Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>> serObject =
+					(List<Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>>) objin.readObject();
 			mapModelNetworkT0RunsFalseNegativeToSimulationRuns = serObject.get(0);
 			mapModelNetworkT0RunsFalseNegativeToVirtualDetections = serObject.get(1);
 			objin.close();
@@ -243,7 +248,7 @@ public class simulationRuns
 			FileOutputStream fout = new FileOutputStream(serialFilename);
 			BufferedOutputStream bout = new BufferedOutputStream(fout);
 			ObjectOutputStream objout = new ObjectOutputStream(bout);
-			List<Map<Quintet<String, String, Integer, Integer, Double>, List<List<Integer>>>> serObject =
+			List<Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>> serObject =
 																				new ArrayList<>(2);
 			serObject.add(mapModelNetworkT0RunsFalseNegativeToSimulationRuns);
 			serObject.add(mapModelNetworkT0RunsFalseNegativeToVirtualDetections);
@@ -271,7 +276,7 @@ public class simulationRuns
 		}
 	}
 	
-	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double p, double r, int[] seed) throws Exception
+	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r, double p, int[] seed) throws Exception
 	{
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();

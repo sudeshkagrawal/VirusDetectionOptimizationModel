@@ -3,7 +3,7 @@ package optimization;
 import com.opencsv.CSVWriter;
 import gurobi.*;
 import network.graph;
-import org.javatuples.Quintet;
+import org.javatuples.Septet;
 import org.javatuples.Sextet;
 import org.jgrapht.alg.util.Triple;
 import simulation.simulationRuns;
@@ -14,32 +14,33 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 
 /**
  * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: Aug 31, 2020.
+ * Last Updated: September 1, 2020
  * Class for solving optimization formulation.
  */
 public class gurobiSolver
 {
-	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability; number of honeypots
-	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToObjectiveValue;
-	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToBestUpperBound;
-	Map<Sextet<String, String, Integer, Integer, Double, Integer>, List<Integer>> mapToHoneypots;
-	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToWallTime;
-	Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToTime;
-	Map<Sextet<String, String, Integer, Integer, Double, Integer>, String> mapToSolverOptions;
-	Map<Sextet<String, String, Integer, Integer, Double, Integer>, String> mapToSolverMessage;
+	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability; ; transmissability (p);
+	// number of honeypots
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue;
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToBestUpperBound;
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots;
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToTime;
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverOptions;
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverMessage;
 	
-	public gurobiSolver(Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToObjectiveValue,
-	                    Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToBestUpperBound,
-	                    Map<Sextet<String, String, Integer, Integer, Double, Integer>, List<Integer>> mapToHoneypots,
-	                    Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToWallTime,
-	                    Map<Sextet<String, String, Integer, Integer, Double, Integer>, Double> mapToTime,
-	                    Map<Sextet<String, String, Integer, Integer, Double, Integer>, String> mapToSolverOptions,
-	                    Map<Sextet<String, String, Integer, Integer, Double, Integer>, String> mapToSolverMessage)
+	public gurobiSolver(
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToBestUpperBound,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToTime,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverOptions,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverMessage)
 	{
 		this.mapToObjectiveValue = mapToObjectiveValue;
 		this.mapToBestUpperBound = mapToBestUpperBound;
@@ -49,7 +50,8 @@ public class gurobiSolver
 		this.mapToSolverOptions = mapToSolverOptions;
 		this.mapToSolverMessage = mapToSolverMessage;
 	}
-	public gurobiSolver()
+	
+		public gurobiSolver()
 	{
 		this(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(),
 				new HashMap<>(), new HashMap<>(), new HashMap<>());
@@ -66,12 +68,13 @@ public class gurobiSolver
 	 * @param k_t0_runs list of a 3-tuple of (k, t0, runs),
 	 *                  where k is number of honeypots, t0 is simulation time, and runs is number of repetitions of simulation
 	 * @param r false negative probability
+	 * @param p transmissability probability
 	 * @param threads number of threads solver should use
 	 * @param logFilename file path to log file; logs from solver written here.
 	 * @throws Exception exception thrown in node labels are negative integers.
 	 */
 	public void solveSAA(String modelName, graph g, simulationRuns simulationResults,
-	                     List<Triple<Integer, Integer, Integer>> k_t0_runs, double r,
+	                     List<Triple<Integer, Integer, Integer>> k_t0_runs, double r, double p,
 	                     int threads, String logFilename) throws Exception
 	{
 		// Remove self-loops if any from the graph
@@ -102,18 +105,18 @@ public class gurobiSolver
 			int k = v.getFirst();
 			int t_0 = v.getSecond();
 			int run = v.getThird();
-			Quintet<String, String, Integer, Integer, Double> key =
-															new Quintet<>(modelName, g.getNetworkName(), t_0, run, r);
-			Sextet<String, String, Integer, Integer, Double, Integer> fullKey =
-														new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, k);
+			Sextet<String, String, Integer, Integer, Double, Double> key =
+															new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, p);
+			Septet<String, String, Integer, Integer, Double, Double, Integer> fullKey =
+														new Septet<>(modelName, g.getNetworkName(), t_0, run, r, p, k);
 			
-			System.out.println("Solving MIP model (false negative prob = "+r+") for "
-								+k+" honeypots and "+run+" samples...");
+			System.out.println("Solving MIP: "+modelName+" spread model on "+g.getNetworkName()
+					+"network; "+k+" honeypots; "+run+" samples; false negative prob.="
+					+r+"; transmissability (p)="+p);
 			List<List<Integer>> virusSpreadSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().get(key);
-			List<Integer> replicationIndex = IntStream.range(0, run).boxed().collect(Collectors.toList());
 			// System.out.println("Virus spread samples:\n"+virusSpreadSamples+"\n"+virtualDetectionSamples);
 			List<List<Integer>> successfulDetectMatrix;
 			Set<Integer> candidates;
@@ -144,7 +147,6 @@ public class gurobiSolver
 				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
 				candidates = new HashSet<>(g.getG().vertexSet());
 			}
-			
 			
 			// Create empty model
 			GRBModel model = new GRBModel(env);
@@ -208,7 +210,7 @@ public class gurobiSolver
 			mapToBestUpperBound.put(fullKey, model.get(GRB.DoubleAttr.ObjBound));
 			mapToWallTime.put(fullKey, model.get(GRB.DoubleAttr.Runtime));
 			mapToTime.put(fullKey, timeInSeconds);
-			List<Integer> honeypots = new ArrayList<>();;
+			List<Integer> honeypots = new ArrayList<>();
 			for (int node : candidates)
 			{
 				if ((int)x.get(node).get(GRB.DoubleAttr.X)==1)
@@ -246,29 +248,12 @@ public class gurobiSolver
 			times.add(timeInSeconds);
 			int timerRepeat = 0;
 			if (currentWallTime <= 1)
-			{
 				timerRepeat = 5;
-			}
-			else
-			{
-				if (currentWallTime <= 10)
-					timerRepeat = 3;
-				else
-					timerRepeat = 0;
-			}
+			else if (currentWallTime <= 10)
+				timerRepeat = 3;
 			for (int i=1; i<=timerRepeat; i++)
 			{
-//				// reset the value of variables
-//				for (int node : candidates)
-//				{
-//					x.get(node).set(GRB.DoubleAttr.LB, 0.0);
-//					x.get(node).set(GRB.DoubleAttr.UB, 0.0);
-//				}
-//				for (int j=0; j<run; j++)
-//				{
-//					u.get(j + 1).set(GRB.DoubleAttr.LB, 0.0);
-//					u.get(j + 1).set(GRB.DoubleAttr.UB, 0.0);
-//				}
+				// reset the value of variables
 				model.reset(0);
 				tic = Instant.now();
 				model.optimize();
@@ -325,29 +310,31 @@ public class gurobiSolver
 		if (!append)
 		{
 			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
-								"no. of honeypots", "solver", "solver options", "objective value", "best UB",
-								"solver message", "honeypots", "Wall time (s)", "Time (s)", "UTC"};
+								"transmissability (p)", "no. of honeypots", "solver", "solver options",
+								"objective value", "best UB", "solver message", "honeypots", "Wall time (s)",
+								"Time (s)", "UTC"};
 			writer.writeNext(header);
 			writer.flush();
 		}
-		for (Sextet<String, String, Integer, Integer, Double, Integer> key : mapToObjectiveValue.keySet())
+		for (Septet<String, String, Integer, Integer, Double, Double, Integer> key : mapToObjectiveValue.keySet())
 		{
-			String[] line = new String[15];
+			String[] line = new String[16];
 			line[0] = key.getValue0();                      // Model (TN11C, RAEPC, etc.)
 			line[1] = key.getValue1();                      // network name
 			line[2] = key.getValue2().toString();           // t_0
 			line[3] = key.getValue3().toString();           // reps
 			line[4] = key.getValue4().toString();           // false negative probs.
-			line[5] = key.getValue5().toString();           // no. of honeypots
-			line[6] = "gurobi";
-			line[7] = mapToSolverOptions.get(key).toString();
-			line[8] = mapToObjectiveValue.get(key).toString();
-			line[9] = mapToBestUpperBound.get(key).toString();
-			line[10] = mapToSolverMessage.get(key);
-			line[11] = mapToHoneypots.get(key).toString();
-			line[12] = mapToWallTime.get(key).toString();
-			line[13] = mapToTime.get(key).toString();
-			line[14] = Instant.now().toString();
+			line[5] = key.getValue5().toString();           // transmissability
+			line[6] = key.getValue6().toString();           // no. of honeypots
+			line[7] = "gurobi";
+			line[8] = mapToSolverOptions.get(key);
+			line[9] = mapToObjectiveValue.get(key).toString();
+			line[10] = mapToBestUpperBound.get(key).toString();
+			line[11] = mapToSolverMessage.get(key);
+			line[12] = mapToHoneypots.get(key).toString();
+			line[13] = mapToWallTime.get(key).toString();
+			line[14] = mapToTime.get(key).toString();
+			line[15] = Instant.now().toString();
 			writer.writeNext(line);
 		}
 		writer.flush();
