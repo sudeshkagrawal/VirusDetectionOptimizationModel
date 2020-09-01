@@ -14,20 +14,31 @@ public class run
 {
 	public static void main(String[] args) throws Exception
 	{
+		String outputFolder = "./out/production/VirusDetectionOptimizationModel/";
 		String networkName = "EUemailcomm_6-core";
+		int[] runs = {1000, 5000, 10000, 30000, 50000};
+		int[] t_0 = {3, 4};
+		double r = 0.0;
+		int[] seed = {2507, 2101, 3567};
+		boolean doNotUseSerialFile = false;
+		boolean append = false;
+		
+		int[] k = {100, 200, 250};
+		String modelName = "TN11C";
+		String heuristicOutputFilename = outputFolder + "heuristic_results.csv";
+		String logFilename = outputFolder + "mip.log";
+		String mipFormulationFilename = outputFolder + modelName +"_mip.lp";
+		String mipOutputFilename = outputFolder + "mip_results.csv";
+		int threads = 16;
+		
+		// Read Network
 		graph network = new graph(networkName);
 		network.buildGraphFromFile("./files/networks/"+networkName+".txt");
-		// System.out.println(network.toString());
+		//System.out.println(network.toString());
 		
-		//int[] runs = {1000, 5000, 10000, 30000, 50000};
-		int[] runs = {100};
-		int[] t_0 = {4};
-		double r = 0.1;
-		int[] seed = {2507, 2101, 3567};
-		boolean doNotUseSerialFile = true;
+		// Simulations
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
-		String folder = "./out/production/VirusDetectionOptimizationModel/";
-		String serialFilename = folder + network.getNetworkName()+"_simulationresults_fixedt0.ser";
+		String serialFilename = outputFolder + network.getNetworkName()+"_simulationresults_fixedt0.ser";
 		simulationRuns simulationResults = new simulationRuns();
 		boolean ranNewSimulations = true;
 		if (doNotUseSerialFile)
@@ -43,26 +54,17 @@ public class run
 		if (ranNewSimulations)
 			simulationResults.serializeTN11CRuns(serialFilename);
 		
-
-		// int[] k = {100, 200, 250};
-		int[] k = {10};
-		String modelName = "TN11C";
+		
+		// Heuristic
 		List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
 		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-		heuristicResults.runSAAUsingHeuristic(modelName, network, simulationResults, k_t0_runs,r);
-		// System.out.println(heuristicResults.toString());
-		String heuristicOutputFilename = folder + "heuristic_results.csv";
-		boolean append = true;
+		heuristicResults.runSAAUsingHeuristic(modelName, network, simulationResults, k_t0_runs, r);
+		//System.out.println(heuristicResults.toString());
 		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 		
-		
-		String logFilename = folder + "mip.log";
-		String mipFormulationFilename = folder + "TN11C_mip.lp";
-		String mipOutputFilename = folder + "mip_results.csv";
-		int threads = 16;
-		append = false;
+		// MIP
 		gurobiSolver mipResults = new gurobiSolver();
-		mipResults.solveSAA("TN11C", network, simulationResults, k_t0_runs, r, threads, logFilename);
+		mipResults.solveSAA(modelName, network, simulationResults, k_t0_runs, r, threads, logFilename);
 		//System.out.println(mipResults.toString());
 		mipResults.writeToCSV(mipOutputFilename, append);
 	}

@@ -26,6 +26,11 @@ public class graph
 		this.g = new DefaultUndirectedGraph<>(DefaultEdge.class);
 		this.networkName = networkName;
 	}
+	public graph(Graph<Integer, DefaultEdge> g, String networkName)
+	{
+		this.g = g;
+		this.networkName = networkName;
+	}
 	
 	/**
 	 * Initialize an empty graph g with a complete graph of given size.
