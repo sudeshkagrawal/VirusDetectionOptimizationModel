@@ -15,23 +15,46 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: September 1, 2020.
- * Class for heuristics.
+ * Represents results of heuristic on {@code simulationRuns}.
+ * @author Sudesh Agrawal (sudesh@utexas.edu).
+ * Last Updated: September 2, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
-	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability; ; transmissability (p);
-	// number of honeypots
+	/**
+	 * A map from a 7-tuple to the objective value for a given solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue;
+	/**
+	 * A map from a 7-tuple to the list of honeypots in a given solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots;
+	/**
+	 * A map from a 7-tuple to the CPU time it took to find a given solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
 	
+	/**
+	 * Constructor.
+	 */
 	public nodeInMaxRowsGreedyHeuristic()
 	{
 		this(new HashMap<>(), new HashMap<>(), new HashMap<>());
 	}
 	
+	/**
+	 * Constructor.
+	 *
+	 * @param mapToObjectiveValue value of objective function for a given solution
+	 * @param mapToHoneypots list of honeypots in a given solution
+	 * @param mapToWallTime CPU time taken to find a given solution.
+	 */
 	public nodeInMaxRowsGreedyHeuristic(
 			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue,
 			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots,
@@ -42,16 +65,31 @@ public class nodeInMaxRowsGreedyHeuristic
 		this.mapToWallTime = mapToWallTime;
 	}
 	
+	/**
+	 * Getter.
+	 *
+	 * @return returns {@code mapToObjectiveValue}.
+	 */
 	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToObjectiveValue()
 	{
 		return mapToObjectiveValue;
 	}
 	
+	/**
+	 * Getter.
+	 *
+	 * @return returns {@code mapToHoneypots}.
+	 */
 	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> getMapToHoneypots()
 	{
 		return mapToHoneypots;
 	}
 	
+	/**
+	 * Getter.
+	 *
+	 * @return returns {@code mapToWallTime}.
+	 */
 	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToWallTime()
 	{
 		return mapToWallTime;
@@ -179,6 +217,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	
 	/**
 	 * Element-wise multiplication of two list of lists.
+	 *
 	 * @param a the first list of lists
 	 * @param b the second list of lists.
 	 * @return returns a list of lists.
@@ -203,6 +242,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	
 	/**
 	 * Slower and older version of {@code findMaxRowFrequencyNode()}.
+	 *
 	 * @param arr a list of lists
 	 * @param nodes a list of integers (nodes).
 	 * @return returns a node as {@code int}.
@@ -229,7 +269,8 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
-	 * Finds a node (in {@code nodes}) which is present in the most rows (of {@code arr}.
+	 * Finds a node (in {@code nodes}) which is present in the most rows of {@code arr}.
+	 *
 	 * @param arr a list of lists
 	 * @param nodes a list of integers (nodes).
 	 * @return returns a node as {@code int}.
@@ -248,6 +289,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	
 	/**
 	 * Finds indices of rows where {@code node} occurs in {@code arr}.
+	 *
 	 * @param arr a list of lists
 	 * @param node a list of integers (nodes).
 	 * @return returns a list of indices.
@@ -261,6 +303,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	
 	/**
 	 * Loads any results of heuristic from serialized object in file.
+	 *
 	 * @param serialFilename path of the file where the serialized object is stored.
 	 */
 	public void loadHeuristicResultsFromFile(String serialFilename)
@@ -298,6 +341,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	/**
 	 * Serializes all the fields of this class.
+	 *
 	 * @param serialFilename path of the file where the serialized object is to be stored.
 	 */
 	public void serializeResults(String serialFilename)
@@ -382,6 +426,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	
 	/**
 	 * Overrides {@code toString()}.
+	 *
 	 * @return returns string representation of values in class.
 	 */
 	@Override

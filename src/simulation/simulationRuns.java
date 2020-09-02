@@ -11,18 +11,36 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * @author Sudesh Agrawal (sudesh@utexas.edu)
+ * Represents results of simulation runs.
+ * @author Sudesh Agrawal (sudesh@utexas.edu).
  * Last Updated: September 2, 2020.
- * Class for simulation.
  */
 public class simulationRuns
 {
-	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability; transmissability (p)
+	/**
+	 * A map from a 6-tuple to a list of lists.
+	 * 6-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p))
+	 * List of lists: each inner list is the list of infected nodes in a single run.
+	 */
 	Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 																	mapModelNetworkT0RunsFalseNegativeToSimulationRuns;
+	/**
+	 * A map from a 6-tuple to a list of lists.
+	 * 6-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p))
+	 * List of lists: each inner list is the list of virtual detections in a single run.
+	 * Virtual detections are represented by 0 (not detected) or 1 (detected).
+	 */
 	Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 																mapModelNetworkT0RunsFalseNegativeToVirtualDetections;
 	
+	/**
+	 * Constructor.
+	 *
+	 * @param mapModelNetworkT0RunsFalseNegativeToSimulationRuns represents infected nodes
+	 * @param mapModelNetworkT0RunsFalseNegativeToVirtualDetections represents virtual detections.
+	 */
 	public simulationRuns(Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
 			                      mapModelNetworkT0RunsFalseNegativeToSimulationRuns,
 	                      Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
@@ -32,6 +50,10 @@ public class simulationRuns
 		this.mapModelNetworkT0RunsFalseNegativeToVirtualDetections =
 																mapModelNetworkT0RunsFalseNegativeToVirtualDetections;
 	}
+	
+	/**
+	 * Constructor.
+	 */
 	public simulationRuns()
 	{
 		mapModelNetworkT0RunsFalseNegativeToSimulationRuns = new HashMap<>();
@@ -40,6 +62,7 @@ public class simulationRuns
 	
 	/**
 	 * Getter for {@code mapModelNetworkT0RunsFalseNegativeToSimulationRuns}.
+	 *
 	 * @return returns {@code mapModelNetworkT0RunsFalseNegativeToSimulationRuns}.
 	 */
 	public Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
@@ -50,6 +73,7 @@ public class simulationRuns
 	
 	/**
 	 * Getter for {@code mapModelNetworkT0RunsFalseNegativeToVirtualDetections}.
+	 *
 	 * @return returns {@code mapModelNetworkT0RunsFalseNegativeToVirtualDetections}.
 	 */
 	public Map<Sextet<String, String, Integer, Integer, Double, Double>, List<List<Integer>>>
@@ -158,6 +182,7 @@ public class simulationRuns
 	
 	/**
 	 * Get the random initial locations of the virus.
+	 *
 	 * @param g network graph
 	 * @param initialLocationGenChoice an instance of {@code SplittableRandom}
 	 *                                    to randomly choose the initial location of the virus
@@ -174,6 +199,7 @@ public class simulationRuns
 	
 	/**
 	 * Chooses a neighbor uniformly at random to infect.
+	 *
 	 * @param g network graph
 	 * @param neighborGenChoice an instance of SplittableRandom
 	 * @param currentInfected the current infected node  (one of its neighboring vertex is randomly infected).
@@ -226,6 +252,7 @@ public class simulationRuns
 	
 	/**
 	 * Loads any simulation runs from serialized object in file.
+	 *
 	 * @param serialFilename path of the file where the serialized object is stored.
 	 */
 	public void loadRunsFromFile(String serialFilename)

@@ -13,19 +13,38 @@ import java.util.Scanner;
 import java.util.function.Supplier;
 
 /**
- * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: Aug 29, 2020
+ * Represents a network graph.
+ * @author Sudesh Agrawal (sudesh@utexas.edu).
+ * Last Updated: September 2, 2020.
  */
 public class graph
 {
+	/**
+	 * A network graph.
+	 */
 	private Graph<Integer, DefaultEdge> g;
+	/**
+	 * Name of the network.
+	 */
 	private String networkName;
 	
+	/**
+	 * Constructor to instantiate with just the network name ({@code networkName}).
+	 *
+	 * @param networkName name of the Network.
+	 */
 	public graph(String networkName)
 	{
 		this.g = new DefaultUndirectedGraph<>(DefaultEdge.class);
 		this.networkName = networkName;
 	}
+	
+	/**
+	 * Constructor to instantiate with a network name and a graph of the network.
+	 *
+	 * @param g network graph
+	 * @param networkName name of the network.
+	 */
 	public graph(Graph<Integer, DefaultEdge> g, String networkName)
 	{
 		this.g = g;
@@ -34,8 +53,9 @@ public class graph
 	
 	/**
 	 * Initialize an empty graph g with a complete graph of given size.
-	 * @param size number of vertices (nodes) in the complete graph
-	 * @throws Exception exception thrown if vertex set of {@code g} is not empty
+	 *
+	 * @param size number of vertices (nodes) in the complete graph.
+	 * @throws Exception exception thrown if vertex set of {@code g} is not empty.
 	 */
 	public void initializeCompleteGraph(int size) throws Exception
 	{
@@ -64,8 +84,8 @@ public class graph
 	 * A circulant graph is a graph of n (={@code size}) vertices in which the i-th vertex is adjacent to the (i+j)-th and the (i-j)-th vertices for each j in the array offsets.
 	 *
 	 * @param size number of vertices (nodes) in the circulant graph
-	 * @param offsets defines the list of all distances in any edge
-	 * @throws Exception exception thrown if vertex set of {@code g} is not empty
+	 * @param offsets defines the list of all distances in any edge.
+	 * @throws Exception exception thrown if vertex set of {@code g} is not empty.
 	 */
 	public void initializeCirculantGraph(int size, int[] offsets) throws Exception
 	{
@@ -89,8 +109,9 @@ public class graph
 	/**
 	 * Build network from a text file.
 	 * Each line in the text file is an edge, where the vertices are separated by commas.
-	 * @param filename path to file to be read
-	 * @throws Exception exception thrown if vertex set of {@code g} is not empty
+	 *
+	 * @param filename path to file to be read.
+	 * @throws Exception exception thrown if vertex set of {@code g} is not empty.
 	 */
 	public void buildGraphFromFile(String filename) throws Exception
 	{
@@ -129,7 +150,8 @@ public class graph
 	
 	/**
 	 * Getter for {@code g}.
-	 * @return returns the graph
+	 *
+	 * @return returns the graph.
 	 */
 	public Graph<Integer, DefaultEdge> getG()
 	{
@@ -138,7 +160,8 @@ public class graph
 	
 	/**
 	 * Getter for {@code networkName}.
-	 * @return returns the network name as String
+	 *
+	 * @return returns the network name as String.
 	 */
 	public String getNetworkName()
 	{
@@ -147,7 +170,8 @@ public class graph
 	
 	/**
 	 * Setter for {@code networkName}.
-	 * @param networkName network name as String
+	 *
+	 * @param networkName network name as String.
 	 */
 	public void setNetworkName(String networkName)
 	{
@@ -156,7 +180,8 @@ public class graph
 	
 	/**
 	 * Adds a vertex to the {}@code NursingHome}.
-	 * @param v vertex (node) to be added to the network
+	 *
+	 * @param v vertex (node) to be added to the network.
 	 */
 	private void addVertex(Integer v)
 	{
@@ -165,8 +190,9 @@ public class graph
 	
 	/**
 	 * Adds an edge to the Network
+	 *
 	 * @param s source of the edge to be added
-	 * @param t target (destination) of the edge to be added
+	 * @param t target (destination) of the edge to be added.
 	 */
 	private void addEdge(Integer s, Integer t)
 	{
@@ -186,6 +212,11 @@ public class graph
 	
 	// TODO: largest connected component
 	
+	/**
+	 * Overrides {@code toString()}.
+	 *
+	 * @return returns a string representation of values in class.
+	 */
 	@Override
 	public String toString()
 	{

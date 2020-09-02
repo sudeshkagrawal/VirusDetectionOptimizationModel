@@ -16,24 +16,69 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 /**
- * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: September 2, 2020
- * Class for solving optimization formulation.
+ * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
+ * @author Sudesh Agrawal (sudesh@utexas.edu).
+ * Last Updated: September 2, 2020.
  */
 public class gurobiSolver
 {
 	// Model (TN11C, RAEPC, etc.); Network name; t_0; repetitions; false negative probability; ; transmissability (p);
 	// number of honeypots
+	/**
+	 * A map from a 7-tuple to the objective value for a given solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue;
+	/**
+	 * A map from a 7-tuple to the best upper bound known.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToBestUpperBound;
+	/**
+	 * A map from a 7-tuple to the list of honeypots in a given solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots;
+	/**
+	 * A map from a 7-tuple to the CPU time it took to find a given solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
+	/**
+	 * This field is there for some compatibility with results from python code.
+	 * This value should not be used for any analyses or inferences.
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToTime;
+	/**
+	 * A map from a 7-tuple to the solver options used for MIP.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverOptions;
+	/**
+	 * A map from a 7-tuple to the solver message after MIP.
+	 * This message could indicated if the solver solved to optimality or hit time limit, for example.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots)
+	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverMessage;
 	
+	/**
+	 * Constructor.
+	 *
+	 * @param mapToObjectiveValue value of objective function for a given solution
+	 * @param mapToBestUpperBound best known upper bound
+	 * @param mapToHoneypots list of honeypots in a given solution
+	 * @param mapToWallTime CPU time taken to find a given solution
+	 * @param mapToTime TO BE IGNORED
+	 * @param mapToSolverOptions solver options passed for optimization
+	 * @param mapToSolverMessage solver message.
+	 */
 	public gurobiSolver(
 			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue,
 			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToBestUpperBound,
@@ -52,7 +97,10 @@ public class gurobiSolver
 		this.mapToSolverMessage = mapToSolverMessage;
 	}
 	
-		public gurobiSolver()
+	/**
+	 * Constructor.
+	 */
+	public gurobiSolver()
 	{
 		this(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(),
 				new HashMap<>(), new HashMap<>(), new HashMap<>());
@@ -67,7 +115,8 @@ public class gurobiSolver
 	 * @param g network graph
 	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
 	 * @param k_t0_runs list of a 3-tuple of (k, t0, runs),
-	 *                  where k is number of honeypots, t0 is simulation time, and runs is number of repetitions of simulation
+	 *                  where k is number of honeypots, t0 is simulation time,
+	 *                  and runs is number of repetitions of simulation
 	 * @param r false negative probability
 	 * @param p transmissability probability
 	 * @param threads number of threads solver should use
@@ -237,7 +286,6 @@ public class gurobiSolver
 				default -> throw new IllegalStateException("Unexpected value: " + model.get(GRB.IntAttr.Status));
 			}
 			
-			
 			// find average run time over several optimization calls
 			List<Double> wallTimes = new ArrayList<>(5);
 			List<Double> times = new ArrayList<>(5);
@@ -275,6 +323,7 @@ public class gurobiSolver
 	
 	/**
 	 * Element-wise multiplication of two list of lists.
+	 *
 	 * @param a the first list of lists
 	 * @param b the second list of lists.
 	 * @return returns a list of lists.
@@ -350,7 +399,8 @@ public class gurobiSolver
 	
 	/**
 	 * Overrides {@code toString()}.
-	 * @return returns string representation of values in class.
+	 *
+	 * @return returns a string representation of values in class.
 	 */
 	@Override
 	public String toString()
