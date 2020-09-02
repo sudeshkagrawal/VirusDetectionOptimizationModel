@@ -95,7 +95,6 @@ public class run
 		//System.out.println(heuristicResults.toString());
 		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 		
-		
 		// MIP
 		gurobiSolver mipResults = new gurobiSolver();
 		mipResults.solveSAA(modelName, network, simulationResults, k_t0_runs, r, p, threads, mipLogFilename);

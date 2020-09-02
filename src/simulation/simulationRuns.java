@@ -145,11 +145,13 @@ public class simulationRuns
 			}
 			else
 			{
-				IntStream.range(0, rep).mapToObj(i -> IntStream.range(0, time0+1)
+				List<List<Integer>> samplePathVirtualDetections = IntStream.range(0, rep)
+									.mapToObj(i -> IntStream.rangeClosed(0, time0)
 									.mapToObj(j -> 1)
 									.collect(Collectors.toList()))
-									.forEach(timeList -> mapModelNetworkT0RunsFalseNegativeToVirtualDetections.get(key)
-									.add(new ArrayList<>(timeList)));
+									.collect(Collectors.toList());
+				mapModelNetworkT0RunsFalseNegativeToVirtualDetections.put(key, samplePathVirtualDetections);
+				
 			}
 		}
 	}
