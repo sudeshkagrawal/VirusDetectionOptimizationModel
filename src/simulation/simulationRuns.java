@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 
 /**
  * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: September 1, 2020.
+ * Last Updated: September 2, 2020.
  * Class for simulation.
  */
 public class simulationRuns
@@ -133,13 +133,24 @@ public class simulationRuns
 													new Sextet<>(modelName, g.getNetworkName(), time0, rep, r, p);
 			mapModelNetworkT0RunsFalseNegativeToSimulationRuns.put(key, samplePathRuns);
 			//virtual detections
-			SplittableRandom reliabilityGenChoice = new SplittableRandom(seed[2]+time0+rep);
-			mapModelNetworkT0RunsFalseNegativeToVirtualDetections.put(key, new ArrayList<>(rep));
-			IntStream.range(0, rep).mapToObj(i -> IntStream.range(0, (time0 + 1))
-					.mapToObj(j -> reliabilityGenChoice.nextDouble() < r ? 0 : 1)
-					.collect(Collectors.toCollection(() -> new ArrayList<>(time0 + 1))))
-					.forEach(timeList -> mapModelNetworkT0RunsFalseNegativeToVirtualDetections.get(key)
-					.add(new ArrayList<>(timeList)));
+			if (r>0)
+			{
+				SplittableRandom reliabilityGenChoice = new SplittableRandom(seed[2]+time0+rep);
+				mapModelNetworkT0RunsFalseNegativeToVirtualDetections.put(key, new ArrayList<>(rep));
+				IntStream.range(0, rep).mapToObj(i -> IntStream.range(0, (time0 + 1))
+								.mapToObj(j -> reliabilityGenChoice.nextDouble() < r ? 0 : 1)
+								.collect(Collectors.toCollection(() -> new ArrayList<>(time0 + 1))))
+								.forEach(timeList -> mapModelNetworkT0RunsFalseNegativeToVirtualDetections.get(key)
+								.add(new ArrayList<>(timeList)));
+			}
+			else
+			{
+				IntStream.range(0, rep).mapToObj(i -> IntStream.range(0, time0+1)
+									.mapToObj(j -> 1)
+									.collect(Collectors.toList()))
+									.forEach(timeList -> mapModelNetworkT0RunsFalseNegativeToVirtualDetections.get(key)
+									.add(new ArrayList<>(timeList)));
+			}
 		}
 	}
 	
@@ -309,7 +320,8 @@ public class simulationRuns
 	 *             and the fourth is for virtual detections.
 	 * @throws Exception exception thrown if length of {@code seed} is not {3, 4}.
 	 */
-	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r, double p, int[] seed) throws Exception
+	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
+	                              double p, int[] seed) throws Exception
 	{
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
@@ -337,9 +349,9 @@ public class simulationRuns
 					+r+"; transmissability (p)="+p);
 			for (int x=0; x<rep; x++)
 			{
-				//System.out.println("\t Simulation run "+(x+1));
+				System.out.println("\t Simulation run "+(x+1));
 				int initialLocation = initialLocationRuns[x];
-				//System.out.println("\t Initial location of virus: "+initialLocation);
+				System.out.println("\t Initial location of virus: "+initialLocation);
 				SortedSet<Integer> infected = new TreeSet<>();
 				
 				// time step 0
@@ -347,26 +359,14 @@ public class simulationRuns
 				
 				for (int t=1; t<=time0; t++)
 				{
-					//System.out.println("\t\t Time: "+t);
-					List<Integer> tmpInfected = new ArrayList<>();
-					for (Integer node : infected)
-					{
-						int currentTarget = getRandomInfectedNeighbor(g, neighborGenChoice, node);
-						double currentTransmissable = transmissableGen.nextDouble();
-						if (currentTransmissable<=p)
-						{
-							tmpInfected.add(currentTarget);
-							//System.out.println("\t\t\t Node "+node+" infected node "+currentTarget+".");
-						}
-//						else
-//						{
-//							System.out.println("\t\t\t Node "+node+" was unsuccessful in infecting node "
-//												+currentTarget+".");
-//						}
-					}
+					System.out.println("\t\t Time: "+t);
+					List<Integer> tmpInfected = infected.stream()
+												.mapToInt(node -> getRandomInfectedNeighbor(g, neighborGenChoice, node))
+												.filter(currentTarget -> transmissableGen.nextDouble() <= p)
+												.boxed().collect(Collectors.toList());
 					infected.addAll(tmpInfected);
-					//System.out.println("\n\t\t Infected nodes: "+infected.toString());
-					//System.out.println("\t\t Current infected node: "+currentInfected);
+					System.out.println("\t\t\t Newly infected nodes: "+tmpInfected.toString());
+					System.out.println("\t\t Infected nodes: "+infected.toString());
 				}
 				samplePathRuns.add(new ArrayList<>(infected));
 			}
@@ -378,13 +378,25 @@ public class simulationRuns
 					new Sextet<>(modelName, g.getNetworkName(), time0, rep, r, p);
 			mapModelNetworkT0RunsFalseNegativeToSimulationRuns.put(key, samplePathRuns);
 			//virtual detections
-			SplittableRandom reliabilityGenChoice = new SplittableRandom(seed[3]+time0+rep);
-			mapModelNetworkT0RunsFalseNegativeToVirtualDetections.put(key, new ArrayList<>(rep));
-			IntStream.range(0, rep).mapToObj(i -> IntStream.range(0, (time0 + 1))
-					.mapToObj(j -> reliabilityGenChoice.nextDouble() < r ? 0 : 1)
-					.collect(Collectors.toCollection(() -> new ArrayList<>(time0 + 1))))
-					.forEach(timeList -> mapModelNetworkT0RunsFalseNegativeToVirtualDetections.get(key)
-							.add(new ArrayList<>(timeList)));
+			List<List<Integer>> samplePathVirtualDetections;
+			if (r>0)
+			{
+				SplittableRandom reliabilityGenChoice = new SplittableRandom(seed[3]+time0+rep);
+				samplePathVirtualDetections = samplePathRuns.stream()
+								.map(samplePathRun -> IntStream.range(0, samplePathRun.size())
+								.mapToObj(j -> reliabilityGenChoice.nextDouble() < r ? 0 : 1)
+								.collect(Collectors.toList()))
+								.collect(Collectors.toCollection(() -> new ArrayList<>(samplePathRuns.size())));
+			}
+			else
+			{
+				samplePathVirtualDetections = samplePathRuns.stream()
+								.map(samplePathRun -> IntStream.range(0, samplePathRun.size())
+								.mapToObj(j -> 1)
+								.collect(Collectors.toList()))
+								.collect(Collectors.toList());
+			}
+			mapModelNetworkT0RunsFalseNegativeToVirtualDetections.put(key, samplePathVirtualDetections);
 		}
 	}
 	
@@ -422,6 +434,151 @@ public class simulationRuns
 		{
 			System.out.println("Running more simulations for: "+new_t0_runs.toString());
 			simulateRA1PCRuns(g, new_t0_runs, r, p, seed);
+			ranNewSimulations = true;
+		}
+		return ranNewSimulations;
+	}
+	
+	/**
+	 * Function to simulate several runs of RAEPC spread models where detectors may give false negative results.
+	 * See Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
+	 * R: Virus replicates itself and sends copies;
+	 * A: All infected vertices distribute the virus;
+	 * E: Virus propagates to every neighbor;
+	 * P: Virus is transmissable w.p. p;
+	 * C: Transmission occurs in constant time steps.
+	 *
+	 * @param g network graph
+	 * @param t0_runs list of a pair of (t0, runs), where t0 is simulation time,
+	 *                and runs is number of repetitions of simulation
+	 * @param r false negative probability
+	 * @param p transmissability probability
+	 * @param seed an array of length 2 (for r=0) or 3 (for r>0);
+	 *             the first seed is for the initial random location of the virus,
+	 *             the second is for transmissability,
+	 *             and the third is for virtual detections.
+	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3}.
+	 */
+	public void simulateRAEPCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
+	                              double p, int[] seed) throws Exception
+	{
+		// Remove self-loops if any from the graph
+		g.removeSelfLoops();
+		System.out.print("Removed self-loops (if any) from the graph: ");
+		final int n = g.getG().vertexSet().size();
+		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
+		
+		if ((seed.length!=2) && (seed.length!=3))
+			throw new Exception("Seed array should either be of length 2 (for r=0) or of length 3 (for r>0)!");
+		
+		String modelName = "RAEPC";
+		for (Pair<Integer, Integer> v: t0_runs)
+		{
+			int time0 = v.getValue0();
+			int rep = v.getValue1();
+			SplittableRandom initialLocationGenChoice = new SplittableRandom(seed[0]+time0+rep);
+			SplittableRandom transmissableGen = new SplittableRandom(seed[1]+time0+rep);
+			int[] initialLocationRuns = getInitialLocationRuns(g, initialLocationGenChoice, rep);
+			
+			List<List<Integer>> samplePathRuns = new ArrayList<>(rep);
+			System.out.println("Starting simulation: "+modelName+" spread model on "+g.getNetworkName()
+					+"network; "+rep+" repetitions with "+time0+" time step for each repetition; false negative prob.="
+					+r+"; transmissability (p)="+p);
+			for (int x=0; x<rep; x++)
+			{
+				System.out.println("\t Simulation run "+(x+1));
+				int initialLocation = initialLocationRuns[x];
+				System.out.println("\t Initial location of virus: "+initialLocation);
+				SortedSet<Integer> infected = new TreeSet<>();
+				
+				// time step 0
+				infected.add(initialLocation);
+				
+				for (int t=1; t<=time0; t++)
+				{
+					System.out.println("\t\t Time: "+t);
+					List<Integer> tmpInfected = new ArrayList<>();
+					for (Integer node : infected)
+					{
+						List<Integer> tmpList = new ArrayList<>();
+						List<Integer> currentNeighbors = Graphs.neighborListOf(g.getG(), node);
+						currentNeighbors.removeAll(infected);
+						List<Double> currentTransmissable = transmissableGen.doubles(currentNeighbors.size())
+								.boxed().collect(Collectors.toList());
+						IntStream.range(0, currentNeighbors.size()).filter(i -> currentTransmissable.get(i) <= p)
+								.mapToObj(currentNeighbors::get).forEach(tmpList::add);
+						tmpInfected.addAll(tmpList);
+						System.out.println("\t\t\t Node "+node+" infected node "+tmpList.toString()
+								+" of uninfected neighbors "+currentNeighbors.toString()+".");
+					}
+					infected.addAll(tmpInfected);
+					System.out.println("\n\t\t Current infected nodes: "+infected.toString());
+				}
+				samplePathRuns.add(new ArrayList<>(infected));
+			}
+			System.out.println("Ending simulation: "+modelName+" spread model on "+g.getNetworkName()
+					+"network; "+rep+" repetitions with "+time0+" time step for each repetition; false negative prob.="
+					+r+"; transmissability (p)="+p);
+			//System.out.println("Sample paths: \n"+samplePathRuns.toString());
+			Sextet<String, String, Integer, Integer, Double, Double> key =
+					new Sextet<>(modelName, g.getNetworkName(), time0, rep, r, p);
+			mapModelNetworkT0RunsFalseNegativeToSimulationRuns.put(key, samplePathRuns);
+			//virtual detections
+			List<List<Integer>> samplePathVirtualDetections;
+			if (r>0)
+			{
+				SplittableRandom reliabilityGenChoice = new SplittableRandom(seed[2]+time0+rep);
+				samplePathVirtualDetections = samplePathRuns.stream()
+										.map(samplePathRun -> IntStream.range(0, samplePathRun.size())
+										.mapToObj(j -> reliabilityGenChoice.nextDouble() < r ? 0 : 1)
+										.collect(Collectors.toList()))
+										.collect(Collectors.toCollection(() -> new ArrayList<>(samplePathRuns.size())));
+			}
+			else
+			{
+				samplePathVirtualDetections = samplePathRuns.stream()
+										.map(samplePathRun -> IntStream.range(0, samplePathRun.size())
+										.mapToObj(j -> 1)
+										.collect(Collectors.toList()))
+										.collect(Collectors.toList());
+			}
+			mapModelNetworkT0RunsFalseNegativeToVirtualDetections.put(key, samplePathVirtualDetections);
+		}
+	}
+	
+	/**
+	 * Runs simulation for only those {@code t0_runs}
+	 * which are not already there in {@code mapModelNetworkT0RunsFalseNegativeToSimulationRuns}.
+	 *
+	 * @param g network graph
+	 * @param t0_runs list of a pair of (t0, runs), where t0 is simulation time,
+	 *                   and runs is number of repetitions of simulation
+	 * @param r false negative probability
+	 * @param p transmissability probability
+	 * @param seed an array of length 2 (for r=0) or 3 (for r>0);
+	 *             the first seed is for the initial random location of the virus,
+	 *             the second is for transmissability,
+	 *             and the third is for virtual detections.
+	 * @return returns true, if new simulations were run; false, otherwise.
+	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3}.
+	 */
+	public boolean simulateOnlyNecessaryRAEPCRuns(graph g, List<Pair<Integer, Integer>> t0_runs,
+	                                              double r, double p, int[] seed) throws Exception
+	{
+		String modelName = "RAEPC";
+		boolean ranNewSimulations = false;
+		List<Pair<Integer, Integer>> new_t0_runs = new ArrayList<>();
+		for (Pair<Integer, Integer> time0_run : t0_runs)
+		{
+			Sextet<String, String, Integer, Integer, Double, Double> newKey;
+			newKey = new Sextet<>(modelName, g.getNetworkName(), time0_run.getValue0(), time0_run.getValue1(), r, p);
+			if (!mapModelNetworkT0RunsFalseNegativeToSimulationRuns.containsKey(newKey))
+				new_t0_runs.add(time0_run);
+		}
+		if (new_t0_runs.size() > 0)
+		{
+			System.out.println("Running more simulations for: "+new_t0_runs.toString());
+			simulateRAEPCRuns(g, new_t0_runs, r, p, seed);
 			ranNewSimulations = true;
 		}
 		return ranNewSimulations;
