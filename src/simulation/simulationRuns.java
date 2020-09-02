@@ -349,9 +349,9 @@ public class simulationRuns
 					+r+"; transmissability (p)="+p);
 			for (int x=0; x<rep; x++)
 			{
-				System.out.println("\t Simulation run "+(x+1));
+				//System.out.println("\t Simulation run "+(x+1));
 				int initialLocation = initialLocationRuns[x];
-				System.out.println("\t Initial location of virus: "+initialLocation);
+				//System.out.println("\t Initial location of virus: "+initialLocation);
 				SortedSet<Integer> infected = new TreeSet<>();
 				
 				// time step 0
@@ -359,14 +359,14 @@ public class simulationRuns
 				
 				for (int t=1; t<=time0; t++)
 				{
-					System.out.println("\t\t Time: "+t);
+					//System.out.println("\t\t Time: "+t);
 					List<Integer> tmpInfected = infected.stream()
 												.mapToInt(node -> getRandomInfectedNeighbor(g, neighborGenChoice, node))
 												.filter(currentTarget -> transmissableGen.nextDouble() <= p)
 												.boxed().collect(Collectors.toList());
 					infected.addAll(tmpInfected);
-					System.out.println("\t\t\t Newly infected nodes: "+tmpInfected.toString());
-					System.out.println("\t\t Infected nodes: "+infected.toString());
+					//System.out.println("\t\t\t Newly infected nodes: "+tmpInfected.toString());
+					//System.out.println("\t\t Infected nodes: "+infected.toString());
 				}
 				samplePathRuns.add(new ArrayList<>(infected));
 			}
@@ -486,9 +486,9 @@ public class simulationRuns
 					+r+"; transmissability (p)="+p);
 			for (int x=0; x<rep; x++)
 			{
-				System.out.println("\t Simulation run "+(x+1));
+				//System.out.println("\t Simulation run "+(x+1));
 				int initialLocation = initialLocationRuns[x];
-				System.out.println("\t Initial location of virus: "+initialLocation);
+				//System.out.println("\t Initial location of virus: "+initialLocation);
 				SortedSet<Integer> infected = new TreeSet<>();
 				
 				// time step 0
@@ -496,7 +496,7 @@ public class simulationRuns
 				
 				for (int t=1; t<=time0; t++)
 				{
-					System.out.println("\t\t Time: "+t);
+					//System.out.println("\t\t Time: "+t);
 					List<Integer> tmpInfected = new ArrayList<>();
 					for (Integer node : infected)
 					{
@@ -508,11 +508,11 @@ public class simulationRuns
 						IntStream.range(0, currentNeighbors.size()).filter(i -> currentTransmissable.get(i) <= p)
 								.mapToObj(currentNeighbors::get).forEach(tmpList::add);
 						tmpInfected.addAll(tmpList);
-						System.out.println("\t\t\t Node "+node+" infected node "+tmpList.toString()
-								+" of uninfected neighbors "+currentNeighbors.toString()+".");
+						//System.out.println("\t\t\t Node "+node+" infected node "+tmpList.toString()
+						//		+" of uninfected neighbors "+currentNeighbors.toString()+".");
 					}
 					infected.addAll(tmpInfected);
-					System.out.println("\n\t\t Current infected nodes: "+infected.toString());
+					//System.out.println("\n\t\t Current infected nodes: "+infected.toString());
 				}
 				samplePathRuns.add(new ArrayList<>(infected));
 			}

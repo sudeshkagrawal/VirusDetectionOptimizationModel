@@ -17,7 +17,7 @@ public class run
 		String outputFolder = "./out/production/VirusDetectionOptimizationModel/";
 		String networkName = "EUemailcomm_6-core";
 		String modelName = "TN11C";
-		int[] runs = {1000, 5000, 10000, 30000, 50000};
+		int[] runs = {1000, 5000, 10000, 50000, 100000};
 		int[] t_0 = {3, 4};
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
 		double r = 0.0;
@@ -73,7 +73,15 @@ public class run
 			}
 			else if (modelName=="RAEPC")
 			{
-				;
+				int[]  seed = {2507, 2101, 3567};
+				if (doNotUseSerialFile)
+					simulationResults.simulateRAEPCRuns(network, t0_runs, r, p, seed);
+				else
+				{
+					simulationResults.loadRunsFromFile(simulationsSerialFilename);
+					// Check we have runs for all t0_runs
+					ranNewSimulations = simulationResults.simulateOnlyNecessaryRAEPCRuns(network, t0_runs, r, p, seed);
+				}
 			}
 		}
 		//System.out.println(simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().toString());
@@ -87,9 +95,10 @@ public class run
 		//System.out.println(heuristicResults.toString());
 		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 		
+		
 		// MIP
 		gurobiSolver mipResults = new gurobiSolver();
-		mipResults.solveSAA(modelName, network, simulationResults, k_t0_runs, r,p, threads, mipLogFilename);
+		mipResults.solveSAA(modelName, network, simulationResults, k_t0_runs, r, p, threads, mipLogFilename);
 		//System.out.println(mipResults.toString());
 		mipResults.writeToCSV(mipOutputFilename, append);
 	}
