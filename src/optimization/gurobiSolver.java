@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Sudesh Agrawal (sudesh@utexas.edu)
- * Last Updated: September 1, 2020
+ * Last Updated: September 2, 2020
  * Class for solving optimization formulation.
  */
 public class gurobiSolver
@@ -306,14 +306,19 @@ public class gurobiSolver
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
 	{
-		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
 		File fileObj = new File(filename);
-		if ((!fileObj.exists()) || (!append))
+		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
+							"transmissability (p)", "no. of honeypots", "solver", "solver options",
+							"objective value", "best UB", "solver message", "honeypots", "Wall time (s)",
+							"Time (s)", "UTC"};
+		boolean writeHeader = false;
+		if (!fileObj.exists())
+			writeHeader = true;
+		else if (!append)
+			writeHeader = true;
+		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
+		if (writeHeader)
 		{
-			String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
-								"transmissability (p)", "no. of honeypots", "solver", "solver options",
-								"objective value", "best UB", "solver message", "honeypots", "Wall time (s)",
-								"Time (s)", "UTC"};
 			writer.writeNext(header);
 			writer.flush();
 		}
