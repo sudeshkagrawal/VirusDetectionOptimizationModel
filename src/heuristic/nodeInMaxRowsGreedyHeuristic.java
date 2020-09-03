@@ -138,8 +138,8 @@ public class nodeInMaxRowsGreedyHeuristic
 														new Septet<>(modelName, g.getNetworkName(), t_0, run, r, p, k);
 			
 			System.out.println("Using greedy heuristic: "+modelName+" spread model on "+g.getNetworkName()
-								+"network; "+k+" honeypots; "+run+" samples; false negative prob.="
-								+r+"; transmissability (p)="+p);
+								+"network; "+k+" honeypots; "+t_0+" time step(s); "
+								+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			List<List<Integer>> virusSpreadSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
@@ -198,6 +198,8 @@ public class nodeInMaxRowsGreedyHeuristic
 				indicesOfSamplesToBeRemoved = new HashSet<>(
 						findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix), currentCandidate));
 				indicesOfSamplesToBeConsidered.removeAll(indicesOfSamplesToBeRemoved);
+				// TODO: What if k > number of nodes?
+				// TODO: What if current set of honeypots cover all sample paths?
 			}
 			Instant toc = Instant.now();
 			if ((r>0) && (zeroNode))

@@ -161,8 +161,8 @@ public class gurobiSolver
 														new Septet<>(modelName, g.getNetworkName(), t_0, run, r, p, k);
 			
 			System.out.println("Solving MIP: "+modelName+" spread model on "+g.getNetworkName()
-					+"network; "+k+" honeypots; "+run+" samples; false negative prob.="
-					+r+"; transmissability (p)="+p);
+					+"network; "+k+" honeypots; "+t_0+" time step(s); "
+					+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			List<List<Integer>> virusSpreadSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
