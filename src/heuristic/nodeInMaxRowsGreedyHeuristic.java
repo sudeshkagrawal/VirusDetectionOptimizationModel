@@ -233,7 +233,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		for (int i=0; i<a.size(); i++)
 		{
 			List<Integer> colList = new ArrayList<>(a.get(i).size());
-			for (int j=0; j<a.get(0).size(); j++)
+			for (int j=0; j<a.get(i).size(); j++)
 				colList.add(a.get(i).get(j) * b.get(i).get(j));
 			output.add(colList);
 		}
