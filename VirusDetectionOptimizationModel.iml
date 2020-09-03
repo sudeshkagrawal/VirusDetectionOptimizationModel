@@ -31,5 +31,6 @@
     <orderEntry type="library" name="org.javatuples:javatuples:1.2" level="project" />
     <orderEntry type="library" name="com.opencsv:opencsv:5.2" level="project" />
     <orderEntry type="library" name="gurobi" level="project" />
+    <orderEntry type="library" name="org.projectlombok:lombok:1.18.12" level="project" />
   </component>
 </module>
