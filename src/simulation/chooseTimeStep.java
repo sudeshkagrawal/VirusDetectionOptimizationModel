@@ -29,19 +29,30 @@ public class chooseTimeStep
 	 * Each element in the list is the time steps for a simulation repetition.
 	 */
 	Map<parameters, List<Integer>> mapParametersToTimeForInfection;
+	/**
+	 * A map from a 7-tuple to the average time steps required to get a given percentage infection.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots).
+	 * 7-tuple is represented through {@code parameters} class.
+	 */
+	Map<parameters, Double> mapParametersToMeanInfectionTime;
 	
 	/**
 	 * Constructor.
 	 *
 	 * @param mapParametersToSimulationRuns a map from {@code parameters} to the simulation runs
 	 * @param mapParametersToTimeForInfection A map from {@code parameters} to
-	 *                                        the time steps required to get a given percentage infection.
+	 *                                        the time steps required to get a given percentage infection
+	 * @param mapParametersToMeanInfectionTime A map from {@code parameters} to
+	 *                                         the average time steps required to get a given percentage infection.
 	 */
 	public chooseTimeStep(Map<parameters, List<List<Integer>>> mapParametersToSimulationRuns,
-	                      Map<parameters, List<Integer>> mapParametersToTimeForInfection)
+	                      Map<parameters, List<Integer>> mapParametersToTimeForInfection,
+	                      Map<parameters, Double> mapParametersToMeanInfectionTime)
 	{
 		this.mapParametersToSimulationRuns = mapParametersToSimulationRuns;
 		this.mapParametersToTimeForInfection = mapParametersToTimeForInfection;
+		this.mapParametersToMeanInfectionTime = mapParametersToMeanInfectionTime;
 	}
 	
 	/**
@@ -49,7 +60,7 @@ public class chooseTimeStep
 	 */
 	public chooseTimeStep()
 	{
-		this(new HashMap<>(), new HashMap<>());
+		this(new HashMap<>(), new HashMap<>(), new HashMap<>());
 	}
 	
 	/**
@@ -72,6 +83,28 @@ public class chooseTimeStep
 		return mapParametersToTimeForInfection;
 	}
 	
+	/**
+	 * Getter.
+	 *
+	 * @return returns {@code mapParametersToMeanInfectionTime}.
+	 */
+	public Map<parameters, Double> getMapParametersToMeanInfectionTime()
+	{
+		return mapParametersToMeanInfectionTime;
+	}
+	
+	/**
+	 * Function to determine what values of t_0 are appropriate for TN1PC spread dynamics.
+	 * See Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
+	 *
+	 * @param g network graph
+	 * @param params parameters needed for the simulation run; for example, no. of runs; %age infection, etc.
+	 * @param seed an array of length 3;
+	 *             the first seed is for the initial random location of the virus,
+	 *             the second is for random choice of neighbor while spreading,
+	 *             and the third is for transmissability.
+	 * @throws Exception exception thrown if length of {@code seed} is not 3.
+	 */
 	public void TN1PCSimulationRuns(graph g, List<parameters> params, int[] seed) throws Exception
 	{
 		// Remove self-loops if any from the graph
@@ -93,7 +126,7 @@ public class chooseTimeStep
 			int rep = param.getNumberOfSimulationRepetitions();
 			double p = param.getTransmissability();
 			int numberOfNodesInfected = (int) Math.floor(pi*n*0.01);
-			System.out.println("Number of nodes to be infected = "+numberOfNodesInfected);
+			System.out.println("\t Number of nodes to be infected = "+numberOfNodesInfected);
 			
 			SplittableRandom initialLocationGenChoice =
 					new SplittableRandom(seed[0]+Double.doubleToLongBits(pi)+rep+Double.doubleToLongBits(p));
@@ -109,9 +142,9 @@ public class chooseTimeStep
 			List<Integer> t0Runs = new ArrayList<>(rep);
 			for (int x=0; x<rep; x++)
 			{
-				System.out.println("\t\t Simulation run "+(x+1));
+				//System.out.println("\n\t\t Simulation run "+(x+1));
 				int initialLocation = initialLocationRuns[x];
-				System.out.println("\t\t Initial location of virus: "+initialLocation);
+				//System.out.println("\t\t Initial location of virus: "+initialLocation);
 				Set<Integer> infected = new HashSet<>(numberOfNodesInfected);
 				
 				// time step 0
@@ -122,22 +155,25 @@ public class chooseTimeStep
 				int t=1;
 				while (infected.size()<numberOfNodesInfected)
 				{
-					System.out.println("\t\t\t Time: "+t);
+					//System.out.println("\t\t\t Time: "+t);
 					double transmissable = transmissableGen.nextDouble(0, 1);
 					if (transmissable<=p)
 					{
 						List<Integer> currentNeighbors = Graphs.neighborListOf(g.getG(), currentInfected);
 						currentInfected = currentNeighbors.get(neighborGenChoice.nextInt(currentNeighbors.size()));
 						infected.add(currentInfected);
-						System.out.println("\t\t\t\t Current infected node: "+currentInfected);
 					}
+					//System.out.println("\t\t\t\t Current infected node: "+currentInfected);
 					t++;
 				}
 				t0Runs.add(t-1);
-				System.out.println("\t\t Infected nodes: "+infected.toString());
+				//System.out.println("\t\t Infected nodes: "+infected.toString());
 			}
-			System.out.println("\t Infection times: "+t0Runs);
+			double meanInfectionTime = t0Runs.stream().mapToInt(Integer::intValue).average().getAsDouble();
 			mapParametersToTimeForInfection.put(param, t0Runs);
+			mapParametersToMeanInfectionTime.put(param, meanInfectionTime);
+			//System.out.println("\t Infection times: "+t0Runs);
+			System.out.println("\t Mean infection time: "+meanInfectionTime);
 		}
 		System.out.println("Ending simulation runs...");
 	}
