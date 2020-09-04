@@ -75,6 +75,23 @@ public class parameters
 	}
 	
 	/**
+	 * Copy constructor.
+	 *
+	 * @param param {@code parameters}.
+	 */
+	public parameters(parameters param)
+	{
+		this.spreadModelName = param.spreadModelName;
+		this.networkName = param.networkName;
+		this.timeStep = param.timeStep;
+		this.numberOfSimulationRepetitions = param.numberOfSimulationRepetitions;
+		this.falseNegativeProbability = param.falseNegativeProbability;
+		this.transmissability = param.transmissability;
+		this.numberOfHoneypots = param.numberOfHoneypots;
+		this.percentInfection = param.percentInfection;
+	}
+	
+	/**
 	 * Getter.
 	 *
 	 * @return returns {@code spreadModelName}.
