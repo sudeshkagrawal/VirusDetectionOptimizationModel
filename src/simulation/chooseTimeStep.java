@@ -116,7 +116,7 @@ public class chooseTimeStep
 		final int n = g.getG().vertexSet().size();
 		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		
-		if ((seed.length!=2) && (seed.length!=3))
+		if (seed.length!=3)
 			throw new Exception("Seed array should be of length 3!");
 		
 		System.out.println("Starting simulation runs...");
@@ -204,7 +204,7 @@ public class chooseTimeStep
 		final int n = g.getG().vertexSet().size();
 		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		
-		if ((seed.length!=2) && (seed.length!=3))
+		if (seed.length!=3)
 			throw new Exception("Seed array should be of length 3!");
 		
 		System.out.println("Starting simulation runs...");
@@ -232,9 +232,9 @@ public class chooseTimeStep
 			List<List<Integer>> samplePathRuns = new ArrayList<>(rep);
 			for (int x=0; x<rep; x++)
 			{
-				System.out.println("\n\t\t Simulation run "+(x+1));
+				//System.out.println("\n\t\t Simulation run "+(x+1));
 				int initialLocation = initialLocationRuns[x];
-				System.out.println("\t\t Initial location of virus: "+initialLocation);
+				//System.out.println("\t\t Initial location of virus: "+initialLocation);
 				Set<Integer> infected = new HashSet<>(numberOfNodesInfected);
 				
 				// time step 0
@@ -244,7 +244,7 @@ public class chooseTimeStep
 				int t=1;
 				while (infected.size()<numberOfNodesInfected)
 				{
-					System.out.println("\t\t\t Time: "+t);
+					//System.out.println("\t\t\t Time: "+t);
 					List<Integer> tmpInfected = infected.stream()
 							.mapToInt(node -> {
 								List<Integer> currentNeighbors = Graphs.neighborListOf(g.getG(), node);
@@ -253,21 +253,141 @@ public class chooseTimeStep
 							.filter(currentTarget -> transmissableGen.nextDouble() <= p)
 							.boxed().collect(Collectors.toList());
 					infected.addAll(tmpInfected);
-					System.out.println("\t\t\t\t Nodes infected: "+tmpInfected);
+					//System.out.println("\t\t\t\t Nodes infected: "+tmpInfected);
 					t++;
 				}
 				t0Runs.add(t-1);
 				samplePathRuns.add(new ArrayList<>(infected));
-				System.out.println("\t\t Infected nodes: "+infected.toString());
+				//System.out.println("\t\t Infected nodes: "+infected.toString());
 			}
 			double meanInfectionTime = t0Runs.stream().mapToInt(Integer::intValue).average().orElseThrow();
 			mapParametersToSimulationRuns.put(param, samplePathRuns);
 			mapParametersToTimeForInfection.put(param, t0Runs);
 			mapParametersToMeanInfectionTime.put(param, meanInfectionTime);
-			System.out.println("\t Infection times: "+t0Runs);
+			//System.out.println("\t Infection times: "+t0Runs);
 			System.out.println("\t Mean infection time: "+meanInfectionTime);
 		}
 		System.out.println("Ending simulation runs...");
+	}
+	
+	/**
+	 * Function to determine what values of t_0 are appropriate for RAEPC spread dynamics.
+	 * See Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
+	 *
+	 * @param g network graph
+	 * @param params parameters needed for the simulation run; for example, no. of runs; %age infection, etc.
+	 * @param seed an array of length 2;
+	 *             the first seed is for the initial random location of the virus,
+	 *             and the second is for transmissability.
+	 * @throws Exception exception thrown if length of {@code seed} is not 2.
+	 */
+	public void RAEPCSimulationRuns(graph g, List<parameters> params, int[] seed) throws Exception
+	{
+		// Remove self-loops if any from the graph
+		System.out.println("Network has "+g.getG().vertexSet().size()
+				+" nodes and "+g.getG().edgeSet().size()+" edges.");
+		g.removeSelfLoops();
+		System.out.print("Removed self-loops (if any) from the graph: ");
+		final int n = g.getG().vertexSet().size();
+		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
+		
+		if (seed.length!=2)
+			throw new Exception("Seed array should be of length 2!");
+		
+		System.out.println("Starting simulation runs...");
+		for(parameters param : params)
+		{
+			System.out.println("\t "+param.toString());
+			double pi = param.getPercentInfection();
+			int rep = param.getNumberOfSimulationRepetitions();
+			double p = param.getTransmissability();
+			int numberOfNodesInfected = (int) Math.floor(pi*n*0.01);
+			System.out.println("\t Number of nodes to be infected = "+numberOfNodesInfected);
+			
+			SplittableRandom initialLocationGenChoice =
+					new SplittableRandom(seed[0]+Double.doubleToLongBits(pi)+rep+Double.doubleToLongBits(p));
+			SplittableRandom transmissableGen =
+					new SplittableRandom(seed[1]+Double.doubleToLongBits(pi)+rep+Double.doubleToLongBits(p));
+			
+			List<Integer> nodes = new ArrayList<>(g.getG().vertexSet());
+			int[] initialLocationRuns = IntStream.range(0, rep)
+					.map(i -> nodes.get(initialLocationGenChoice.nextInt(0, n))).toArray();
+			
+			List<Integer> t0Runs = new ArrayList<>(rep);
+			List<List<Integer>> samplePathRuns = new ArrayList<>(rep);
+			for (int x=0; x<rep; x++)
+			{
+				//System.out.println("\n\t\t Simulation run "+(x+1));
+				int initialLocation = initialLocationRuns[x];
+				//System.out.println("\t\t Initial location of virus: "+initialLocation);
+				SortedSet<Integer> infected = new TreeSet<>();
+				
+				// time step 0
+				infected.add(initialLocation);
+				
+				
+				int t=1;
+				while (infected.size()<numberOfNodesInfected)
+				{
+					//System.out.println("\t\t\t Time: "+t);
+					List<Integer> tmpInfected = new ArrayList<>();
+					for (Integer node: infected)
+					{
+						List<Integer> tmpList = new ArrayList<>();
+						List<Integer> currentNeighbors = Graphs.neighborListOf(g.getG(), node);
+						List<Double> currentTransmissable = transmissableGen.doubles(currentNeighbors.size())
+								.boxed().collect(Collectors.toList());
+						IntStream.range(0, currentNeighbors.size()).filter(i -> currentTransmissable.get(i) <= p)
+								.mapToObj(currentNeighbors::get).forEach(tmpList::add);
+						tmpInfected.addAll(tmpList);
+					}
+					infected.addAll(tmpInfected);
+					//System.out.println("\t\t\t\t Nodes infected: "+tmpInfected);
+					t++;
+				}
+				t0Runs.add(t-1);
+				samplePathRuns.add(new ArrayList<>(infected));
+				//System.out.println("\t\t Infected nodes: "+infected.toString());
+			}
+			double meanInfectionTime = t0Runs.stream().mapToInt(Integer::intValue).average().orElseThrow();
+			mapParametersToSimulationRuns.put(param, samplePathRuns);
+			mapParametersToTimeForInfection.put(param, t0Runs);
+			mapParametersToMeanInfectionTime.put(param, meanInfectionTime);
+			//System.out.println("\t Infection times: "+t0Runs);
+			System.out.println("\t Mean infection time: "+meanInfectionTime);
+		}
+		System.out.println("Ending simulation runs...");
+	}
+	
+	/**
+	 * Calls appropriate methods ({@code TN1PCSimulationRuns}, {@code RA1PCSimulationRuns}, {@code RAEPCSimulationRuns})
+	 * based on the model name in {@code params}.
+	 *
+	 * @param g network graph
+	 * @param params parameters
+	 * @param seed seed array.
+	 * @throws Exception exception thrown if invalid model name found in any element of {@code params}.
+	 */
+	public void doSimulationRuns(graph g, List<parameters> params, int[] seed) throws Exception
+	{
+		List<parameters> TN1PCParams = new ArrayList<>(params.size());
+		List<parameters> RA1PCParams = new ArrayList<>(params.size());
+		List<parameters> RAEPCParams = new ArrayList<>(params.size());
+		
+		for (parameters p: params)
+			switch (p.getSpreadModelName())
+			{
+				case "TN1PC" -> TN1PCParams.add(p);
+				case "RA1PC" -> RA1PCParams.add(p);
+				case "RAEPC" -> RAEPCParams.add(p);
+				default -> throw new Exception("Invalid model name found!");
+			}
+		if (TN1PCParams.size()>0)
+			TN1PCSimulationRuns(g, TN1PCParams, seed);
+		if (RA1PCParams.size()>0)
+			RA1PCSimulationRuns(g, RA1PCParams, seed);
+		if (RAEPCParams.size()>0)
+			RAEPCSimulationRuns(g, RAEPCParams, seed);
 	}
 	
 	/**
