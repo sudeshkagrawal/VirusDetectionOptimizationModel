@@ -1,9 +1,14 @@
 package simulation;
 
+import com.opencsv.CSVWriter;
 import dataTypes.parameters;
 import network.graph;
 import org.jgrapht.Graphs;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -388,6 +393,47 @@ public class chooseTimeStep
 			RA1PCSimulationRuns(g, RA1PCParams, seed);
 		if (RAEPCParams.size()>0)
 			RAEPCSimulationRuns(g, RAEPCParams, seed);
+	}
+	
+	/**
+	 * Writes results to csv file.
+	 * List of time steps for each repetition is not written to csv; only the average time is written.
+	 *
+	 * @param filename path to output file
+	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @throws IOException exception thrown if error in input-output operation.
+	 */
+	public void writeToCSV(String filename, boolean append) throws IOException
+	{
+		File fileObj = new File(filename);
+		String[] header = {"Model", "Network", "Percent Infection", "Simulation repetitions",
+							"transmissability (p)", "Avg. time", "UTC"};
+		boolean writeHeader = false;
+		if (!fileObj.exists())
+			writeHeader = true;
+		else if (!append)
+			writeHeader = true;
+		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
+		if (writeHeader)
+		{
+			writer.writeNext(header);
+			writer.flush();
+		}
+		for (parameters key : mapParametersToTimeForInfection.keySet())
+		{
+			String[] line = new String[7];
+			line[0] = key.getSpreadModelName();
+			line[1] = key.getNetworkName();
+			line[2] = String.valueOf(key.getPercentInfection());
+			line[3] = String.valueOf(key.getNumberOfSimulationRepetitions());
+			line[4] = String.valueOf(key.getTransmissability());
+			line[5] = String.valueOf(mapParametersToMeanInfectionTime.get(key));
+			line[6] = Instant.now().toString();
+			writer.writeNext(line);
+		}
+		writer.flush();
+		writer.close();
+		System.out.println("Results successfully written to \""+filename+"\".");
 	}
 	
 	/**
