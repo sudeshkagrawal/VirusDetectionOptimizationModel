@@ -1,5 +1,6 @@
 package dataTypes;
 
+
 import lombok.EqualsAndHashCode;
 
 import java.util.Objects;
@@ -42,6 +43,10 @@ public class parameters
 	 * Number of honeypots to be installed.
 	 */
 	int numberOfHoneypots;
+	/**
+	 * Percentage of nodes to infect.
+	 */
+	double percentInfection;
 	
 	/**
 	 * Constructor.
@@ -52,10 +57,12 @@ public class parameters
 	 * @param numberOfSimulationRepetitions number of times simulation is repeated
 	 * @param falseNegativeProbability false negative probability of detectors
 	 * @param transmissability transmissability probability
-	 * @param numberOfHoneypots number of honeypots to be installed.
+	 * @param numberOfHoneypots number of honeypots to be installed
+	 * @param percentInfection percentage of nodes to infect.
 	 */
 	public parameters(String spreadModelName, String networkName, int timeStep, int numberOfSimulationRepetitions,
-	                  double falseNegativeProbability, double transmissability, int numberOfHoneypots)
+	                  double falseNegativeProbability, double transmissability, int numberOfHoneypots,
+	                  double percentInfection)
 	{
 		this.spreadModelName = spreadModelName;
 		this.networkName = networkName;
@@ -64,6 +71,7 @@ public class parameters
 		this.falseNegativeProbability = falseNegativeProbability;
 		this.transmissability = transmissability;
 		this.numberOfHoneypots = numberOfHoneypots;
+		this.percentInfection = percentInfection;
 	}
 	
 	/**
@@ -137,6 +145,16 @@ public class parameters
 	}
 	
 	/**
+	 * Getter.
+	 *
+	 * @return returns {@code percentInfection}.
+	 */
+	public double getPercentInfection()
+	{
+		return percentInfection;
+	}
+	
+	/**
 	 * Setter.
 	 *
 	 * @param spreadModelName name of the spread model.
@@ -207,6 +225,16 @@ public class parameters
 	}
 	
 	/**
+	 * Setter.
+	 *
+	 * @param percentInfection percentage of node to infect.
+	 */
+	public void setPercentInfection(double percentInfection)
+	{
+		this.percentInfection = percentInfection;
+	}
+	
+	/**
 	 * Overrides {@code toString}.
 	 *
 	 * @return returns a string representation of all the fields in the class.
@@ -221,7 +249,8 @@ public class parameters
 				+"simulation repetitions = "+numberOfSimulationRepetitions+"; "
 				+"false negative probability = "+falseNegativeProbability+"; "
 				+"transmissability = "+transmissability+"; "
-				+"number of honeypots = "+numberOfHoneypots+".";
+				+"number of honeypots = "+numberOfHoneypots+"; "
+				+"percentage infection = "+percentInfection+".";
 	}
 	
 	/**
@@ -248,7 +277,8 @@ public class parameters
 		else
 		{
 			if ((Double.compare(newObj.falseNegativeProbability, falseNegativeProbability) != 0)
-					|| (Double.compare(newObj.transmissability, transmissability) !=0))
+					|| (Double.compare(newObj.transmissability, transmissability) !=0)
+					|| (Double.compare(newObj.percentInfection, percentInfection) !=0))
 				return false;
 			else
 				return (spreadModelName == newObj.spreadModelName
@@ -281,6 +311,8 @@ public class parameters
 	//	hash = 31*hash + ((int) (bits ^ (bits >>> 32)));
 	//	bits = Double.doubleToLongBits(transmissability);
 	//	hash = 31*hash + ((int) (bits ^ (bits >>> 32)));
+	//	bits = Double.doubleToLongBits(percentInfection);
+	//	hash = 31 * hash + (int) (bits ^ (bits >>> 32));
 	//	// String fields
 	//	hash = 31*hash + (null == spreadModelName ? 0 : spreadModelName.hashCode());
 	//	hash = 31*hash + (null == networkName ? 0 : networkName.hashCode());
@@ -297,6 +329,6 @@ public class parameters
 	public int hashCode()
 	{
 		return Objects.hash(spreadModelName, networkName, timeStep, numberOfSimulationRepetitions,
-							falseNegativeProbability, transmissability, numberOfHoneypots);
+							falseNegativeProbability, transmissability, numberOfHoneypots, percentInfection);
 	}
 }

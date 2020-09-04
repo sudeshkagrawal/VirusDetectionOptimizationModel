@@ -104,6 +104,8 @@ public class simulationRuns
 	 */
 	public void simulateTN11CRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r, int[] seed) throws Exception
 	{
+		System.out.println("Network has "+g.getG().vertexSet().size()
+				+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
 		System.out.print("Removed self-loops (if any) from the graph: ");
@@ -352,6 +354,8 @@ public class simulationRuns
 	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
 	                              double p, int[] seed) throws Exception
 	{
+		System.out.println("Network has "+g.getG().vertexSet().size()
+				+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
 		System.out.print("Removed self-loops (if any) from the graph: ");
@@ -491,6 +495,8 @@ public class simulationRuns
 	public void simulateRAEPCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
 	                              double p, int[] seed) throws Exception
 	{
+		System.out.println("Network has "+g.getG().vertexSet().size()
+				+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
 		System.out.print("Removed self-loops (if any) from the graph: ");

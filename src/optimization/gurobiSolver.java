@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 2, 2020.
+ * Last Updated: September 3, 2020.
  */
 public class gurobiSolver
 {
@@ -28,25 +28,25 @@ public class gurobiSolver
 	/**
 	 * A map from a 7-tuple to the objective value for a given solution.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue;
 	/**
 	 * A map from a 7-tuple to the best upper bound known.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToBestUpperBound;
 	/**
 	 * A map from a 7-tuple to the list of honeypots in a given solution.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots;
 	/**
 	 * A map from a 7-tuple to the CPU time it took to find a given solution.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
 	/**
@@ -57,14 +57,14 @@ public class gurobiSolver
 	/**
 	 * A map from a 7-tuple to the solver options used for MIP.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverOptions;
 	/**
 	 * A map from a 7-tuple to the solver message after MIP.
 	 * This message could indicated if the solver solved to optimality or hit time limit, for example.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, String> mapToSolverMessage;
 	
@@ -127,6 +127,8 @@ public class gurobiSolver
 	                     List<Triple<Integer, Integer, Integer>> k_t0_runs, double r, double p,
 	                     int threads, String logFilename) throws Exception
 	{
+		System.out.println("Network has "+g.getG().vertexSet().size()
+				+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
 		System.out.print("Removed self-loops (if any) from the graph: ");

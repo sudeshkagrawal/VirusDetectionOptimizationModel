@@ -17,26 +17,26 @@ import java.util.stream.IntStream;
 /**
  * Represents results of heuristic on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 2, 2020.
+ * Last Updated: September 3, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
 	/**
 	 * A map from a 7-tuple to the objective value for a given solution.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue;
 	/**
 	 * A map from a 7-tuple to the list of honeypots in a given solution.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots;
 	/**
 	 * A map from a 7-tuple to the CPU time it took to find a given solution.
 	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots)
+	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
 	
@@ -112,6 +112,8 @@ public class nodeInMaxRowsGreedyHeuristic
 	public void runSAAUsingHeuristic(String modelName, graph g, simulationRuns simulationResults,
 	                                 List<Triple<Integer, Integer, Integer>> k_t0_runs, double r, double p) throws Exception
 	{
+		System.out.println("Network has "+g.getG().vertexSet().size()
+				+" nodes and "+g.getG().edgeSet().size()+" edges.");
 		// Remove self-loops if any from the graph
 		g.removeSelfLoops();
 		System.out.print("Removed self-loops (if any) from the graph: ");
