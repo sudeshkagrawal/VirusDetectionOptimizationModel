@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Represents parameters for model simulation, optimization, etc.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 3, 2020.
+ * Last Updated: September 4, 2020.
  */
 @EqualsAndHashCode
 public class parameters
