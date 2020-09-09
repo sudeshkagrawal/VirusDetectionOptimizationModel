@@ -5,10 +5,13 @@ import org.jgrapht.generate.CompleteGraphGenerator;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.jgrapht.graph.SimpleGraph;
+import org.jgrapht.traverse.BreadthFirstIterator;
 import org.jgrapht.util.SupplierUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.function.Supplier;
@@ -211,10 +214,41 @@ public class graph
 	
 	// TODO: c-core decomposition
 	
-	// TODO: largest connected component
-	public void changeGraphToLargestConnectedComponent()
+	/**
+	 * Changes the graph to one of its largest components.
+	 *
+	 * @throws Exception exception thrown if graph {@code g} does not have a vertex.
+	 */
+	public void changeGraphToLargestConnectedComponent() throws Exception
 	{
-	
+		if (g.vertexSet().size()<1)
+			throw new Exception("Graph is empty!");
+		List<Integer> nodes = new ArrayList<>(g.vertexSet());
+		List<List<Integer>> connectedComponents = new ArrayList<>();
+		// find connected components
+		while (nodes.size()>0)
+		{
+			int startNode = nodes.get(0);
+			BreadthFirstIterator iter = new BreadthFirstIterator(g, startNode);
+			List<Integer> connectedComponent = new ArrayList<>();
+			iter.forEachRemaining(e -> connectedComponent.add((Integer) e));
+			nodes.removeAll(connectedComponent);
+			connectedComponents.add(connectedComponent);
+		}
+		// find index of a largest connected component
+		int indexOfLargestComponent = 0;
+		for (List<Integer> component: connectedComponents)
+		{
+			if (component.size()>connectedComponents.get(indexOfLargestComponent).size())
+				indexOfLargestComponent = connectedComponents.indexOf(component);
+		}
+		// Remove vertices (and consequently edges) not in the largest connected component
+		for (List<Integer> component: connectedComponents)
+		{
+			if (connectedComponents.indexOf(component)==indexOfLargestComponent)
+				continue;
+			g.removeAllVertices(component);
+		}
 	}
 	
 	/**
