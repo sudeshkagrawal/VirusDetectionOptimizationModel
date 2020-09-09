@@ -9,13 +9,14 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.function.Supplier;
 
 /**
  * Represents a network graph.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 2, 2020.
+ * Last Updated: September 9, 2020.
  */
 public class graph
 {
@@ -131,8 +132,8 @@ public class graph
 					if (data.equals(""))
 						continue;
 					String[] tokens = data.split(",");
-					int source = Integer.parseInt(tokens[0]);
-					int destination = Integer.parseInt(tokens[1]);
+					int source = Integer.parseInt(tokens[0].trim());
+					int destination = Integer.parseInt(tokens[1].trim());
 					g.addVertex(source);
 					g.addVertex(destination);
 					g.addEdge(source, destination);
@@ -211,6 +212,10 @@ public class graph
 	// TODO: c-core decomposition
 	
 	// TODO: largest connected component
+	public void changeGraphToLargestConnectedComponent()
+	{
+	
+	}
 	
 	/**
 	 * Overrides {@code toString()}.
@@ -223,4 +228,32 @@ public class graph
 		return networkName+":g<"+g.vertexSet()+", "+g.edgeSet()+">";
 	}
 	
+	/**
+	 * Overrides {@code equals}.
+	 *
+	 * @param o an object.
+	 * @return returns true if the values of all individual fields match; false, otherwise.
+	 */
+	@Override
+	public boolean equals(Object o)
+	{
+		// this instance check
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		graph graph = (graph) o;
+		return g.equals(graph.g) &&
+				networkName.equals(graph.networkName);
+	}
+	
+	/**
+	 * Overrides {@code hashCode}.
+	 * Uses lombok,
+	 *
+	 * @return returns a integer value representing the hash code for an object.
+	 */
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(g, networkName);
+	}
 }

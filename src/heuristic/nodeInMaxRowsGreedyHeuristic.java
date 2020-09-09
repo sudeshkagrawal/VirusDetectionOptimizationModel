@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of heuristic on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 3, 2020.
+ * Last Updated: September 9, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
@@ -39,6 +39,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
+	// TODO: Compute a priori and posterior upper bounds for greedy solution
 	
 	/**
 	 * Constructor.
