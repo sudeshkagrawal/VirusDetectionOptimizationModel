@@ -19,6 +19,10 @@
 /files/networks/Twittercombined_30-core.txt
 /files/networks/Twittercombined_40-core.txt
 /files/networks/Twittercombined_50-core.txt
+/files/networks/braessNetwork.txt
+/files/networks/Email-EuAll_edited.txt
+/files/networks/testnetwork6withUnconnectedComponents.txt
+/files/networks/testnetwork7withUnconnectedComponents.txt
 
 # Compiled class file
 *.class

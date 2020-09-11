@@ -1,7 +1,10 @@
 package network;
 
 import org.jgrapht.Graph;
+import org.jgrapht.GraphTests;
+import org.jgrapht.Graphs;
 import org.jgrapht.generate.CompleteGraphGenerator;
+import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultUndirectedGraph;
 import org.jgrapht.graph.SimpleGraph;
@@ -10,16 +13,15 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Represents a network graph.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 9, 2020.
+ * Last Updated: September 11, 2020.
  */
 public class graph
 {
@@ -114,10 +116,11 @@ public class graph
 	 * Build network from a text file.
 	 * Each line in the text file is an edge, where the vertices are separated by commas.
 	 *
-	 * @param filename path to file to be read.
+	 * @param filename path to file to be read
+	 * @param separator character that separates source node and target node.
 	 * @throws Exception exception thrown if vertex set of {@code g} is not empty.
 	 */
-	public void buildGraphFromFile(String filename) throws Exception
+	public void buildGraphFromFile(String filename, String separator) throws Exception
 	{
 		if (g.vertexSet().size()>0)
 		{
@@ -134,7 +137,7 @@ public class graph
 					String data = myReader.nextLine();
 					if (data.equals(""))
 						continue;
-					String[] tokens = data.split(",");
+					String[] tokens = data.split(separator);
 					int source = Integer.parseInt(tokens[0].trim());
 					int destination = Integer.parseInt(tokens[1].trim());
 					g.addVertex(source);
@@ -212,8 +215,6 @@ public class graph
 			g.removeEdge(v, v);
 	}
 	
-	// TODO: c-core decomposition
-	
 	/**
 	 * Changes the graph to one of its largest components.
 	 *
@@ -249,6 +250,119 @@ public class graph
 				continue;
 			g.removeAllVertices(component);
 		}
+	}
+	
+	/**
+	 * Modifies the graph {@code g} to its k-core subgraph.
+	 *
+	 * @param k the order of the core.
+	 * @throws Exception exception thrown if graph contains self-loops.
+	 */
+	public void dokCoreDecomposition(int k) throws Exception
+	{
+		g = getkCore(k);
+		changeGraphToLargestConnectedComponent();
+	}
+	
+	/**
+	 * Returns the k-core of {@code g}.
+	 * A k-core is a maximal subgraph that contains nodes of degree k or more.
+	 *
+	 * @param k the order of the core.
+	 * @return the k-core subgraph.
+	 * @throws Exception exception thrown if graph contains self-loops.
+	 */
+	public Graph<Integer, DefaultEdge> getkCore(int k) throws Exception
+	{
+		Map<Integer, Integer> core = getCoreNumbers();
+		//int k = core.entrySet().stream()
+		//			.max((e1, e2) -> e1.getValue().compareTo(e2.getValue()))
+		//			.orElse(null).getValue();
+		
+		// find nodes in the k-core
+		Set<Integer> nodes	= new HashSet<>();
+		for (Integer v: core.keySet())
+		{
+			if (core.get(v) >= k)
+				nodes.add(v);
+		}
+		// get subgraph with only nodes
+		return new AsSubgraph<>(g, nodes);
+	}
+	
+	/**
+	 * Returns the core number for each vertex.
+	 * A k-core is a maximal subgraph that contains nodes (vertices) of degree k or more.
+	 * The core number of a node is the largest value k of a k-core containing that node.
+	 *
+	 * References:
+	 * [1] An O(m) Algorithm for Cores Decomposition of Networks
+	 * Vladimir Batagelj and Matjaz Zaversnik, 2003.
+	 * https://arxiv.org/abs/cs.DS/0310049
+	 *
+	 * [2] https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number
+	 *
+	 * @return returns the core number for each vertex.
+	 * @throws Exception exception thrown if graph contains self-loops.
+	 */
+	private Map<Integer, Integer> getCoreNumbers() throws Exception
+	{
+		if (GraphTests.hasSelfLoops(g))
+			throw new Exception("Graph has self loops which is not permitted; " +
+					"consider using removeSelfLoops()");
+		// Find the degree of each vertex
+		Map<Integer, Integer> degrees = g.vertexSet()
+				.stream().collect(Collectors.toMap(vertex -> vertex, vertex -> g.degreeOf(vertex), (a, b) -> b));
+		// Sort nodes by degree (ascending order)
+		List<Integer> nodes = degrees.entrySet().stream()
+										.sorted(Map.Entry.comparingByValue())
+										.map(Map.Entry::getKey).collect(Collectors.toList());
+		/*
+			Bin boundaries contain for each possible degree the position of the first vertex of that degree
+			in the list nodes.
+		 */
+		List<Integer> binBoundaries = new ArrayList<>();
+		binBoundaries.add(0);
+		int currentDegree = 0;
+		for (int i=0; i<nodes.size(); i++)
+		{
+			int degreeOfV = degrees.get(nodes.get(i));
+			if (degreeOfV>currentDegree)
+			{
+				for (int j=0; j<(degreeOfV-currentDegree); j++)
+					binBoundaries.add(i);
+				currentDegree = degreeOfV;
+			}
+		}
+		Map<Integer, Integer> nodePosition = IntStream.range(0, nodes.size()).boxed().collect(Collectors
+												.toMap(nodes::get, i -> i, (a, b) -> b));
+		// The initial guess for the core number of a node is its degree.
+		Map<Integer, Integer> core = new HashMap<>(degrees);
+		Map<Integer, List<Integer>> neighbors = nodes.stream()
+				.collect(Collectors.toMap(v -> v, v -> Graphs.neighborListOf(g, v), (a, b) -> b));
+		int pos, binStart;
+		for (Integer v: nodes)
+		{
+			for (Integer u: neighbors.get(v))
+			{
+				if (core.get(u)>core.get(v))
+				{
+					neighbors.get(u).remove(v);
+					pos = nodePosition.get(u);
+					binStart = binBoundaries.get(core.get(u));
+					nodePosition.put(u, binStart);
+					nodePosition.put(nodes.get(binStart), pos);
+					// swapping
+					int tmp = nodes.get(pos);
+					nodes.set(pos, nodes.get(binStart));
+					nodes.set(binStart, tmp);
+					
+					binBoundaries.set(core.get(u), binBoundaries.get(core.get(u))+1);
+					core.put(u, core.get(u)-1);
+				}
+			}
+		}
+		return core;
 	}
 	
 	/**

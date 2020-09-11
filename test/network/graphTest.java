@@ -2,6 +2,11 @@ package network;
 
 import java.util.Arrays;
 
+/**
+ * Unite test for {@code graph}.
+ * @author Sudesh Agrawal (sudesh@utexas.edu).
+ * Last Updated: September 11, 2020.
+ */
 class graphTest
 {
 	
@@ -63,7 +68,8 @@ class graphTest
 	void buildGraphFromFile() throws Exception
 	{
 		graph network = new graph("testNetwork");
-		network.buildGraphFromFile("./files/networks/testNetworkFile.txt");
+		String separator = ",";
+		network.buildGraphFromFile("./files/networks/testNetworkFile.txt", separator);
 		
 		// check vertex set
 		assert network.getG().vertexSet().size()==7;
