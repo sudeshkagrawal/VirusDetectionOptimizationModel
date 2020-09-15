@@ -1,4 +1,4 @@
-package heuristic;
+package algorithm;
 
 import com.opencsv.CSVWriter;
 import network.graph;
@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Represents results of heuristic on {@code simulationRuns}.
+ * Represents results of algorithm on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 9, 2020.
+ * Last Updated: September 11, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
@@ -97,7 +97,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
-	 * Solves the sample-average approximation model using a greedy heuristic.
+	 * Solves the sample-average approximation model using a greedy algorithm.
 	 * See model 4.6 in Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
 	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
@@ -140,7 +140,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			Septet<String, String, Integer, Integer, Double, Double, Integer> fullKey =
 														new Septet<>(modelName, g.getNetworkName(), t_0, run, r, p, k);
 			
-			System.out.println("Using greedy heuristic: "+modelName+" spread model on "+g.getNetworkName()
+			System.out.println("Using greedy algorithm: "+modelName+" spread model on "+g.getNetworkName()
 								+"network; "+k+" honeypots; "+t_0+" time step(s); "
 								+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			List<List<Integer>> virusSpreadSamples =
@@ -307,7 +307,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
-	 * Loads any results of heuristic from serialized object in file.
+	 * Loads any results of algorithm from serialized object in file.
 	 *
 	 * @param serialFilename path of the file where the serialized object is stored.
 	 */
@@ -329,7 +329,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			objin.close();
 			bin.close();
 			fin.close();
-			System.out.println("Using results of heuristic in \""+serialFilename+"\".");
+			System.out.println("Using results of algorithm in \""+serialFilename+"\".");
 		}
 		catch (FileNotFoundException e1)
 		{
@@ -385,7 +385,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
-	 * Writes heuristic results to csv file.
+	 * Writes algorithm results to csv file.
 	 *
 	 * @param filename path to output file
 	 * @param append true, if you wish to append to existing file; false, otherwise.
