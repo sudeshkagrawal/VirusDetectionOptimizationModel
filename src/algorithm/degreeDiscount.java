@@ -1,4 +1,4 @@
-package algorithm.algorithm;
+package algorithm;
 
 public class degreeDiscount
 {

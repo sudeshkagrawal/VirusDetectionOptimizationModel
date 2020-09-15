@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of algorithm on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 11, 2020.
+ * Last Updated: September 15, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
@@ -39,6 +39,18 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
+	/**
+	 * A map from a 7-tuple to the a priori upper bound induced by the solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots).
+	 */
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToAPrioriUB;
+	/**
+	 * A map from a 7-tuple to the posterior upper bound induced by the solution.
+	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 * false negative probability, transmissability (p), number of honeypots).
+	 */
+	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToPosteriorUB;
 	// TODO: Compute a priori and posterior upper bounds for greedy solution
 	
 	/**
@@ -46,7 +58,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	 */
 	public nodeInMaxRowsGreedyHeuristic()
 	{
-		this(new HashMap<>(), new HashMap<>(), new HashMap<>());
+		this(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
 	}
 	
 	/**
@@ -54,16 +66,22 @@ public class nodeInMaxRowsGreedyHeuristic
 	 *
 	 * @param mapToObjectiveValue value of objective function for a given solution
 	 * @param mapToHoneypots list of honeypots in a given solution
-	 * @param mapToWallTime CPU time taken to find a given solution.
+	 * @param mapToWallTime CPU time taken to find a given solution
+	 * @param mapToAPrioriUB a priori upper bound induced by a given solution
+	 * @param mapToPosteriorUB posterior upper bound induced by a given solution.
 	 */
 	public nodeInMaxRowsGreedyHeuristic(
 			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue,
 			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots,
-			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime)
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToAPrioriUB,
+			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToPosteriorUB)
 	{
 		this.mapToObjectiveValue = mapToObjectiveValue;
 		this.mapToHoneypots = mapToHoneypots;
 		this.mapToWallTime = mapToWallTime;
+		this.mapToAPrioriUB = mapToAPrioriUB;
+		this.mapToPosteriorUB = mapToPosteriorUB;
 	}
 	
 	/**
@@ -94,6 +112,26 @@ public class nodeInMaxRowsGreedyHeuristic
 	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToWallTime()
 	{
 		return mapToWallTime;
+	}
+	
+	/**
+	 * Getter.
+	 *
+	 * @return returns {}
+	 */
+	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToAPrioriUB()
+	{
+		return mapToAPrioriUB;
+	}
+	
+	/**
+	 * Getter.
+	 *
+	 * @return
+	 */
+	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToPosteriorUB()
+	{
+		return mapToPosteriorUB;
 	}
 	
 	/**

@@ -1,5 +1,7 @@
 package network;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.Arrays;
 
 /**
@@ -84,5 +86,55 @@ class graphTest
 		assert network.getG().containsEdge(4, 5);
 		assert network.getG().containsEdge(5, 6);
 		assert network.getG().containsEdge(6, 7);
+	}
+	
+	@Test
+	void getG()
+	{
+	}
+	
+	@Test
+	void getNetworkName()
+	{
+	}
+	
+	@Test
+	void setNetworkName()
+	{
+	}
+	
+	@Test
+	void removeSelfLoops()
+	{
+	}
+	
+	@Test
+	void changeGraphToLargestConnectedComponent()
+	{
+	}
+	
+	@Test
+	void dokCoreDecomposition()
+	{
+	}
+	
+	@Test
+	void getkCore()
+	{
+	}
+	
+	@Test
+	void testToString()
+	{
+	}
+	
+	@Test
+	void testEquals()
+	{
+	}
+	
+	@Test
+	void testHashCode()
+	{
 	}
 }
