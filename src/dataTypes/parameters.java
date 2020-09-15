@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Represents parameters for model simulation, optimization, etc.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 9, 2020.
+ * Last Updated: September 11, 2020.
  */
 @EqualsAndHashCode
 public class parameters
@@ -306,7 +306,7 @@ public class parameters
 		
 	}
 	
-	// TODO: Which implemetatoin of hashCode is more efficient?
+	// TODO: Which implementation of hashCode is more efficient?
 	///**
 	// * Overrides {@code hashCode}.
 	// * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">

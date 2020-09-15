@@ -186,7 +186,7 @@ public class graph
 	}
 	
 	/**
-	 * Adds a vertex to the {}@code NursingHome}.
+	 * Adds a vertex to {@code NursingHome}.
 	 *
 	 * @param v vertex (node) to be added to the network.
 	 */
@@ -196,7 +196,7 @@ public class graph
 	}
 	
 	/**
-	 * Adds an edge to the Network
+	 * Adds an edge to {@code NursingHome}.
 	 *
 	 * @param s source of the edge to be added
 	 * @param t target (destination) of the edge to be added.
@@ -294,13 +294,17 @@ public class graph
 	 * Returns the core number for each vertex.
 	 * A k-core is a maximal subgraph that contains nodes (vertices) of degree k or more.
 	 * The core number of a node is the largest value k of a k-core containing that node.
-	 *
+	 * <p>
 	 * References:
+	 * </p>
+	 * <p>
 	 * [1] An O(m) Algorithm for Cores Decomposition of Networks
 	 * Vladimir Batagelj and Matjaz Zaversnik, 2003.
 	 * https://arxiv.org/abs/cs.DS/0310049
-	 *
+	 * </p>
+	 * <p>
 	 * [2] https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number
+	 * </p>
 	 *
 	 * @return returns the core number for each vertex.
 	 * @throws Exception exception thrown if graph contains self-loops.
@@ -395,7 +399,7 @@ public class graph
 	
 	/**
 	 * Overrides {@code hashCode}.
-	 * Uses lombok,
+	 * Uses lombok.
 	 *
 	 * @return returns a integer value representing the hash code for an object.
 	 */
