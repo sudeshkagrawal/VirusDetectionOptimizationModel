@@ -517,7 +517,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		File fileObj = new File(filename);
 		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
 							"transmissability (p)", "no. of honeypots", "objective value", "honeypots",
-							"a priori UB", "posterior UB", "Wall time (s)", "UTC"};
+							"a priori UB", "posterior UB", "Posterior Gap (%)", "Wall time (s)", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -531,7 +531,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		}
 		for (Septet<String, String, Integer, Integer, Double, Double, Integer> key : mapToObjectiveValue.keySet())
 		{
-			String[] line = new String[13];
+			String[] line = new String[14];
 			line[0] = key.getValue0();              // Model (TN11C, RAEPC, etc.)
 			line[1] = key.getValue1();              // network name
 			line[2] = key.getValue2().toString();   // t_0
@@ -543,8 +543,10 @@ public class nodeInMaxRowsGreedyHeuristic
 			line[8] = mapToHoneypots.get(key).toString();
 			line[9] = mapToAPrioriUB.get(key).toString();
 			line[10] = mapToPosteriorUB.get(key).toString();
-			line[11] = mapToWallTime.get(key).toString();
-			line[12] = Instant.now().toString();
+			line[11] = String.valueOf(
+					100.0*(mapToPosteriorUB.get(key)-mapToObjectiveValue.get(key))/(mapToObjectiveValue.get(key)));
+			line[12] = mapToWallTime.get(key).toString();
+			line[13] = Instant.now().toString();
 			writer.writeNext(line);
 		}
 		writer.flush();
