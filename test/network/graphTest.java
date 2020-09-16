@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 
 /**
- * Unite test for {@code graph}.
+ * Unit test for {@code graph}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 11, 2020.
+ * Last Updated: September 16, 2020.
  */
 class graphTest
 {

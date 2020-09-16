@@ -17,7 +17,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of algorithm on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 15, 2020.
+ * Last Updated: September 16, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
@@ -274,34 +274,37 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * @param g network graph
 	 * @param simulationResults sample paths of a simulation
 	 * @param honeypots list of nodes in the solution
-	 * @param honepotsFrequency number of sample paths covered by the honeypots in the solution.
+	 * @param honeypotsFrequency number of sample paths covered by the honeypots in the solution.
 	 * @return returns the delta value.
 	 */
-	private double calculateDelta(graph g, List<List<Integer>> simulationResults, List<Integer> honeypots,
-	                              int honepotsFrequency)
+	public double calculateDelta(graph g, List<List<Integer>> simulationResults, List<Integer> honeypots,
+	                              int honeypotsFrequency)
 	{
 		int k = honeypots.size();
 		// failedVertices: vertices not in honeypot
 		Set<Integer> failedVertices = new HashSet<>(g.getG().vertexSet());
 		failedVertices.removeAll(honeypots);
+		//System.out.println("Failed nodes: "+failedVertices.toString());
 		// find rows not covered by honeypots in the heuristic solution
 		List<List<Integer>> uncoveredSamplePaths = simulationResults.stream().filter(samplePath -> samplePath.stream()
 													.noneMatch(honeypots::contains)).map(ArrayList::new)
 													.collect(Collectors
 													.toCollection(() -> new ArrayList<>(simulationResults.size())));
-		
+		//System.out.println("Uncovered sample paths: "+uncoveredSamplePaths.toString());
 		// find frequency of failedVertices in uncoveredSamplePaths
 		Map<Integer, Integer> frequency = new HashMap<>();
 		failedVertices.forEach(node -> uncoveredSamplePaths.stream()
 					.filter(samplePath -> samplePath.contains(node))
 					.forEach(samplePath -> frequency.put(node, frequency.getOrDefault(node, 0) + 1)));
+		//System.out.println("Frequency: "+frequency.toString());
 		// choose top k nodes based on their frequency
 		PriorityQueue<Integer> topKNodes = new PriorityQueue<>(k, new Comparator<Integer>()
 		{
+			// comparator for DESCENDING ORDER
 			@Override
 			public int compare(Integer o1, Integer o2)
 			{
-				return Integer.compare(o1, o2);
+				return Integer.compare(o2, o1);
 			}
 		});
 		for (Integer key: frequency.keySet())
@@ -317,14 +320,15 @@ public class nodeInMaxRowsGreedyHeuristic
 				}
 			}
 		}
+		//System.out.println("Top k nodes:"+topKNodes.toString());
 		// find delta for the top k nodes
 		Map<Integer, Double> deltaFunction = new HashMap<>();
 		double commonDenominator = 1.0/simulationResults.size();
-		double objectiveValue = commonDenominator*honepotsFrequency;
+		double objectiveValue = commonDenominator* honeypotsFrequency;
 		double output = 0.0;
 		for (Integer node: topKNodes)
 		{
-			double value = commonDenominator * (honepotsFrequency+frequency.get(node));
+			double value = commonDenominator * (honeypotsFrequency +frequency.get(node));
 			value -= objectiveValue;
 			deltaFunction.put(node, value);
 			output += value;

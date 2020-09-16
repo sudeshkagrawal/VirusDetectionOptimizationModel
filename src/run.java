@@ -16,6 +16,7 @@ public class run
 		String outputFolder = "./out/production/VirusDetectionOptimizationModel/";
 		String networkName = "EUemailcomm_6-core";
 		String modelName = "RAEPC";
+		String separator = ",";
 		int[] runs = {50000, 100000, 500000};
 		int[] t_0 = {2, 3};
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
@@ -37,7 +38,7 @@ public class run
 
 		// Read Network
 		graph network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt");
+		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
 		//System.out.println(network.toString());
 //
 //		// Simulations
