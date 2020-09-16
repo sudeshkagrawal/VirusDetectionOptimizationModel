@@ -51,7 +51,6 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * false negative probability, transmissability (p), number of honeypots).
 	 */
 	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToPosteriorUB;
-	// TODO: Compute a priori and posterior upper bounds for greedy solution
 	
 	/**
 	 * Constructor.
@@ -258,6 +257,10 @@ public class nodeInMaxRowsGreedyHeuristic
 			mapToObjectiveValue.put(fullKey, objectiveValue);
 			mapToHoneypots.put(fullKey, honeypots);
 			mapToWallTime.put(fullKey, wallTimeInSeconds);
+			double factor = Math.exp(1)/(Math.exp(1)-1);
+			mapToAPrioriUB.put(fullKey, Math.min(factor*objectiveValue, 1));
+			double delta = calculateDelta(g, successfulDetectMatrix, honeypots, indicesOfSamplesCovered.size());
+			mapToPosteriorUB.put(fullKey, Math.min(objectiveValue+delta, 1));
 		}
 	}
 	
@@ -326,7 +329,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			deltaFunction.put(node, value);
 			output += value;
 		}
-		return Math.min(output, 1.0);
+		return output;
 	}
 	/**
 	 * Element-wise multiplication of two list of lists.
@@ -434,6 +437,10 @@ public class nodeInMaxRowsGreedyHeuristic
 							serObject.get(1);
 			mapToWallTime =
 					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double>) serObject.get(2);
+			mapToAPrioriUB =
+					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double>) serObject.get(3);
+			mapToPosteriorUB =
+					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double>) serObject.get(4);
 			objin.close();
 			bin.close();
 			fin.close();
@@ -468,6 +475,8 @@ public class nodeInMaxRowsGreedyHeuristic
 			serObject.add(mapToObjectiveValue);
 			serObject.add(mapToHoneypots);
 			serObject.add(mapToWallTime);
+			serObject.add(mapToAPrioriUB);
+			serObject.add(mapToPosteriorUB);
 			objout.writeObject(serObject);
 			objout.close();
 			bout.close();
@@ -504,7 +513,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		File fileObj = new File(filename);
 		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
 							"transmissability (p)", "no. of honeypots", "objective value", "honeypots",
-							"Wall time (s)", "UTC"};
+							"a priori UB", "posterior UB", "Wall time (s)", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -518,7 +527,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		}
 		for (Septet<String, String, Integer, Integer, Double, Double, Integer> key : mapToObjectiveValue.keySet())
 		{
-			String[] line = new String[11];
+			String[] line = new String[13];
 			line[0] = key.getValue0();              // Model (TN11C, RAEPC, etc.)
 			line[1] = key.getValue1();              // network name
 			line[2] = key.getValue2().toString();   // t_0
@@ -528,8 +537,10 @@ public class nodeInMaxRowsGreedyHeuristic
 			line[6] = key.getValue6().toString();   // no. of honeypots
 			line[7] = mapToObjectiveValue.get(key).toString();
 			line[8] = mapToHoneypots.get(key).toString();
-			line[9] = mapToWallTime.get(key).toString();
-			line[10] = Instant.now().toString();
+			line[9] = mapToAPrioriUB.get(key).toString();
+			line[10] = mapToPosteriorUB.get(key).toString();
+			line[11] = mapToWallTime.get(key).toString();
+			line[12] = Instant.now().toString();
 			writer.writeNext(line);
 		}
 		writer.flush();
@@ -548,6 +559,8 @@ public class nodeInMaxRowsGreedyHeuristic
 		return "nodeInMaxRowsGreedyHeuristic:"
 				+"\n\t Objective value:\n\t\t"+mapToObjectiveValue.toString()
 				+"\n\t Honeypots:\n\t\t"+mapToHoneypots.toString()
+				+"\n\t a priori UB:\n\t\t"+mapToAPrioriUB.toString()
+				+"\n\t posterior UB:\n\t\t"+mapToPosteriorUB.toString()
 				+"\n\t Wall time (second):\n\t\t"+mapToWallTime.toString();
 	}
 }
