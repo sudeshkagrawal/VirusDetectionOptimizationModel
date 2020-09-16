@@ -117,7 +117,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	/**
 	 * Getter.
 	 *
-	 * @return returns {}
+	 * @return returns {@code mapToAPrioriUB}.
 	 */
 	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToAPrioriUB()
 	{
@@ -127,7 +127,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	/**
 	 * Getter.
 	 *
-	 * @return
+	 * @return returns {@code mapToPosteriorUB}.
 	 */
 	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToPosteriorUB()
 	{
@@ -136,7 +136,8 @@ public class nodeInMaxRowsGreedyHeuristic
 	
 	/**
 	 * Solves the sample-average approximation model using a greedy algorithm.
-	 * See model 4.6 in Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
+	 * See model 4.6 in
+	 * Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
 	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
 	 * @param g network graph
@@ -149,7 +150,8 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * @throws Exception exception thrown in node labels are negative integers.
 	 */
 	public void runSAAUsingHeuristic(String modelName, graph g, simulationRuns simulationResults,
-	                                 List<Triple<Integer, Integer, Integer>> k_t0_runs, double r, double p) throws Exception
+	                                 List<Triple<Integer, Integer, Integer>> k_t0_runs, double r,
+	                                 double p) throws Exception
 	{
 		System.out.println("Network has "+g.getG().vertexSet().size()
 				+" nodes and "+g.getG().edgeSet().size()+" edges.");
@@ -215,8 +217,8 @@ public class nodeInMaxRowsGreedyHeuristic
 				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
 				candidates = new HashSet<>(g.getG().vertexSet());
 			}
-			 // System.out.println("Successful detection matrix: \n"+successfulDetectMatrix.toString()+"\n---------------------------");
-			 // System.out.println("Candidate nodes: \n"+candidates.toString()+"\n---------------------------");
+			// System.out.println("Successful detection matrix: \n"+successfulDetectMatrix.toString()+"\n---------------------------");
+			// System.out.println("Candidate nodes: \n"+candidates.toString()+"\n---------------------------");
 			
 			List<Integer> honeypots = new ArrayList<>();
 			int numberOfHoneypotsFound = 0;
@@ -237,7 +239,8 @@ public class nodeInMaxRowsGreedyHeuristic
 				numberOfHoneypotsFound++;
 				candidates.remove(currentCandidate);
 				indicesOfSamplesToBeRemoved = new HashSet<>(
-						findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix), currentCandidate));
+						findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix),
+								currentCandidate));
 				indicesOfSamplesToBeConsidered.removeAll(indicesOfSamplesToBeRemoved);
 				// TODO: What if k > number of nodes?
 				// TODO: What if current set of honeypots cover all sample paths?
@@ -258,6 +261,73 @@ public class nodeInMaxRowsGreedyHeuristic
 		}
 	}
 	
+	/**
+	 * Calculates the sum of the marginal function values for the top {@code k} nodes
+	 * that fail to be in the solution.
+	 * Let us call it the delta value.
+	 * Refer section 2.4.1 in
+	 * Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
+	 *
+	 * @param g network graph
+	 * @param simulationResults sample paths of a simulation
+	 * @param honeypots list of nodes in the solution
+	 * @param honepotsFrequency number of sample paths covered by the honeypots in the solution.
+	 * @return returns the delta value.
+	 */
+	private double calculateDelta(graph g, List<List<Integer>> simulationResults, List<Integer> honeypots,
+	                              int honepotsFrequency)
+	{
+		int k = honeypots.size();
+		// failedVertices: vertices not in honeypot
+		Set<Integer> failedVertices = new HashSet<>(g.getG().vertexSet());
+		failedVertices.removeAll(honeypots);
+		// find rows not covered by honeypots in the heuristic solution
+		List<List<Integer>> uncoveredSamplePaths = simulationResults.stream().filter(samplePath -> samplePath.stream()
+													.noneMatch(honeypots::contains)).map(ArrayList::new)
+													.collect(Collectors
+													.toCollection(() -> new ArrayList<>(simulationResults.size())));
+		
+		// find frequency of failedVertices in uncoveredSamplePaths
+		Map<Integer, Integer> frequency = new HashMap<>();
+		failedVertices.forEach(node -> uncoveredSamplePaths.stream()
+					.filter(samplePath -> samplePath.contains(node))
+					.forEach(samplePath -> frequency.put(node, frequency.getOrDefault(node, 0) + 1)));
+		// choose top k nodes based on their frequency
+		PriorityQueue<Integer> topKNodes = new PriorityQueue<>(k, new Comparator<Integer>()
+		{
+			@Override
+			public int compare(Integer o1, Integer o2)
+			{
+				return Integer.compare(o1, o2);
+			}
+		});
+		for (Integer key: frequency.keySet())
+		{
+			if (topKNodes.size() < k)
+				topKNodes.add(key);
+			else
+			{
+				if (frequency.get(topKNodes.peek()) < frequency.get(key))
+				{
+					topKNodes.poll();
+					topKNodes.add(key);
+				}
+			}
+		}
+		// find delta for the top k nodes
+		Map<Integer, Double> deltaFunction = new HashMap<>();
+		double commonDenominator = 1.0/simulationResults.size();
+		double objectiveValue = commonDenominator*honepotsFrequency;
+		double output = 0.0;
+		for (Integer node: topKNodes)
+		{
+			double value = commonDenominator * (honepotsFrequency+frequency.get(node));
+			value -= objectiveValue;
+			deltaFunction.put(node, value);
+			output += value;
+		}
+		return Math.min(output, 1.0);
+	}
 	/**
 	 * Element-wise multiplication of two list of lists.
 	 *
