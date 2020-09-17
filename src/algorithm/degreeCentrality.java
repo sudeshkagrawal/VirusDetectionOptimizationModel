@@ -64,8 +64,16 @@ public class degreeCentrality
 		return outputMap;
 	}
 	
-	public void getKHighestDegreeNodes(String modelName, graph g, simulationRuns simulationResults,
-	                                   List<parameters> listOfParams) throws Exception
+	/**
+	 *
+	 * @param modelName
+	 * @param g
+	 * @param simulationResults
+	 * @param listOfParams
+	 * @throws Exception
+	 */
+	public void runSAAUsingKHighestDegreeNodes(String modelName, graph g, simulationRuns simulationResults,
+	                                           List<parameters> listOfParams) throws Exception
 	{
 		if (g.hasSelfLoops())
 			throw new Exception("Graphs has self-loops!");
@@ -98,30 +106,9 @@ public class degreeCentrality
 			System.out.println("Finding "+k+" highest degree nodes: "+g.getNetworkName()+"network; "
 					+t_0+" time step(s); "
 					+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
-			tic = Instant.now();
 			// find K highest degree nodes
-			PriorityQueue<Integer> topKDegreeNodes = new PriorityQueue<>(k, new Comparator<Integer>()
-			{
-				@Override
-				public int compare(Integer o1, Integer o2)
-				{
-					return Integer.compare(degreesOfNodes.get(o1),
-							degreesOfNodes.get(o2));
-				}
-			});
-			for (Integer key: degreesOfNodes.keySet())
-			{
-				if (topKDegreeNodes.size() < k)
-					topKDegreeNodes.add(key);
-				else
-				{
-					if (degreesOfNodes.get(topKDegreeNodes.peek()) < degreesOfNodes.get(key))
-					{
-						topKDegreeNodes.poll();
-						topKDegreeNodes.add(key);
-					}
-				}
-			}
+			tic = Instant.now();
+			PriorityQueue<Integer> topKDegreeNodes = getKHighestDegreeNodes(degreesOfNodes, k);
 			toc = Instant.now();
 			double wallTimeInSeconds = 1.0*Duration.between(tic, toc).toSeconds();
 			List<Integer> honeypots = new ArrayList<>(topKDegreeNodes);
@@ -179,6 +166,39 @@ public class degreeCentrality
 			double delta = calculateDelta(g, successfulDetectMatrix, honeypots, frequency);
 			outputMap.get(param).setPosteriorUB(Math.min(objectiveValue+delta, 1));
 		}
+	}
+	
+	/**
+	 *
+	 * @param degreesOfNodes
+	 * @param k
+	 * @return
+	 */
+	public PriorityQueue<Integer> getKHighestDegreeNodes(Map<Integer, Integer> degreesOfNodes, int k)
+	{
+		PriorityQueue<Integer> topKDegreeNodes = new PriorityQueue<>(k, new Comparator<Integer>()
+		{
+			@Override
+			public int compare(Integer o1, Integer o2)
+			{
+				return Integer.compare(degreesOfNodes.get(o1),
+						degreesOfNodes.get(o2));
+			}
+		});
+		for (Integer key : degreesOfNodes.keySet())
+		{
+			if (topKDegreeNodes.size() < k)
+				topKDegreeNodes.add(key);
+			else
+			{
+				if (degreesOfNodes.get(topKDegreeNodes.peek()) < degreesOfNodes.get(key))
+				{
+					topKDegreeNodes.poll();
+					topKDegreeNodes.add(key);
+				}
+			}
+		}
+		return topKDegreeNodes;
 	}
 	
 	/**
@@ -240,30 +260,7 @@ public class degreeCentrality
 				.forEach(samplePath -> frequency.put(node, frequency.getOrDefault(node, 0) + 1)));
 		//System.out.println("Frequency: "+frequency.toString());
 		// choose top k nodes based on their frequency
-		PriorityQueue<Integer> topKNodes = new PriorityQueue<>(k, new Comparator<Integer>()
-		{
-			@Override
-			public int compare(Integer o1, Integer o2)
-			{
-				return Integer.compare(frequency.get(o1),
-						frequency.get(o2));
-			}
-		});
-		for (Integer key: frequency.keySet())
-		{
-			//System.out.println("\t Key "+key);
-			if (topKNodes.size() < k)
-				topKNodes.add(key);
-			else
-			{
-				if (frequency.get(topKNodes.peek()) < frequency.get(key))
-				{
-					topKNodes.poll();
-					topKNodes.add(key);
-				}
-			}
-			//System.out.println("\t Top nodes: "+topKNodes.toString());
-		}
+		PriorityQueue<Integer> topKNodes = getKHighestDegreeNodes(frequency, k);
 		//System.out.println("Top k nodes: "+topKNodes.toString());
 		// find delta for the top k nodes
 		Map<Integer, Double> deltaFunction = new HashMap<>();
