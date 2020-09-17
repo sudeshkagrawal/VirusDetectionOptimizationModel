@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 /**
  * Represents a network graph.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 11, 2020.
+ * Last Updated: September 16, 2020.
  */
 public class graph
 {
@@ -213,6 +213,16 @@ public class graph
 	{
 		for (Integer v: g.vertexSet())
 			g.removeEdge(v, v);
+	}
+	
+	/**
+	 * Checks whether the graph {@code g} has self-loops.
+	 *
+	 * @return returns true if graph {@code g} has self-loops, false otherwise.
+	 */
+	public boolean hasSelfLoops()
+	{
+		return GraphTests.hasSelfLoops(g);
 	}
 	
 	/**

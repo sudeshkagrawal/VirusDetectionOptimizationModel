@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of simulation runs.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 2, 2020.
+ * Last Updated: September 16, 2020.
  */
 public class simulationRuns
 {
@@ -100,20 +100,15 @@ public class simulationRuns
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for random choice of neighbor while spreading,
 	 *             and the third is for virtual detections.
-	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3}.
+	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3},
+	 *      or if the graph {@code g} has self-loops.
 	 */
 	public void simulateTN11CRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r, int[] seed) throws Exception
 	{
-		System.out.println("Network has "+g.getG().vertexSet().size()
-				+" nodes and "+g.getG().edgeSet().size()+" edges.");
-		// Remove self-loops if any from the graph
-		g.removeSelfLoops();
-		System.out.print("Removed self-loops (if any) from the graph: ");
-		final int n = g.getG().vertexSet().size();
-		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
-		
 		if ((seed.length!=2) && (seed.length!=3))
 			throw new Exception("Seed array should either be of length 2 (for r=0) or of length 3 (for r>0)!");
+		if (g.hasSelfLoops())
+			throw new Exception("Graphs has self-loops!");
 		
 		// transmissability
 		double p = 1.0;
@@ -177,7 +172,6 @@ public class simulationRuns
 									.collect(Collectors.toList()))
 									.collect(Collectors.toList());
 				mapModelNetworkT0RunsFalseNegativeToVirtualDetections.put(key, samplePathVirtualDetections);
-				
 			}
 		}
 	}
@@ -349,21 +343,19 @@ public class simulationRuns
 	 *             the second is for random choice of neighbor while spreading,
 	 *             the third is for transmissability,
 	 *             and the fourth is for virtual detections.
-	 * @throws Exception exception thrown if length of {@code seed} is not {3, 4}.
+	 * @throws Exception exception thrown if length of {@code seed} is not {3, 4},
+	 *  or if the graph {@code g} has self-loops,
+	 *  or if {@code p}<=0.
 	 */
 	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
 	                              double p, int[] seed) throws Exception
 	{
-		System.out.println("Network has "+g.getG().vertexSet().size()
-				+" nodes and "+g.getG().edgeSet().size()+" edges.");
-		// Remove self-loops if any from the graph
-		g.removeSelfLoops();
-		System.out.print("Removed self-loops (if any) from the graph: ");
-		final int n = g.getG().vertexSet().size();
-		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
-		
 		if ((seed.length!=3) && (seed.length!=4))
 			throw new Exception("Seed array should either be of length 3 (for r=0) or of length 4 (for r>0)!");
+		if (g.hasSelfLoops())
+			throw new Exception("Graphs has self-loops!");
+		if (p<=0)
+			throw new Exception("Invalid value of p!");
 		
 		String modelName = "RA1PC";
 		for (Pair<Integer, Integer> v: t0_runs)
@@ -448,7 +440,9 @@ public class simulationRuns
 	 *             the third is for transmissability,
 	 *             and the fourth is for virtual detections.
 	 * @return returns true, if new simulations were run; false, otherwise.
-	 * @throws Exception exception thrown if length of {@code seed} is not {3, 4}.
+	 * @throws Exception exception thrown if length of {@code seed} is not {3, 4},
+	 *  or if the graph {@code g} has self-loops,
+	 *  or if {@code p}<=0.
 	 */
 	public boolean simulateOnlyNecessaryRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs,
 	                                              double r, double p, int[] seed) throws Exception
@@ -490,21 +484,19 @@ public class simulationRuns
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for transmissability,
 	 *             and the third is for virtual detections.
-	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3}.
+	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3},
+	 *  or if the graph {@code g} has self-loops,
+	 *  or if {@code p}<=0.
 	 */
 	public void simulateRAEPCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
 	                              double p, int[] seed) throws Exception
 	{
-		System.out.println("Network has "+g.getG().vertexSet().size()
-				+" nodes and "+g.getG().edgeSet().size()+" edges.");
-		// Remove self-loops if any from the graph
-		g.removeSelfLoops();
-		System.out.print("Removed self-loops (if any) from the graph: ");
-		final int n = g.getG().vertexSet().size();
-		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
-		
 		if ((seed.length!=2) && (seed.length!=3))
 			throw new Exception("Seed array should either be of length 2 (for r=0) or of length 3 (for r>0)!");
+		if (g.hasSelfLoops())
+			throw new Exception("Graphs has self-loops!");
+		if (p<=0)
+			throw new Exception("Invalid value of p!");
 		
 		String modelName = "RAEPC";
 		for (Pair<Integer, Integer> v: t0_runs)
@@ -595,7 +587,9 @@ public class simulationRuns
 	 *             the second is for transmissability,
 	 *             and the third is for virtual detections.
 	 * @return returns true, if new simulations were run; false, otherwise.
-	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3}.
+	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3},
+	 *  or if the graph {@code g} has self-loops,
+	 *  or if {@code p}<=0.
 	 */
 	public boolean simulateOnlyNecessaryRAEPCRuns(graph g, List<Pair<Integer, Integer>> t0_runs,
 	                                              double r, double p, int[] seed) throws Exception
