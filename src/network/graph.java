@@ -238,6 +238,19 @@ public class graph
 	}
 	
 	/**
+	 * Calculates the average degree of nodes in the graph {@code g}.
+	 *
+	 * @return the average degree of nodes in the graph {@code g}.
+	 */
+	public double findAverageDegreeOfNodes()
+	{
+		Map<Integer, Integer> degrees = g.vertexSet().stream()
+											.collect(Collectors.toMap(e -> e, e -> g.degreeOf(e), (a, b) -> b));
+		int sum = degrees.keySet().stream().map(degrees::get).reduce(0, Integer::sum);
+		return 1.0*sum/g.vertexSet().size();
+	}
+	
+	/**
 	 * Returns a set of nodes contained in the graph {@code g}.
 	 *
 	 * @return a set of nodes contained in the graph {@code g}.
