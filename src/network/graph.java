@@ -3,6 +3,7 @@ package network;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphTests;
 import org.jgrapht.Graphs;
+import org.jgrapht.alg.scoring.Coreness;
 import org.jgrapht.generate.CompleteGraphGenerator;
 import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -21,7 +22,7 @@ import java.util.stream.IntStream;
 /**
  * Represents a network graph.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 16, 2020.
+ * Last Updated: September 17, 2020.
  */
 public class graph
 {
@@ -247,6 +248,16 @@ public class graph
 	}
 	
 	/**
+	 * Returns the set of edges contained in the graph {@code g}.
+	 *
+	 * @return a set of the edges contained in the graph {@code g}.
+	 */
+	public Set<DefaultEdge> getEdgeSet()
+	{
+		return g.edgeSet();
+	}
+	
+	/**
 	 * Changes the graph to one of its largest components.
 	 *
 	 * @throws Exception exception thrown if graph {@code g} does not have a vertex.
@@ -281,6 +292,18 @@ public class graph
 				continue;
 			g.removeAllVertices(component);
 		}
+	}
+	
+	/**
+	 * Get the core number of {@code node} in the graph {@code g}.
+	 *
+	 * @param node the node.
+	 * @return the core number.
+	 */
+	public int getCoreNumber(int node)
+	{
+		Coreness<Integer, DefaultEdge> c = new Coreness<Integer, DefaultEdge>(g);
+		return c.getVertexScore(node);
 	}
 	
 	/**
