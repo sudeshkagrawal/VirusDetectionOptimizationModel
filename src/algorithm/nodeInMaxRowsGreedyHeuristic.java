@@ -146,19 +146,18 @@ public class nodeInMaxRowsGreedyHeuristic
 	 *                  and runs is number of repetitions of simulation
 	 * @param r false negative probability
 	 * @param p transmissability probability.
-	 * @throws Exception exception thrown in node labels are negative integers.
+	 * @throws Exception exception thrown if graph {@code g} has self-loops,
+	 *  or if {@code p}<=0,
+	 *  or if node labels are negative integers.
 	 */
 	public void runSAAUsingHeuristic(String modelName, graph g, simulationRuns simulationResults,
 	                                 List<Triple<Integer, Integer, Integer>> k_t0_runs, double r,
 	                                 double p) throws Exception
 	{
-		System.out.println("Network has "+g.getG().vertexSet().size()
-				+" nodes and "+g.getG().edgeSet().size()+" edges.");
-		// Remove self-loops if any from the graph
-		g.removeSelfLoops();
-		System.out.print("Removed self-loops (if any) from the graph: ");
-		final int n = g.getG().vertexSet().size();
-		System.out.println("(new) network has "+n+" nodes and "+g.getG().edgeSet().size()+" edges.");
+		if (g.hasSelfLoops())
+			throw new Exception("Graphs has self-loops!");
+		if (p<=0)
+			throw new Exception("Invalid value of p!");
 		
 		// minimum label of vertex
 		boolean zeroNode = false;
@@ -300,15 +299,16 @@ public class nodeInMaxRowsGreedyHeuristic
 		// choose top k nodes based on their frequency
 		PriorityQueue<Integer> topKNodes = new PriorityQueue<>(k, new Comparator<Integer>()
 		{
-			// comparator for DESCENDING ORDER
 			@Override
 			public int compare(Integer o1, Integer o2)
 			{
-				return Integer.compare(o2, o1);
+				return Integer.compare(frequency.get(o1),
+						frequency.get(o2));
 			}
 		});
 		for (Integer key: frequency.keySet())
 		{
+			//System.out.println("\t Key "+key);
 			if (topKNodes.size() < k)
 				topKNodes.add(key);
 			else
@@ -319,8 +319,9 @@ public class nodeInMaxRowsGreedyHeuristic
 					topKNodes.add(key);
 				}
 			}
+			//System.out.println("\t Top nodes: "+topKNodes.toString());
 		}
-		//System.out.println("Top k nodes:"+topKNodes.toString());
+		//System.out.println("Top k nodes: "+topKNodes.toString());
 		// find delta for the top k nodes
 		Map<Integer, Double> deltaFunction = new HashMap<>();
 		double commonDenominator = 1.0/simulationResults.size();
@@ -335,6 +336,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		}
 		return output;
 	}
+	
 	/**
 	 * Element-wise multiplication of two list of lists.
 	 *
