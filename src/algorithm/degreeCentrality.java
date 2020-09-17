@@ -99,7 +99,7 @@ public class degreeCentrality
 												.collect(Collectors.toMap(
 														node -> node, g::getDegreeOfNode, (a, b) -> b));
 		Instant toc = Instant.now();
-		double commonWallTimeInSeconds = 1.0*Duration.between(tic, toc).toSeconds();
+		double commonWallTimeInSeconds = 1.0*Duration.between(tic, toc).toMillis()/1000;
 		for (parameters param: listOfParams)
 		{
 			int k = param.getNumberOfHoneypots();
@@ -116,10 +116,8 @@ public class degreeCentrality
 			tic = Instant.now();
 			PriorityQueue<Integer> topKDegreeNodes = getKHighestDegreeNodes(degreesOfNodes, k);
 			toc = Instant.now();
-			double wallTimeInSeconds = 1.0*Duration.between(tic, toc).toSeconds();
+			double wallTimeInSeconds = 1.0*Duration.between(tic, toc).toMillis()/1000;
 			List<Integer> honeypots = new ArrayList<>(topKDegreeNodes);
-			outputMap.get(param).setHoneypot(honeypots);
-			outputMap.get(param).setWallTime(commonWallTimeInSeconds+wallTimeInSeconds);
 			
 			// find objective value
 			Sextet<String, String, Integer, Integer, Double, Double> key =
@@ -143,20 +141,21 @@ public class degreeCentrality
 					successfulDetectMatrix = elementwiseMultiplyMatrix(
 												Collections.unmodifiableList(newVirusSpreadSamples),
 												Collections.unmodifiableList(virtualDetectionSamples));
-					candidates = g.getVertexSet().stream().map(e -> e+1).collect(Collectors.toSet());
+					candidates = honeypots.stream().map(e -> e+1).collect(Collectors.toSet());
+					
 				}
 				else
 				{
 					successfulDetectMatrix = elementwiseMultiplyMatrix(
 							Collections.unmodifiableList(virusSpreadSamples),
 							Collections.unmodifiableList(virtualDetectionSamples));
-					candidates = new HashSet<>(g.getVertexSet());
+					candidates = new HashSet<>(honeypots);
 				}
 			}
 			else
 			{
 				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
-				candidates = new HashSet<>(g.getVertexSet());
+				candidates = new HashSet<>(honeypots);
 			}
 			//System.out.println("Successful detection matrix: \n"
 			//					+successfulDetectMatrix.toString()+"\n---------------------------");
@@ -164,13 +163,14 @@ public class degreeCentrality
 			int frequency = (int) successfulDetectMatrix.stream()
 									.filter(samplePath -> candidates.stream().anyMatch(samplePath::contains)).count();
 			double objectiveValue = frequency*1.0/run;
-			outputMap.get(param).setObjectiveValue(objectiveValue);
 			
 			// find upper bounds
 			double factor = Math.exp(1)/(Math.exp(1)-1);
-			outputMap.get(param).setAPrioriUB(Math.min(factor*objectiveValue, 1));
 			double delta = calculateDelta(g, successfulDetectMatrix, honeypots, frequency);
-			outputMap.get(param).setPosteriorUB(Math.min(objectiveValue+delta, 1));
+			
+			outputMap.put(param, new algorithmOutput(objectiveValue, honeypots,
+					commonWallTimeInSeconds+wallTimeInSeconds, Math.min(factor*objectiveValue, 1),
+					Math.min(objectiveValue+delta, 1)));
 		}
 	}
 	
@@ -348,12 +348,13 @@ public class degreeCentrality
 		str.append("degreeCentrality:");
 		for(Map.Entry<parameters, algorithmOutput> e: outputMap.entrySet())
 		{
-			str.append("\n\t<").append(e.getKey()).append(", ").append(e.getValue()).append(">");
+			str.append("\n\t<").append(e.getKey()).append(",");
 			str.append("\n\t\t Objective value:\n\t\t\t").append(e.getValue().getObjectiveValue());
 			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypot());
 			str.append("\n\t\t a priori UB:\n\t\t\t").append(e.getValue().getAPrioriUB());
 			str.append("\n\t\t posterior UB:\n\t\t\t").append(e.getValue().getPosteriorUB());
 			str.append("\n\t\t Wall time (second):\n\t\t\t").append(e.getValue().getWallTime());
+			str.append("\n\t>");
 		}
 		return str.toString();
 	}
