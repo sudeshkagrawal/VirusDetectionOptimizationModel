@@ -226,6 +226,27 @@ public class graph
 	}
 	
 	/**
+	 * Returns the degree of the specified node.
+	 *
+	 * @param node node whose degree is to be calculated.
+	 * @return the degree of the specified node.
+	 */
+	public int getDegreeOfNode(int node)
+	{
+		return g.degreeOf(node);
+	}
+	
+	/**
+	 * Returns a set of nodes contained in the graph {@code g}.
+	 *
+	 * @return a set of nodes contained in the graph {@code g}.
+	 */
+	public Set<Integer> getVertexSet()
+	{
+		return g.vertexSet();
+	}
+	
+	/**
 	 * Changes the graph to one of its largest components.
 	 *
 	 * @throws Exception exception thrown if graph {@code g} does not have a vertex.
