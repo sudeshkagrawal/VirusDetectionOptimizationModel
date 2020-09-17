@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * Represents results of degree centrality on {@code simulationRuns}.
  * In degree centrality we choose the k vertices with highest degree.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 16, 2020.
+ * Last Updated: September 17, 2020.
  */
 public class degreeCentrality
 {
@@ -65,12 +65,16 @@ public class degreeCentrality
 	}
 	
 	/**
+	 * Find the k highest degree nodes to use as honeypots
+	 * and evaluates the objective value, upper bounds and execution time.
 	 *
-	 * @param modelName
-	 * @param g
-	 * @param simulationResults
-	 * @param listOfParams
-	 * @throws Exception
+	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
+	 * @param g network graph
+	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
+	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}.
+	 * @throws Exception thrown if the graph {@code g} has self loops,
+	 *  or if the label of a node in {@code g} is a negative integer,
+	 *  or if the number of nodes is less than the number of honeypots in any of the parameters in {@code listOfParams}.
 	 */
 	public void runSAAUsingKHighestDegreeNodes(String modelName, graph g, simulationRuns simulationResults,
 	                                           List<parameters> listOfParams) throws Exception
@@ -99,6 +103,8 @@ public class degreeCentrality
 		for (parameters param: listOfParams)
 		{
 			int k = param.getNumberOfHoneypots();
+			if (k>g.getVertexSet().size())
+				throw new Exception("Number of honeypots cannot be greater than the number of nodes!");
 			int t_0 = param.getTimeStep();
 			int run = param.getNumberOfSimulationRepetitions();
 			double r = param.getFalseNegativeProbability();
@@ -169,10 +175,11 @@ public class degreeCentrality
 	}
 	
 	/**
+	 * Returns the k highest degree nodes.
 	 *
-	 * @param degreesOfNodes
-	 * @param k
-	 * @return
+	 * @param degreesOfNodes map from node to its degree in the graph
+	 * @param k number of top degree nodes required.
+	 * @return the k highest degree nodes.
 	 */
 	public PriorityQueue<Integer> getKHighestDegreeNodes(Map<Integer, Integer> degreesOfNodes, int k)
 	{
