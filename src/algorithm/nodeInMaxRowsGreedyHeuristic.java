@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Represents results of algorithm on {@code simulationRuns}.
+ * Represents results of greedy heuristic on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
  * Last Updated: September 16, 2020.
  */
@@ -529,6 +529,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			writer.writeNext(header);
 			writer.flush();
 		}
+		String now = Instant.now().toString();
 		for (Septet<String, String, Integer, Integer, Double, Double, Integer> key : mapToObjectiveValue.keySet())
 		{
 			String[] line = new String[14];
@@ -546,7 +547,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			line[11] = String.valueOf(
 					100.0*(mapToPosteriorUB.get(key)-mapToObjectiveValue.get(key))/(mapToObjectiveValue.get(key)));
 			line[12] = mapToWallTime.get(key).toString();
-			line[13] = Instant.now().toString();
+			line[13] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();

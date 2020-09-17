@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 3, 2020.
+ * Last Updated: September 16, 2020.
  */
 public class gurobiSolver
 {
@@ -373,6 +373,7 @@ public class gurobiSolver
 			writer.writeNext(header);
 			writer.flush();
 		}
+		String now = Instant.now().toString();
 		for (Septet<String, String, Integer, Integer, Double, Double, Integer> key : mapToObjectiveValue.keySet())
 		{
 			String[] line = new String[16];
@@ -391,7 +392,7 @@ public class gurobiSolver
 			line[12] = mapToHoneypots.get(key).toString();
 			line[13] = mapToWallTime.get(key).toString();
 			line[14] = mapToTime.get(key).toString();
-			line[15] = Instant.now().toString();
+			line[15] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();
