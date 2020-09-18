@@ -568,7 +568,7 @@ public class graph
 	{
 		File fileObj = new File(filename);
 		String[] header = {"Network", "#nodes", "#edges", "avg. degree", "max degree",
-				"avg. distance", "max distance"};
+				"avg. distance", "max distance", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -592,7 +592,7 @@ public class graph
 		writer.writeNext(line);
 		writer.flush();
 		writer.close();
-		System.out.println("Heuristic results successfully written to \""+filename+"\".");
+		System.out.println("Network info successfully written to \""+filename+"\".");
 	}
 	
 	/**
