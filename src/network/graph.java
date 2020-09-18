@@ -1,9 +1,13 @@
 package network;
 
+import com.opencsv.CSVWriter;
+import org.javatuples.Pair;
 import org.jgrapht.Graph;
 import org.jgrapht.GraphTests;
 import org.jgrapht.Graphs;
 import org.jgrapht.alg.scoring.Coreness;
+import org.jgrapht.alg.shortestpath.DijkstraManyToManyShortestPaths;
+import org.jgrapht.alg.shortestpath.DijkstraShortestPath;
 import org.jgrapht.generate.CompleteGraphGenerator;
 import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultEdge;
@@ -14,6 +18,8 @@ import org.jgrapht.util.SupplierUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -227,6 +233,76 @@ public class graph
 	}
 	
 	/**
+	 * Finds the distances between all pairs of nodes in the graph {@code g}.
+	 *
+	 * @return a the distances between all pairs of nodes in the graph {@code g}.
+	 */
+	public Map<Pair<Integer, Integer>, Double> findDistancesBetweenNodes()
+	{
+		Map<Pair<Integer, Integer>, Double> output = new HashMap<>();
+		DijkstraManyToManyShortestPaths paths = new DijkstraManyToManyShortestPaths(g);
+		
+		for (Integer source: getVertexSet())
+		{
+			for (Integer sink: getVertexSet())
+			{
+				Pair<Integer, Integer> edge1 = new Pair<>(source, sink);
+				Pair<Integer, Integer> edge2 = new Pair<>(sink, source);
+				if (!output.containsKey(edge1))
+				{
+					double distance;
+					if (paths.getPath(source, sink) != null)
+						distance = paths.getPath(source, sink).getWeight();
+					else
+						distance = Double.POSITIVE_INFINITY;
+					output.put(edge1, distance);
+					output.put(edge2, distance);
+				}
+			}
+		}
+		
+		return output;
+	}
+	
+	/**
+	 * Finds the distance between {@code node1} and {@code node2} in the graph {@code g}.
+	 *
+	 * @param node1 a node in the graph {@code g}
+	 * @param node2 a node in the graph {@code g}.
+	 * @return the distance between {@code node1} and {@code node2} in the graph {@code g}.
+	 */
+	public double findDistanceBetweenNodes(int node1, int node2)
+	{
+		DijkstraShortestPath path = new DijkstraShortestPath(g);
+		return path.getPathWeight(node1, node2);
+	}
+	
+	/**
+	 * Finds the maximum distance between node pairs.
+	 *
+	 * @return the maximum distance between node pairs.
+	 */
+	public double findMaxDistanceBetweenNodes()
+	{
+		Map<Pair<Integer, Integer>, Double> distances = findDistancesBetweenNodes();
+		return distances.values().stream().mapToDouble(e -> e).filter(e -> e >= 0.0).max().orElse(0.0);
+	}
+	
+	/**
+	 * Finds the average distance between node pairs.
+	 *
+	 * @return the average distance between node pairs.
+	 */
+	public double findAverageDistanceBetweenNodes()
+	{
+		Map<Pair<Integer, Integer>, Double> distances = findDistancesBetweenNodes();
+		// remove self-pairs
+		for (Integer node: getVertexSet())
+			distances.remove(new Pair<>(node, node));
+		return distances.values().stream().mapToDouble(e -> e).reduce(0, Double::sum)/distances.size();
+	}
+	
+	/**
 	 * Returns the degree of the specified node.
 	 *
 	 * @param node node whose degree is to be calculated.
@@ -238,16 +314,37 @@ public class graph
 	}
 	
 	/**
+	 * Returns a map from nodes to their degrees.
+	 *
+	 * @return a map from nodes to their degrees.
+	 */
+	public Map<Integer, Integer> getDegrees()
+	{
+		return g.vertexSet().stream().collect(Collectors.toMap(e -> e, this::getDegreeOfNode, (a, b) -> b));
+	}
+	
+	/**
 	 * Calculates the average degree of nodes in the graph {@code g}.
 	 *
 	 * @return the average degree of nodes in the graph {@code g}.
 	 */
 	public double findAverageDegreeOfNodes()
 	{
-		Map<Integer, Integer> degrees = g.vertexSet().stream()
-											.collect(Collectors.toMap(e -> e, e -> g.degreeOf(e), (a, b) -> b));
+		Map<Integer, Integer> degrees = getDegrees();
 		int sum = degrees.keySet().stream().map(degrees::get).reduce(0, Integer::sum);
 		return 1.0*sum/g.vertexSet().size();
+	}
+	
+	/**
+	 * Finds the maximum degree.
+	 *
+	 * @return the maximum degree.
+	 */
+	public int findMaxDegreeOfNodes()
+	{
+		Map<Integer, Integer> degrees = getDegrees();
+		return Objects.requireNonNull(degrees.entrySet().stream().max(Map.Entry.comparingByValue())
+						.orElse(null)).getValue();
 	}
 	
 	/**
@@ -268,6 +365,28 @@ public class graph
 	public Set<DefaultEdge> getEdgeSet()
 	{
 		return g.edgeSet();
+	}
+	
+	/**
+	 * Get a map from nodes to their neighbors.
+	 *
+	 * @return a map from nodes to their neighbors.
+	 */
+	public Map<Integer, List<Integer>> getNeighbors()
+	{
+		Set<Integer> nodes = getVertexSet();
+		return nodes.stream().collect(Collectors.toMap(v -> v, v -> Graphs.neighborListOf(g, v), (a, b) -> b));
+	}
+	
+	/**
+	 * Get the neighbors of {@code node}.
+	 *
+	 * @param node the node whose neighbors are to be fetched.
+	 * @return the neighbors of {@code node}.
+	 */
+	public List<Integer> getNeighborOfNode(int node)
+	{
+		return Graphs.neighborListOf(g, node);
 	}
 	
 	/**
@@ -315,7 +434,7 @@ public class graph
 	 */
 	public int getCoreNumber(int node)
 	{
-		Coreness<Integer, DefaultEdge> c = new Coreness<Integer, DefaultEdge>(g);
+		Coreness<Integer, DefaultEdge> c = new Coreness<>(g);
 		return c.getVertexScore(node);
 	}
 	
@@ -367,10 +486,13 @@ public class graph
 	 * <p>
 	 * [1] An O(m) Algorithm for Cores Decomposition of Networks
 	 * Vladimir Batagelj and Matjaz Zaversnik, 2003.
-	 * https://arxiv.org/abs/cs.DS/0310049
+	 * <a href="https://arxiv.org/abs/cs.DS/0310049", target="_blank">https://arxiv.org/abs/cs.DS/0310049</a>
 	 * </p>
 	 * <p>
-	 * [2] https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number
+	 * [2] <a href="https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number",
+	 *      target="_blank">
+	 *      https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number
+	 *     </a>
 	 * </p>
 	 *
 	 * @return returns the core number for each vertex.
@@ -409,8 +531,7 @@ public class graph
 												.toMap(nodes::get, i -> i, (a, b) -> b));
 		// The initial guess for the core number of a node is its degree.
 		Map<Integer, Integer> core = new HashMap<>(degrees);
-		Map<Integer, List<Integer>> neighbors = nodes.stream()
-				.collect(Collectors.toMap(v -> v, v -> Graphs.neighborListOf(g, v), (a, b) -> b));
+		Map<Integer, List<Integer>> neighbors = getNeighbors();
 		int pos, binStart;
 		for (Integer v: nodes)
 		{
@@ -434,6 +555,44 @@ public class graph
 			}
 		}
 		return core;
+	}
+	
+	/**
+	 * Writes network information (max degree, avg. distance, etc.) to csv file.
+	 *
+	 * @param filename path to output file
+	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @throws Exception thrown if error in input-output operation.
+	 */
+	public void writeNetworkInfoToCSV(String filename, boolean append) throws Exception
+	{
+		File fileObj = new File(filename);
+		String[] header = {"Network", "#nodes", "#edges", "avg. degree", "max degree",
+				"avg. distance", "max distance"};
+		boolean writeHeader = false;
+		if (!fileObj.exists())
+			writeHeader = true;
+		else if (!append)
+			writeHeader = true;
+		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
+		if (writeHeader)
+		{
+			writer.writeNext(header);
+			writer.flush();
+		}
+		String[] line = new String[8];
+		line[0] = getNetworkName();
+		line[1] = String.valueOf(getVertexSet().size());
+		line[2] = String.valueOf(getEdgeSet().size());
+		line[3] = String.valueOf(findAverageDegreeOfNodes());
+		line[4] = String.valueOf(findMaxDegreeOfNodes());
+		line[5] = String.valueOf(findAverageDistanceBetweenNodes());
+		line[6] = String.valueOf(findMaxDistanceBetweenNodes());
+		line[7] = Instant.now().toString();
+		writer.writeNext(line);
+		writer.flush();
+		writer.close();
+		System.out.println("Heuristic results successfully written to \""+filename+"\".");
 	}
 	
 	/**

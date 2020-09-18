@@ -289,7 +289,7 @@ public class degreeCentrality
 	 *
 	 * @param filename path to output file
 	 * @param append true, if you wish to append to existing file; false, otherwise.
-	 * @throws IOException exception thrown if error in input-output operation.
+	 * @throws IOException thrown if error in input-output operation.
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
 	{
@@ -333,7 +333,7 @@ public class degreeCentrality
 		}
 		writer.flush();
 		writer.close();
-		System.out.println("Heuristic results successfully written to \""+filename+"\".");
+		System.out.println("Degree centrality results successfully written to \""+filename+"\".");
 	}
 	
 	/**
