@@ -139,24 +139,9 @@ public class commonMethods
 		//System.out.println("Frequency: "+frequency.toString());
 		
 		// choose top k nodes based on their frequency
-		PriorityQueue<Integer> topKNodes = new PriorityQueue<>(k, (o1, o2) -> Integer.compare(frequency.get(o1),
-				frequency.get(o2)));
-		for (Integer key: frequency.keySet())
-		{
-			//System.out.println("\t Key "+key);
-			if (topKNodes.size() < k)
-				topKNodes.add(key);
-			else
-			{
-				if (frequency.get(topKNodes.peek()) < frequency.get(key))
-				{
-					topKNodes.poll();
-					topKNodes.add(key);
-				}
-			}
-			//System.out.println("\t Top nodes: "+topKNodes.toString());
-		}
+		PriorityQueue<Integer> topKNodes = getKHighestDegreeNodes(frequency, k);
 		//System.out.println("Top k nodes: "+topKNodes.toString());
+		
 		// find delta for the top k nodes
 		//Map<Integer, Double> deltaFunction = new HashMap<>();
 		double commonDenominator = 1.0/simulationResults.size();
