@@ -77,7 +77,7 @@ class graphTest
 	{
 		graph network = new graph("testNetwork");
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/testNetworkFile.txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/testNetworkFile.txt", separator);
 		
 		// check vertex set
 		assert network.getG().vertexSet().size()==7;
@@ -100,7 +100,7 @@ class graphTest
 		String networkName = "testnetwork1";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.getNetworkName().equals("testnetwork1");
 		network.setNetworkName("randomname");
 		assert network.getNetworkName().equals("randomname");
@@ -137,14 +137,14 @@ class graphTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert !network.hasSelfLoops();
 		network.removeSelfLoops();
 		assert !network.hasSelfLoops();
 		
 		networkName = "testnetwork10_selfLoop";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.hasSelfLoops();
 		network.removeSelfLoops();
 		assert !network.hasSelfLoops();
@@ -156,12 +156,12 @@ class graphTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert !network.hasSelfLoops();
 		
 		networkName = "testnetwork10_selfLoop";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.hasSelfLoops();
 	}
 	
@@ -171,7 +171,7 @@ class graphTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.getDegreeOfNode(1)==1;
 		assert network.getDegreeOfNode(2)==5;
 		assert network.getDegreeOfNode(3)==4;
@@ -193,7 +193,7 @@ class graphTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		Map<Integer, Integer> degrees = network.getDegrees();
 		assert degrees.get(1)==1;
 		assert degrees.get(2)==5;
@@ -217,14 +217,14 @@ class graphTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		double avgDegree = network.findAverageDegreeOfNodes();
 		assert Math.abs(avgDegree-2)<0.00000001;
 		
 		// Test 2
 		networkName = "testnetwork6withUnconnectedComponents";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		avgDegree = network.findAverageDegreeOfNodes();
 		assert Math.abs(avgDegree-(28.0/12.0))<0.00000001;
 	}
@@ -235,14 +235,14 @@ class graphTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		int maxDegree = network.findMaxDegreeOfNodes();
 		assert maxDegree==5;
 		
 		// Test 2
 		networkName = "testnetwork6withUnconnectedComponents";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		maxDegree = network.findMaxDegreeOfNodes();
 		assert maxDegree==4;
 	}
@@ -254,7 +254,7 @@ class graphTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		Set<Integer> nodes = network.getVertexSet();
 		for (int i=1; i<=13; i++)
 			assert nodes.contains(i);
@@ -263,7 +263,7 @@ class graphTest
 		// Test 2
 		networkName = "testnetwork6withUnconnectedComponents";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		nodes = network.getVertexSet();
 		for (int i=1; i<=12; i++)
 			assert nodes.contains(i);
@@ -272,7 +272,7 @@ class graphTest
 		// Test 3
 		networkName = "testnetwork9";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		nodes = network.getVertexSet();
 		assert nodes.contains(1);
 		assert !nodes.contains(2);
@@ -299,7 +299,7 @@ class graphTest
 		String networkName = "testnetwork6withUnconnectedComponents";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		
 		Set<Integer> nodes = network.getVertexSet();
 		Map<Integer, List<Integer>> neighbors = nodes.stream()
@@ -340,7 +340,7 @@ class graphTest
 		String networkName = "testnetwork1";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		Map<Integer, List<Integer>> neighbors = network.getNeighbors();
 		assert neighbors.get(1).contains(2);
 		assert neighbors.get(1).contains(3);
@@ -368,7 +368,7 @@ class graphTest
 		String networkName = "testnetwork1";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.getNeighborOfNode(1).contains(2);
 		assert network.getNeighborOfNode(1).contains(4);
 		assert network.getNeighborOfNode(1).size()==3;
@@ -387,7 +387,7 @@ class graphTest
 		String networkName = "testnetwork1";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		Map<Pair<Integer, Integer>, Double> distances = network.findDistancesBetweenNodes();
 		double tol = 0.00000001;
 		assert Math.abs(distances.get(new Pair<>(1, 2))-1)<tol;
@@ -415,7 +415,7 @@ class graphTest
 		// TEST 2
 		networkName = "testnetwork6withUnconnectedComponents";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		distances = network.findDistancesBetweenNodes();
 		assert Double.isInfinite(distances.get(new Pair<>(7, 8)));
 		assert Double.isInfinite(distances.get(new Pair<>(6, 4)));
@@ -429,7 +429,7 @@ class graphTest
 		String networkName = "testnetwork1";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		double tol = 0.00000001;
 		assert Math.abs(network.findDistanceBetweenNodes(1, 2)-1)<tol;
 		assert Math.abs(network.findDistanceBetweenNodes(1, 6)-2)<tol;
@@ -439,7 +439,7 @@ class graphTest
 		// TEST 2
 		networkName = "testnetwork6withUnconnectedComponents";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert Math.abs(network.findDistanceBetweenNodes(1, 3)-2)<tol;
 		assert Math.abs(network.findDistanceBetweenNodes(8, 12)-2)<tol;
 		assert Double.isInfinite(network.findDistanceBetweenNodes(7, 8));
@@ -454,14 +454,14 @@ class graphTest
 		String networkName = "testnetwork1";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		double tol = 0.00000001;
 		assert Math.abs(network.findMaxDistanceBetweenNodes()-3)<tol;
 		
 		// TEST 2
 		networkName = "testnetwork6withUnconnectedComponents";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert Double.isInfinite(network.findMaxDistanceBetweenNodes());
 	}
 	
@@ -472,14 +472,14 @@ class graphTest
 		String networkName = "testnetwork1";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		double tol = 0.00000001;
 		assert Math.abs(network.findAverageDistanceBetweenNodes()-(33.0/21.0))<tol;
 		
 		// TEST 2
 		networkName = "testnetwork6withUnconnectedComponents";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert Double.isInfinite(network.findAverageDistanceBetweenNodes());
 	}
 	
@@ -490,25 +490,25 @@ class graphTest
 		String networkName = "testnetwork11";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.findMinimumNodeLabel()==3;
 		
 		// TEST 2
 		networkName = "testnetwork12";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.findMinimumNodeLabel()==-3;
 		
 		// TEST 3
 		networkName = "testnetwork13";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		assert network.findMinimumNodeLabel()==-0;
 		
 		// TEST 4
 		networkName = "testnetwork12";
 		network = new graph(networkName);
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		network.removeAllVertices(new HashSet<>(network.getVertexSet()));
 		//System.out.println(network.findMinimumNodeLabel());
 		graph finalNetwork = network;

@@ -19,7 +19,7 @@ class commonMethodsTest
 	void elementwiseMultiplyMatrix() throws Exception
 	{
 		// load two list of lists
-		String listOfListsFile = "./files/dummyListOfLists1.txt";
+		String listOfListsFile = "./test/resources/dummyListOfLists1.txt";
 		List<List<Integer>> listOfLists1 = new ArrayList<>(5);
 		BufferedReader br = new BufferedReader(new FileReader(listOfListsFile));
 		String line = br.readLine();
@@ -32,7 +32,7 @@ class commonMethodsTest
 		}
 		br.close();
 		
-		listOfListsFile = "./files/dummyListOfLists2.txt";
+		listOfListsFile = "./test/resources/dummyListOfLists2.txt";
 		List<List<Integer>> listOfLists2 = new ArrayList<>(5);
 		br = new BufferedReader(new FileReader(listOfListsFile));
 		line = br.readLine();
@@ -67,12 +67,12 @@ class commonMethodsTest
 		String networkName = "EUemailcomm_6-core";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		List<Integer> nodes = new ArrayList<>(network.getVertexSet());
 		
 		// TEST 1
 		// simulation results --> List<List<Integer>> arr
-		String simulationResultsFile = "./files/dummySimulationRunsForEUemailcomm6core_1.txt";
+		String simulationResultsFile = "./test/resources/dummySimulationRunsForEUemailcomm6core_1.txt";
 		BufferedReader br = new BufferedReader(new FileReader(simulationResultsFile));
 		String line = br.readLine();
 		List<List<Integer>> simulationResults = new ArrayList<>(15);
@@ -90,7 +90,7 @@ class commonMethodsTest
 		
 		// TEST 2
 		// simulation results --> List<List<Integer>> arr
-		simulationResultsFile = "./files/dummySimulationRunsForEUemailcomm6core_3.txt";
+		simulationResultsFile = "./test/resources/dummySimulationRunsForEUemailcomm6core_3.txt";
 		br = new BufferedReader(new FileReader(simulationResultsFile));
 		line = br.readLine();
 		simulationResults = new ArrayList<>(15);
@@ -111,7 +111,7 @@ class commonMethodsTest
 	void findRowOccurrenceIndices() throws Exception
 	{
 		// simulation results --> List<List<Integer>> arr
-		String simulationResultsFile = "./files/dummySimulationRunsForEUemailcomm6core_1.txt";
+		String simulationResultsFile = "./test/resources/dummySimulationRunsForEUemailcomm6core_1.txt";
 		String separator = ",";
 		BufferedReader br = new BufferedReader(new FileReader(simulationResultsFile));
 		String line = br.readLine();
@@ -146,10 +146,10 @@ class commonMethodsTest
 		String networkName = "EUemailcomm_6-core";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		
 		// create simulation results
-		String simulationResultsFile = "./files/dummySimulationRunsForEUemailcomm6core_1.txt";
+		String simulationResultsFile = "./test/resources/dummySimulationRunsForEUemailcomm6core_1.txt";
 		List<List<Integer>> simulationResults = new ArrayList<>(15);
 		BufferedReader br = new BufferedReader(new FileReader(simulationResultsFile));
 		String line = br.readLine();
@@ -171,7 +171,7 @@ class commonMethodsTest
 		
 		// TEST 2
 		simulationResults.clear();
-		simulationResultsFile = "./files/dummySimulationRunsForEUemailcomm6core_2.txt";
+		simulationResultsFile = "./test/resources/dummySimulationRunsForEUemailcomm6core_2.txt";
 		br = new BufferedReader(new FileReader(simulationResultsFile));
 		line = br.readLine();
 		while (line!=null)
@@ -188,7 +188,7 @@ class commonMethodsTest
 		
 		// TEST 3
 		simulationResults.clear();
-		simulationResultsFile = "./files/dummySimulationRunsForEUemailcomm6core_3.txt";
+		simulationResultsFile = "./test/resources/dummySimulationRunsForEUemailcomm6core_3.txt";
 		br = new BufferedReader(new FileReader(simulationResultsFile));
 		line = br.readLine();
 		while (line!=null)
@@ -214,7 +214,7 @@ class commonMethodsTest
 		String networkName = "testnetwork8";
 		graph network = new graph(networkName);
 		String separator = ",";
-		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
 		
 		Map<Integer, Integer> degreesOfNodes = network.getVertexSet().stream()
 				.collect(Collectors.toMap(
