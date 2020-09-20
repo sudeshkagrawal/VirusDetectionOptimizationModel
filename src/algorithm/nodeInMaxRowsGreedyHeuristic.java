@@ -1,6 +1,7 @@
 package algorithm;
 
 import com.opencsv.CSVWriter;
+import helper.commonMethods;
 import network.graph;
 import org.javatuples.Septet;
 import org.javatuples.Sextet;
@@ -17,7 +18,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of greedy heuristic on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 16, 2020.
+ * Last Updated: September 19, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
@@ -197,14 +198,14 @@ public class nodeInMaxRowsGreedyHeuristic
 								.map(integer -> integer + 1)
 								.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
 								.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
-					successfulDetectMatrix = elementwiseMultiplyMatrix(
+					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 							Collections.unmodifiableList(newVirusSpreadSamples),
 							Collections.unmodifiableList(virtualDetectionSamples));
 					candidates = g.getG().vertexSet().stream().map(e -> e+1).collect(Collectors.toSet());
 				}
 				else
 				{
-					successfulDetectMatrix = elementwiseMultiplyMatrix(
+					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 												Collections.unmodifiableList(virusSpreadSamples),
 												Collections.unmodifiableList(virtualDetectionSamples));
 					candidates = new HashSet<>(g.getG().vertexSet());
@@ -230,14 +231,14 @@ public class nodeInMaxRowsGreedyHeuristic
 				List<List<Integer>> samplesToBeConsidered = IntStream.range(0, successfulDetectMatrix.size())
 						.filter(indicesOfSamplesToBeConsidered::contains)
 						.mapToObj(successfulDetectMatrix::get).collect(Collectors.toList());
-				int currentCandidate = findMaxRowFrequencyNode(Collections.unmodifiableList(samplesToBeConsidered),
+				int currentCandidate = commonMethods.findMaxRowFrequencyNode(Collections.unmodifiableList(samplesToBeConsidered),
 										List.copyOf(candidates));
 				// System.out.println("Current candidate: "+currentCandidate);
 				honeypots.add(currentCandidate);
 				numberOfHoneypotsFound++;
 				candidates.remove(currentCandidate);
 				indicesOfSamplesToBeRemoved = new HashSet<>(
-						findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix),
+						commonMethods.findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix),
 								currentCandidate));
 				indicesOfSamplesToBeConsidered.removeAll(indicesOfSamplesToBeRemoved);
 				// TODO: What if k > number of nodes?
@@ -258,169 +259,10 @@ public class nodeInMaxRowsGreedyHeuristic
 			mapToWallTime.put(fullKey, wallTimeInSeconds);
 			double factor = Math.exp(1)/(Math.exp(1)-1);
 			mapToAPrioriUB.put(fullKey, Math.min(factor*objectiveValue, 1));
-			double delta = calculateDelta(g, successfulDetectMatrix, honeypots, indicesOfSamplesCovered.size());
+			double delta = commonMethods.calculateDelta(g,
+											successfulDetectMatrix, honeypots, indicesOfSamplesCovered.size());
 			mapToPosteriorUB.put(fullKey, Math.min(objectiveValue+delta, 1));
 		}
-	}
-	
-	/**
-	 * Calculates the sum of the marginal function values for the top {@code k} nodes
-	 * that fail to be in the solution.
-	 * Let us call it the delta value.
-	 * Refer section 2.4.1 in
-	 * Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
-	 *
-	 * @param g network graph
-	 * @param simulationResults sample paths of a simulation
-	 * @param honeypots list of nodes in the solution
-	 * @param honeypotsFrequency number of sample paths covered by the honeypots in the solution.
-	 * @return returns the delta value.
-	 */
-	public double calculateDelta(graph g, List<List<Integer>> simulationResults, List<Integer> honeypots,
-	                              int honeypotsFrequency)
-	{
-		int k = honeypots.size();
-		// failedVertices: vertices not in honeypot
-		Set<Integer> failedVertices = new HashSet<>(g.getG().vertexSet());
-		failedVertices.removeAll(honeypots);
-		//System.out.println("Failed nodes: "+failedVertices.toString());
-		// find rows not covered by honeypots in the heuristic solution
-		List<List<Integer>> uncoveredSamplePaths = simulationResults.stream().filter(samplePath -> samplePath.stream()
-													.noneMatch(honeypots::contains)).map(ArrayList::new)
-													.collect(Collectors
-													.toCollection(() -> new ArrayList<>(simulationResults.size())));
-		//System.out.println("Uncovered sample paths: "+uncoveredSamplePaths.toString());
-		// find frequency of failedVertices in uncoveredSamplePaths
-		Map<Integer, Integer> frequency = new HashMap<>();
-		failedVertices.forEach(node -> uncoveredSamplePaths.stream()
-					.filter(samplePath -> samplePath.contains(node))
-					.forEach(samplePath -> frequency.put(node, frequency.getOrDefault(node, 0) + 1)));
-		//System.out.println("Frequency: "+frequency.toString());
-		// choose top k nodes based on their frequency
-		PriorityQueue<Integer> topKNodes = new PriorityQueue<>(k, new Comparator<Integer>()
-		{
-			@Override
-			public int compare(Integer o1, Integer o2)
-			{
-				return Integer.compare(frequency.get(o1),
-						frequency.get(o2));
-			}
-		});
-		for (Integer key: frequency.keySet())
-		{
-			//System.out.println("\t Key "+key);
-			if (topKNodes.size() < k)
-				topKNodes.add(key);
-			else
-			{
-				if (frequency.get(topKNodes.peek()) < frequency.get(key))
-				{
-					topKNodes.poll();
-					topKNodes.add(key);
-				}
-			}
-			//System.out.println("\t Top nodes: "+topKNodes.toString());
-		}
-		//System.out.println("Top k nodes: "+topKNodes.toString());
-		// find delta for the top k nodes
-		Map<Integer, Double> deltaFunction = new HashMap<>();
-		double commonDenominator = 1.0/simulationResults.size();
-		double objectiveValue = commonDenominator* honeypotsFrequency;
-		double output = 0.0;
-		for (Integer node: topKNodes)
-		{
-			double value = commonDenominator * (honeypotsFrequency +frequency.get(node));
-			value -= objectiveValue;
-			deltaFunction.put(node, value);
-			output += value;
-		}
-		return output;
-	}
-	
-	/**
-	 * Element-wise multiplication of two list of lists.
-	 *
-	 * @param a the first list of lists
-	 * @param b the second list of lists.
-	 * @return returns a list of lists.
-	 * @throws Exception exception thrown if outer lists {@code a} and {@code b} not of same size.
-	 *          Corresponding inner lists should also be of same size,
-	 *          but that exception is not thrown since the check would be expensive.
-	 */
-	private List<List<Integer>> elementwiseMultiplyMatrix(List<List<Integer>> a, List<List<Integer>> b) throws Exception
-	{
-		List<List<Integer>> output = new ArrayList<>(a.size());
-		if (a.size()!=b.size())
-			throw new Exception("Inputs are not of the same size!");
-		for (int i=0; i<a.size(); i++)
-		{
-			List<Integer> colList = new ArrayList<>(a.get(i).size());
-			for (int j=0; j<a.get(i).size(); j++)
-				colList.add(a.get(i).get(j) * b.get(i).get(j));
-			output.add(colList);
-		}
-		return output;
-	}
-	
-	/**
-	 * Slower and older version of {@code findMaxRowFrequencyNode()}.
-	 *
-	 * @param arr a list of lists
-	 * @param nodes a list of integers (nodes).
-	 * @return returns a node as {@code int}.
-	 */
-	@Deprecated
-	private int findMaxRowFrequencyNodeOld(List<List<Integer>> arr, List<Integer> nodes)
-	{
-		int maxNode = nodes.get(0);
-		int maxNodeFrequency = 0;
-		for (Integer node : nodes)
-		{
-			int count;
-			int currentNode = node;
-			count = (int) IntStream.range(0, arr.size()).parallel()
-					.filter(i -> IntStream.range(0, arr.get(i).size())
-							.anyMatch(j -> arr.get(i).get(j) == currentNode)).count();
-			if (count > maxNodeFrequency)
-			{
-				maxNode = currentNode;
-				maxNodeFrequency = count;
-			}
-		}
-		return maxNode;
-	}
-	
-	/**
-	 * Finds a node (in {@code nodes}) which is present in the most rows of {@code arr}.
-	 *
-	 * @param arr a list of lists
-	 * @param nodes a list of integers (nodes).
-	 * @return returns a node as {@code int}.
-	 */
-	private int findMaxRowFrequencyNode(List<List<Integer>> arr, List<Integer> nodes)
-	{
-		Map<Integer, Integer> rowCount = nodes.stream().collect(Collectors
-							.toMap(node -> node, node -> 0, (a, b) -> b, () -> new HashMap<>(nodes.size())));
-		for (List<Integer> row : arr)
-			for (int key : row)
-				if (rowCount.containsKey(key))
-					rowCount.put(key, rowCount.get(key) + 1);
-		return Objects.requireNonNull(rowCount.entrySet()
-				.stream().max(Comparator.comparingInt(Map.Entry::getValue)).orElse(null)).getKey();
-	}
-	
-	/**
-	 * Finds indices of rows where {@code node} occurs in {@code arr}.
-	 *
-	 * @param arr a list of lists
-	 * @param node a list of integers (nodes).
-	 * @return returns a list of indices.
-	 */
-	private List<Integer> findRowOccurrenceIndices(List<List<Integer>> arr, int node)
-	{
-		return IntStream.range(0, arr.size())
-				.filter(i -> IntStream.range(0, arr.get(i).size())
-						.anyMatch(j -> arr.get(i).get(j) == node)).boxed().collect(Collectors.toList());
 	}
 	
 	/**

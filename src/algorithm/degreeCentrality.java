@@ -3,6 +3,7 @@ package algorithm;
 import com.opencsv.CSVWriter;
 import dataTypes.algorithmOutput;
 import dataTypes.parameters;
+import helper.commonMethods;
 import network.graph;
 import org.javatuples.Sextet;
 import simulation.simulationRuns;
@@ -17,9 +18,9 @@ import java.util.stream.Collectors;
 
 /**
  * Represents results of degree centrality on {@code simulationRuns}.
- * In degree centrality we choose the k vertices with highest degree.
+ * In degree centrality we choose the k vertices with highest degrees.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 17, 2020.
+ * Last Updated: September 19, 2020.
  */
 public class degreeCentrality
 {
@@ -114,7 +115,7 @@ public class degreeCentrality
 					+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			// find K highest degree nodes
 			tic = Instant.now();
-			PriorityQueue<Integer> topKDegreeNodes = getKHighestDegreeNodes(degreesOfNodes, k);
+			PriorityQueue<Integer> topKDegreeNodes = commonMethods.getKHighestDegreeNodes(degreesOfNodes, k);
 			toc = Instant.now();
 			double wallTimeInSeconds = 1.0*Duration.between(tic, toc).toMillis()/1000;
 			List<Integer> honeypots = new ArrayList<>(topKDegreeNodes);
@@ -138,7 +139,7 @@ public class degreeCentrality
 									.map(integer -> integer + 1)
 									.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
 									.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
-					successfulDetectMatrix = elementwiseMultiplyMatrix(
+					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 												Collections.unmodifiableList(newVirusSpreadSamples),
 												Collections.unmodifiableList(virtualDetectionSamples));
 					candidates = honeypots.stream().map(e -> e+1).collect(Collectors.toSet());
@@ -146,7 +147,7 @@ public class degreeCentrality
 				}
 				else
 				{
-					successfulDetectMatrix = elementwiseMultiplyMatrix(
+					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 							Collections.unmodifiableList(virusSpreadSamples),
 							Collections.unmodifiableList(virtualDetectionSamples));
 					candidates = new HashSet<>(honeypots);
@@ -166,7 +167,7 @@ public class degreeCentrality
 			
 			// find upper bounds
 			double factor = Math.exp(1)/(Math.exp(1)-1);
-			double delta = calculateDelta(g, successfulDetectMatrix, honeypots, frequency);
+			double delta = commonMethods.calculateDelta(g, successfulDetectMatrix, honeypots, frequency);
 			
 			outputMap.put(param, new algorithmOutput(objectiveValue, honeypots,
 					commonWallTimeInSeconds+wallTimeInSeconds, Math.min(factor*objectiveValue, 1),
@@ -174,115 +175,7 @@ public class degreeCentrality
 		}
 	}
 	
-	/**
-	 * Returns the k highest degree nodes.
-	 *
-	 * @param degreesOfNodes map from node to its degree in the graph
-	 * @param k number of top degree nodes required.
-	 * @return the k highest degree nodes.
-	 */
-	public PriorityQueue<Integer> getKHighestDegreeNodes(Map<Integer, Integer> degreesOfNodes, int k)
-	{
-		PriorityQueue<Integer> topKDegreeNodes = new PriorityQueue<>(k, new Comparator<Integer>()
-		{
-			@Override
-			public int compare(Integer o1, Integer o2)
-			{
-				return Integer.compare(degreesOfNodes.get(o1),
-						degreesOfNodes.get(o2));
-			}
-		});
-		for (Integer key : degreesOfNodes.keySet())
-		{
-			if (topKDegreeNodes.size() < k)
-				topKDegreeNodes.add(key);
-			else
-			{
-				if (degreesOfNodes.get(topKDegreeNodes.peek()) < degreesOfNodes.get(key))
-				{
-					topKDegreeNodes.poll();
-					topKDegreeNodes.add(key);
-				}
-			}
-		}
-		return topKDegreeNodes;
-	}
 	
-	/**
-	 * Element-wise multiplication of two list of lists.
-	 *
-	 * @param a the first list of lists
-	 * @param b the second list of lists.
-	 * @return returns a list of lists.
-	 * @throws Exception exception thrown if outer lists {@code a} and {@code b} not of same size.
-	 *          Corresponding inner lists should also be of same size,
-	 *          but that exception is not thrown since the check would be expensive.
-	 */
-	private List<List<Integer>> elementwiseMultiplyMatrix(List<List<Integer>> a, List<List<Integer>> b) throws Exception
-	{
-		List<List<Integer>> output = new ArrayList<>(a.size());
-		if (a.size()!=b.size())
-			throw new Exception("Inputs are not of the same size!");
-		for (int i=0; i<a.size(); i++)
-		{
-			List<Integer> colList = new ArrayList<>(a.get(i).size());
-			for (int j=0; j<a.get(i).size(); j++)
-				colList.add(a.get(i).get(j) * b.get(i).get(j));
-			output.add(colList);
-		}
-		return output;
-	}
-	
-	/**
-	 * Calculates the sum of the marginal function values for the top {@code k} nodes
-	 * that fail to be in the solution.
-	 * Let us call it the delta value.
-	 * Refer section 2.4.1 in
-	 * Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
-	 *
-	 * @param g network graph
-	 * @param simulationResults sample paths of a simulation
-	 * @param honeypots list of nodes in the solution
-	 * @param honeypotsFrequency number of sample paths covered by the honeypots in the solution.
-	 * @return the delta value.
-	 */
-	public double calculateDelta(graph g, List<List<Integer>> simulationResults, List<Integer> honeypots,
-	                             int honeypotsFrequency)
-	{
-		int k = honeypots.size();
-		// failedVertices: vertices not in honeypot
-		Set<Integer> failedVertices = new HashSet<>(g.getVertexSet());
-		failedVertices.removeAll(honeypots);
-		//System.out.println("Failed nodes: "+failedVertices.toString());
-		// find rows not covered by honeypots in the heuristic solution
-		List<List<Integer>> uncoveredSamplePaths = simulationResults.stream().filter(samplePath -> samplePath.stream()
-				.noneMatch(honeypots::contains)).map(ArrayList::new)
-				.collect(Collectors
-						.toCollection(() -> new ArrayList<>(simulationResults.size())));
-		//System.out.println("Uncovered sample paths: "+uncoveredSamplePaths.toString());
-		// find frequency of failedVertices in uncoveredSamplePaths
-		Map<Integer, Integer> frequency = new HashMap<>();
-		failedVertices.forEach(node -> uncoveredSamplePaths.stream()
-				.filter(samplePath -> samplePath.contains(node))
-				.forEach(samplePath -> frequency.put(node, frequency.getOrDefault(node, 0) + 1)));
-		//System.out.println("Frequency: "+frequency.toString());
-		// choose top k nodes based on their frequency
-		PriorityQueue<Integer> topKNodes = getKHighestDegreeNodes(frequency, k);
-		//System.out.println("Top k nodes: "+topKNodes.toString());
-		// find delta for the top k nodes
-		Map<Integer, Double> deltaFunction = new HashMap<>();
-		double commonDenominator = 1.0/simulationResults.size();
-		double objectiveValue = commonDenominator* honeypotsFrequency;
-		double output = 0.0;
-		for (Integer node: topKNodes)
-		{
-			double value = commonDenominator * (honeypotsFrequency + frequency.get(node));
-			value -= objectiveValue;
-			deltaFunction.put(node, value);
-			output += value;
-		}
-		return output;
-	}
 	
 	/**
 	 * Writes algorithm results to csv file.
