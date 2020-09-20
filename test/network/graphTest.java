@@ -4,16 +4,16 @@ import org.javatuples.Pair;
 import org.jgrapht.Graphs;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit test for {@code graph}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 17, 2020.
+ * Last Updated: September 19, 2020.
  */
 class graphTest
 {
@@ -481,5 +481,40 @@ class graphTest
 		network = new graph(networkName);
 		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
 		assert Double.isInfinite(network.findAverageDistanceBetweenNodes());
+	}
+	
+	@Test
+	void findMinimumNodeLabel() throws Exception
+	{
+		// TEST 1
+		String networkName = "testnetwork11";
+		graph network = new graph(networkName);
+		String separator = ",";
+		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		assert network.findMinimumNodeLabel()==3;
+		
+		// TEST 2
+		networkName = "testnetwork12";
+		network = new graph(networkName);
+		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		assert network.findMinimumNodeLabel()==-3;
+		
+		// TEST 3
+		networkName = "testnetwork13";
+		network = new graph(networkName);
+		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		assert network.findMinimumNodeLabel()==-0;
+		
+		// TEST 4
+		networkName = "testnetwork12";
+		network = new graph(networkName);
+		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		network.removeAllVertices(new HashSet<>(network.getVertexSet()));
+		//System.out.println(network.findMinimumNodeLabel());
+		graph finalNetwork = network;
+		Exception exception = assertThrows(NoSuchElementException.class,
+				finalNetwork::findMinimumNodeLabel);
+		String actualMessage = exception.getMessage();
+		assertSame(null, actualMessage);
 	}
 }

@@ -368,6 +368,26 @@ public class graph
 	}
 	
 	/**
+	 * Removes nodes in {@code nodesToBeRemoved} in graph {@code g}.
+	 *
+	 * @param nodesToBeRemoved nodes to be removed from the graph {@code g}.
+	 */
+	public void removeAllVertices(Set<Integer> nodesToBeRemoved)
+	{
+		g.removeAllVertices(nodesToBeRemoved);
+	}
+	
+	/**
+	 * Returns the minimum node label.
+	 *
+	 * @return the minimum node label.
+	 */
+	public int findMinimumNodeLabel()
+	{
+		return getVertexSet().stream().mapToInt(v -> v).min().orElseThrow(NoSuchElementException::new);
+	}
+	
+	/**
 	 * Get a map from nodes to their neighbors.
 	 *
 	 * @return a map from nodes to their neighbors.
