@@ -1,3 +1,5 @@
+package helper;
+
 import network.graph;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +17,6 @@ import java.util.stream.Collectors;
  */
 class commonMethodsTest
 {
-	
 	@Test
 	void elementwiseMultiplyMatrix() throws Exception
 	{

@@ -1,8 +1,11 @@
+package helper;
+
 import network.graph;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 
 /**
  * Contains methods required across several classes.
@@ -112,7 +115,7 @@ public class commonMethods
 	 * @return the delta value.
 	 */
 	public static double calculateDelta(graph g, List<List<Integer>> simulationResults, List<Integer> honeypots,
-	                             int honeypotsFrequency)
+	                                    int honeypotsFrequency)
 	{
 		int k = honeypots.size();
 		
