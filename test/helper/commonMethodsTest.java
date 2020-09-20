@@ -5,9 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -207,5 +205,43 @@ class commonMethodsTest
 		honeypotsFrequency = 11;
 		delta = commonMethods.calculateDelta(network, simulationResults, honeypots, honeypotsFrequency);
 		assert Math.abs(delta-(5.0/17.0))<0.00000001;
+	}
+	
+	@Test
+	void getKHighestDegreeNodes() throws Exception
+	{
+		// build graph
+		String networkName = "testnetwork8";
+		graph network = new graph(networkName);
+		String separator = ",";
+		network.buildGraphFromFile("./files/networks/"+networkName+".txt", separator);
+		
+		Map<Integer, Integer> degreesOfNodes = network.getVertexSet().stream()
+				.collect(Collectors.toMap(
+						node -> node, network::getDegreeOfNode, (a, b) -> b));
+		assert degreesOfNodes.get(1) == 1;
+		assert degreesOfNodes.get(2) == 5;
+		assert degreesOfNodes.get(3) == 4;
+		assert degreesOfNodes.get(4) == 2;
+		assert degreesOfNodes.get(5) == 2;
+		assert degreesOfNodes.get(6) == 5;
+		assert degreesOfNodes.get(7) == 1;
+		assert degreesOfNodes.get(8) == 1;
+		assert degreesOfNodes.get(9) == 1;
+		assert degreesOfNodes.get(10) == 1;
+		assert degreesOfNodes.get(11) == 1;
+		assert degreesOfNodes.get(12) == 1;
+		assert degreesOfNodes.get(13) == 1;
+		
+		PriorityQueue<Integer> topKDegreeNodes = commonMethods.getKHighestDegreeNodes(degreesOfNodes, 1);
+		assert (topKDegreeNodes.contains(2) || topKDegreeNodes.contains(6));
+		topKDegreeNodes = commonMethods.getKHighestDegreeNodes(degreesOfNodes, 2);
+		assert (topKDegreeNodes.contains(2) && topKDegreeNodes.contains(6));
+		topKDegreeNodes = commonMethods.getKHighestDegreeNodes(degreesOfNodes, 3);
+		assert topKDegreeNodes.contains(3);
+		topKDegreeNodes = commonMethods.getKHighestDegreeNodes(degreesOfNodes, 4);
+		assert (topKDegreeNodes.contains(5) || topKDegreeNodes.contains(4));
+		topKDegreeNodes = commonMethods.getKHighestDegreeNodes(degreesOfNodes, 5);
+		assert (topKDegreeNodes.contains(5) && topKDegreeNodes.contains(4));
 	}
 }

@@ -171,4 +171,30 @@ public class commonMethods
 		}
 		return output;
 	}
+	
+	/**
+	 * Returns the k highest degree nodes.
+	 *
+	 * @param degreesOfNodes map from node to its degree in the graph
+	 * @param k number of top degree nodes required.
+	 * @return the k highest degree nodes.
+	 */
+	public static PriorityQueue<Integer> getKHighestDegreeNodes(Map<Integer, Integer> degreesOfNodes, int k)
+	{
+		PriorityQueue<Integer> topKDegreeNodes = new PriorityQueue<>(k, Comparator.comparingInt(degreesOfNodes::get));
+		for (Integer key : degreesOfNodes.keySet())
+		{
+			if (topKDegreeNodes.size() < k)
+				topKDegreeNodes.add(key);
+			else
+			{
+				if (degreesOfNodes.get(topKDegreeNodes.peek()) < degreesOfNodes.get(key))
+				{
+					topKDegreeNodes.poll();
+					topKDegreeNodes.add(key);
+				}
+			}
+		}
+		return topKDegreeNodes;
+	}
 }
