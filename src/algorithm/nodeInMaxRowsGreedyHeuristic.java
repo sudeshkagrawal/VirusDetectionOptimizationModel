@@ -1,11 +1,11 @@
 package algorithm;
 
 import com.opencsv.CSVWriter;
+import dataTypes.algorithmOutput;
+import dataTypes.parameters;
 import helper.commonMethods;
 import network.graph;
-import org.javatuples.Septet;
 import org.javatuples.Sextet;
-import org.jgrapht.alg.util.Triple;
 import simulation.simulationRuns;
 
 import java.io.*;
@@ -18,120 +18,124 @@ import java.util.stream.IntStream;
 /**
  * Represents results of greedy heuristic on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 19, 2020.
+ * Last Updated: September 21, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
 	/**
-	 * A map from a 7-tuple to the objective value for a given solution.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
+	 * A map from {@code parameters} to {@code algorithmOutput}.
+	 * Basically, stores the outputs for different input parameters.
+	 * <p>
+	 *     Parameters: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 *     false negative probability, transmissability (p), number of honeypots).
+	 * </p>
+	 * <p>
+	 *     Algorithm output: objective value, honeypot, wall time, a priori upper bound, and posterior upper bound.
+	 * </p>
 	 */
-	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue;
-	/**
-	 * A map from a 7-tuple to the list of honeypots in a given solution.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
-	 */
-	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots;
-	/**
-	 * A map from a 7-tuple to the CPU time it took to find a given solution.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
-	 */
-	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime;
-	/**
-	 * A map from a 7-tuple to the a priori upper bound induced by the solution.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
-	 */
-	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToAPrioriUB;
-	/**
-	 * A map from a 7-tuple to the posterior upper bound induced by the solution.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
-	 */
-	Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToPosteriorUB;
+	Map<parameters, algorithmOutput> outputMap;
 	
 	/**
 	 * Constructor.
 	 */
 	public nodeInMaxRowsGreedyHeuristic()
 	{
-		this(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
+		this(new HashMap<>());
 	}
 	
 	/**
 	 * Constructor.
 	 *
-	 * @param mapToObjectiveValue value of objective function for a given solution
-	 * @param mapToHoneypots list of honeypots in a given solution
-	 * @param mapToWallTime CPU time taken to find a given solution
-	 * @param mapToAPrioriUB a priori upper bound induced by a given solution
-	 * @param mapToPosteriorUB posterior upper bound induced by a given solution.
+	 * @param outputMap an instance of {@code outputMap}.
 	 */
-	public nodeInMaxRowsGreedyHeuristic(
-			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToObjectiveValue,
-			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> mapToHoneypots,
-			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToWallTime,
-			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToAPrioriUB,
-			Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> mapToPosteriorUB)
+	public nodeInMaxRowsGreedyHeuristic(Map<parameters, algorithmOutput> outputMap)
 	{
-		this.mapToObjectiveValue = mapToObjectiveValue;
-		this.mapToHoneypots = mapToHoneypots;
-		this.mapToWallTime = mapToWallTime;
-		this.mapToAPrioriUB = mapToAPrioriUB;
-		this.mapToPosteriorUB = mapToPosteriorUB;
+		this.outputMap = outputMap;
 	}
 	
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code mapToObjectiveValue}.
+	 * @return {@code outputMap}.
 	 */
-	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToObjectiveValue()
+	public Map<parameters, algorithmOutput> getOutputMap()
 	{
-		return mapToObjectiveValue;
+		return outputMap;
 	}
 	
 	/**
-	 * Getter.
+	 * Overrides {@code toString}.
 	 *
-	 * @return returns {@code mapToHoneypots}.
+	 * @return string representation of values of field(s) in the class.
 	 */
-	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>> getMapToHoneypots()
+	@Override
+	public String toString()
 	{
-		return mapToHoneypots;
+		StringBuilder str = new StringBuilder(1000);
+		str.append("Node-in-max-rows greedy heuristic:");
+		for(Map.Entry<parameters, algorithmOutput> e: outputMap.entrySet())
+		{
+			str.append("\n\t<").append(e.getKey()).append(",");
+			str.append("\n\t\t Objective value:\n\t\t\t").append(e.getValue().getObjectiveValue());
+			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypot());
+			str.append("\n\t\t a priori UB:\n\t\t\t").append(e.getValue().getAPrioriUB());
+			str.append("\n\t\t posterior UB:\n\t\t\t").append(e.getValue().getPosteriorUB());
+			str.append("\n\t\t Wall time (second):\n\t\t\t").append(e.getValue().getWallTime());
+			str.append("\n\t>");
+		}
+		return str.toString();
 	}
 	
 	/**
-	 * Getter.
+	 * Writes algorithm results to csv file.
 	 *
-	 * @return returns {@code mapToWallTime}.
+	 * @param filename path to output file
+	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @throws IOException thrown if error in input-output operation.
 	 */
-	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToWallTime()
+	public void writeToCSV(String filename, boolean append) throws IOException
 	{
-		return mapToWallTime;
-	}
-	
-	/**
-	 * Getter.
-	 *
-	 * @return returns {@code mapToAPrioriUB}.
-	 */
-	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToAPrioriUB()
-	{
-		return mapToAPrioriUB;
-	}
-	
-	/**
-	 * Getter.
-	 *
-	 * @return returns {@code mapToPosteriorUB}.
-	 */
-	public Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double> getMapToPosteriorUB()
-	{
-		return mapToPosteriorUB;
+		File fileObj = new File(filename);
+		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
+				"transmissability (p)", "no. of honeypots", "objective value", "honeypots",
+				"a priori UB", "posterior UB", "Posterior Gap (%)", "Wall time (s)", "UTC"};
+		boolean writeHeader = false;
+		if (!fileObj.exists())
+			writeHeader = true;
+		else if (!append)
+			writeHeader = true;
+		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
+		if (writeHeader)
+		{
+			writer.writeNext(header);
+			writer.flush();
+		}
+		String now = Instant.now().toString();
+		for (Map.Entry<parameters, algorithmOutput> e: outputMap.entrySet())
+		{
+			String[] line = new String[14];
+			line[0] = e.getKey().getSpreadModelName();
+			line[1] = e.getKey().getNetworkName();
+			line[2] = String.valueOf(e.getKey().getTimeStep());
+			line[3] = String.valueOf(e.getKey().getNumberOfSimulationRepetitions());
+			line[4] = String.valueOf(e.getKey().getFalseNegativeProbability());
+			line[5] = String.valueOf(e.getKey().getTransmissability());
+			line[6] = String.valueOf(e.getKey().getNumberOfHoneypots());
+			double objectiveValue = e.getValue().getObjectiveValue();
+			line[7] = String.valueOf(objectiveValue);
+			line[8] = e.getValue().getHoneypot().toString();
+			line[9] = String.valueOf(e.getValue().getAPrioriUB());
+			double posteriorUB = e.getValue().getPosteriorUB();
+			line[10] = String.valueOf(posteriorUB);
+			line[11] = String.valueOf(
+					100.0*(posteriorUB-objectiveValue)/(objectiveValue));
+			line[12] = String.valueOf(e.getValue().getWallTime());
+			line[13] = now;
+			writer.writeNext(line);
+		}
+		writer.flush();
+		writer.close();
+		System.out.println("Heuristic results successfully written to \""+filename+"\".");
 	}
 	
 	/**
@@ -142,50 +146,50 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
 	 * @param g network graph
 	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
-	 * @param k_t0_runs list of a 3-tuple of (k, t0, runs),
-	 *                  where k is number of honeypots, t0 is simulation time,
-	 *                  and runs is number of repetitions of simulation
-	 * @param r false negative probability
-	 * @param p transmissability probability.
-	 * @throws Exception exception thrown if graph {@code g} has self-loops,
+	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}.
+	 * @throws Exception thrown if graph {@code g} has self-loops,
 	 *  or if {@code p}<=0,
 	 *  or if node labels are negative integers.
 	 */
-	public void runSAAUsingHeuristic(String modelName, graph g, simulationRuns simulationResults,
-	                                 List<Triple<Integer, Integer, Integer>> k_t0_runs, double r,
-	                                 double p) throws Exception
+	public void runSAAUsingHeuristic(String modelName, graph g,
+	                                 simulationRuns simulationResults,
+	                                 List<parameters> listOfParams) throws Exception
 	{
 		if (g.hasSelfLoops())
 			throw new Exception("Graphs has self-loops!");
-		if (p<=0)
-			throw new Exception("Invalid value of p!");
 		
 		// minimum label of vertex
 		boolean zeroNode = false;
-		int minNode = g.getG().vertexSet().stream().mapToInt(v -> v).min().orElseThrow(NoSuchElementException::new);
+		int minNode = g.findMinimumNodeLabel();
 		if (minNode==0)
 			zeroNode = true;
 		else
-			if (minNode<0)
-				throw new Exception("Node labels are negative integers! Terminating...");
-		
-		for (Triple<Integer, Integer, Integer> v : k_t0_runs)
 		{
-			int k = v.getFirst();
-			int t_0 = v.getSecond();
-			int run = v.getThird();
-			Sextet<String, String, Integer, Integer, Double, Double> key =
+			if (minNode<0)
+				throw new Exception("Node labels are negative integers!");
+		}
+		
+		//for (Triple<Integer, Integer, Integer> v : k_t0_runs)
+		for (parameters param: listOfParams)
+		{
+			int k = param.getNumberOfHoneypots();
+			if (k>g.getVertexSet().size())
+				throw new Exception("Number of honeypots cannot be greater than the number of nodes!");
+			int t_0 = param.getTimeStep();
+			int run = param.getNumberOfSimulationRepetitions();
+			double r = param.getFalseNegativeProbability();
+			double p = param.getTransmissability();
+			
+			Sextet<String, String, Integer, Integer, Double, Double> keyForSimulation =
 														new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, p);
-			Septet<String, String, Integer, Integer, Double, Double, Integer> fullKey =
-														new Septet<>(modelName, g.getNetworkName(), t_0, run, r, p, k);
 			
 			System.out.println("Using greedy algorithm: "+modelName+" spread model on "+g.getNetworkName()
 								+"network; "+k+" honeypots; "+t_0+" time step(s); "
 								+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			List<List<Integer>> virusSpreadSamples =
-					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
+					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(keyForSimulation);
 			List<List<Integer>> virtualDetectionSamples =
-					simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().get(key);
+					simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().get(keyForSimulation);
 			// System.out.println("Virus spread samples:\n"+virusSpreadSamples+"\n"+virtualDetectionSamples);
 			List<List<Integer>> successfulDetectMatrix;
 			Set<Integer> candidates;
@@ -241,7 +245,6 @@ public class nodeInMaxRowsGreedyHeuristic
 						commonMethods.findRowOccurrenceIndices(Collections.unmodifiableList(successfulDetectMatrix),
 								currentCandidate));
 				indicesOfSamplesToBeConsidered.removeAll(indicesOfSamplesToBeRemoved);
-				// TODO: What if k > number of nodes?
 				// TODO: What if current set of honeypots cover all sample paths?
 			}
 			Instant toc = Instant.now();
@@ -254,14 +257,12 @@ public class nodeInMaxRowsGreedyHeuristic
 			double wallTimeInSeconds = 1.0*Duration.between(tic, toc).toMillis()/1000;
 			System.out.println("Wall time (second) = "+ wallTimeInSeconds);
 			
-			mapToObjectiveValue.put(fullKey, objectiveValue);
-			mapToHoneypots.put(fullKey, honeypots);
-			mapToWallTime.put(fullKey, wallTimeInSeconds);
 			double factor = Math.exp(1)/(Math.exp(1)-1);
-			mapToAPrioriUB.put(fullKey, Math.min(factor*objectiveValue, 1));
 			double delta = commonMethods.calculateDelta(g,
-											successfulDetectMatrix, honeypots, indicesOfSamplesCovered.size());
-			mapToPosteriorUB.put(fullKey, Math.min(objectiveValue+delta, 1));
+					successfulDetectMatrix, honeypots, indicesOfSamplesCovered.size());
+			outputMap.put(param, new algorithmOutput(objectiveValue, honeypots,
+					wallTimeInSeconds, Math.min(factor*objectiveValue, 1),
+					Math.min(objectiveValue+delta, 1)));
 		}
 	}
 	
@@ -278,17 +279,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			BufferedInputStream bin = new BufferedInputStream(fin);
 			ObjectInputStream objin = new ObjectInputStream(bin);
 			List<Object> serObject = (List<Object>) objin.readObject();
-			mapToObjectiveValue =
-					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double>) serObject.get(0);
-			mapToHoneypots =
-					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, List<Integer>>)
-							serObject.get(1);
-			mapToWallTime =
-					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double>) serObject.get(2);
-			mapToAPrioriUB =
-					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double>) serObject.get(3);
-			mapToPosteriorUB =
-					(Map<Septet<String, String, Integer, Integer, Double, Double, Integer>, Double>) serObject.get(4);
+			outputMap = (Map<parameters, algorithmOutput>) serObject.get(0);
 			objin.close();
 			bin.close();
 			fin.close();
@@ -308,7 +299,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		}
 	}
 	/**
-	 * Serializes all the fields of this class.
+	 * Serializes {@code outputMap}.
 	 *
 	 * @param serialFilename path of the file where the serialized object is to be stored.
 	 */
@@ -320,11 +311,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			BufferedOutputStream bout = new BufferedOutputStream(fout);
 			ObjectOutputStream objout = new ObjectOutputStream(bout);
 			List<Object> serObject = new ArrayList<>(3);
-			serObject.add(mapToObjectiveValue);
-			serObject.add(mapToHoneypots);
-			serObject.add(mapToWallTime);
-			serObject.add(mapToAPrioriUB);
-			serObject.add(mapToPosteriorUB);
+			serObject.add(outputMap);
 			objout.writeObject(serObject);
 			objout.close();
 			bout.close();
@@ -347,71 +334,5 @@ public class nodeInMaxRowsGreedyHeuristic
 			System.out.println("Exiting the program...");
 			System.exit(0);
 		}
-	}
-	
-	/**
-	 * Writes algorithm results to csv file.
-	 *
-	 * @param filename path to output file
-	 * @param append true, if you wish to append to existing file; false, otherwise.
-	 * @throws IOException exception thrown if error in input-output operation.
-	 */
-	public void writeToCSV(String filename, boolean append) throws IOException
-	{
-		File fileObj = new File(filename);
-		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
-							"transmissability (p)", "no. of honeypots", "objective value", "honeypots",
-							"a priori UB", "posterior UB", "Posterior Gap (%)", "Wall time (s)", "UTC"};
-		boolean writeHeader = false;
-		if (!fileObj.exists())
-			writeHeader = true;
-		else if (!append)
-			writeHeader = true;
-		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
-		if (writeHeader)
-		{
-			writer.writeNext(header);
-			writer.flush();
-		}
-		String now = Instant.now().toString();
-		for (Septet<String, String, Integer, Integer, Double, Double, Integer> key : mapToObjectiveValue.keySet())
-		{
-			String[] line = new String[14];
-			line[0] = key.getValue0();              // Model (TN11C, RAEPC, etc.)
-			line[1] = key.getValue1();              // network name
-			line[2] = key.getValue2().toString();   // t_0
-			line[3] = key.getValue3().toString();   // reps
-			line[4] = key.getValue4().toString();   // false negative prob.
-			line[5] = key.getValue5().toString();   // transmissability
-			line[6] = key.getValue6().toString();   // no. of honeypots
-			line[7] = mapToObjectiveValue.get(key).toString();
-			line[8] = mapToHoneypots.get(key).toString();
-			line[9] = mapToAPrioriUB.get(key).toString();
-			line[10] = mapToPosteriorUB.get(key).toString();
-			line[11] = String.valueOf(
-					100.0*(mapToPosteriorUB.get(key)-mapToObjectiveValue.get(key))/(mapToObjectiveValue.get(key)));
-			line[12] = mapToWallTime.get(key).toString();
-			line[13] = now;
-			writer.writeNext(line);
-		}
-		writer.flush();
-		writer.close();
-		System.out.println("Heuristic results successfully written to \""+filename+"\".");
-	}
-	
-	/**
-	 * Overrides {@code toString()}.
-	 *
-	 * @return returns string representation of values in class.
-	 */
-	@Override
-	public String toString()
-	{
-		return "nodeInMaxRowsGreedyHeuristic:"
-				+"\n\t Objective value:\n\t\t"+mapToObjectiveValue.toString()
-				+"\n\t Honeypots:\n\t\t"+mapToHoneypots.toString()
-				+"\n\t a priori UB:\n\t\t"+mapToAPrioriUB.toString()
-				+"\n\t posterior UB:\n\t\t"+mapToPosteriorUB.toString()
-				+"\n\t Wall time (second):\n\t\t"+mapToWallTime.toString();
 	}
 }

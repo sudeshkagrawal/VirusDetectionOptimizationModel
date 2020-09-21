@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * <i>Proceedings of the 15th ACM SIGKDD international conference on Knowledge discovery and data mining.</i> 2009.
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 19, 2020.
+ * Last Updated: September 21, 2020.
  */
 public class degreeDiscount
 {
@@ -144,6 +144,18 @@ public class degreeDiscount
 		System.out.println("Degree discount results successfully written to \""+filename+"\".");
 	}
 	
+	/**
+	 * Find the k highest degree nodes after single discount to use as honeypots
+	 * and evaluates the objective value, upper bounds and execution time.
+	 *
+	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
+	 * @param g network graph
+	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
+	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}.
+	 * @throws Exception thrown if the graph {@code g} has self loops,
+	 *  or if the label of a node in {@code g} is a negative integer,
+	 *  or if the number of nodes is less than the number of honeypots in any of the parameters in {@code listOfParams}.
+	 */
 	public void runSAAUsingKHighestDegreeSingleDiscountNodes(String modelName, graph g,
 	                                                         simulationRuns simulationResults,
 	                                                         List<parameters> listOfParams) throws Exception

@@ -1,5 +1,4 @@
-import algorithm.degreeCentrality;
-import algorithm.degreeDiscount;
+import algorithm.nodeInMaxRowsGreedyHeuristic;
 import dataTypes.parameters;
 import network.graph;
 import org.javatuples.Pair;
@@ -104,24 +103,24 @@ public class run
 		if (ranNewSimulations)
 			simulationResults.serializeRuns(simulationsSerialFilename);
 
-//		// Heuristic
-//		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-//		heuristicResults.runSAAUsingHeuristic(modelName, network, simulationResults, k_t0_runs, r, p);
-//		//System.out.println(heuristicResults.toString());
-//		heuristicResults.writeToCSV(heuristicOutputFilename, append);
+		// Heuristic
+		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
+		heuristicResults.runSAAUsingHeuristic(modelName, network, simulationResults, listOfParams);
+		System.out.println(heuristicResults.toString());
+		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 
-		// Degree centrality
-		degreeCentrality degreeCentralityResults = new degreeCentrality();
-		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(modelName, network, simulationResults, listOfParams);
-		//System.out.println(degreeCentralityResults.toString());
-		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
-		
-		// Degree discount
-		degreeDiscount degreeDiscountResults = new degreeDiscount();
-		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(modelName, network, simulationResults,
-																			listOfParams);
-		//System.out.println(degreeDiscountResults.toString());
-		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
+//		// Degree centrality
+//		degreeCentrality degreeCentralityResults = new degreeCentrality();
+//		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(modelName, network, simulationResults, listOfParams);
+//		//System.out.println(degreeCentralityResults.toString());
+//		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
+//
+//		// Degree discount
+//		degreeDiscount degreeDiscountResults = new degreeDiscount();
+//		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(modelName, network, simulationResults,
+//																			listOfParams);
+//		//System.out.println(degreeDiscountResults.toString());
+//		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)
