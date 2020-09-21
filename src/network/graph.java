@@ -197,7 +197,7 @@ public class graph
 	 *
 	 * @param v vertex (node) to be added to the network.
 	 */
-	private void addVertex(Integer v)
+	public void addVertex(Integer v)
 	{
 		g.addVertex(v);
 	}
@@ -208,7 +208,7 @@ public class graph
 	 * @param s source of the edge to be added
 	 * @param t target (destination) of the edge to be added.
 	 */
-	private void addEdge(Integer s, Integer t)
+	public void addEdge(Integer s, Integer t)
 	{
 		g.addEdge(s, t);
 	}

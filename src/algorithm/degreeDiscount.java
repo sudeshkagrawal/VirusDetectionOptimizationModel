@@ -153,7 +153,7 @@ public class degreeDiscount
 		
 		// minimum label of vertex
 		boolean zeroNode = false;
-		int minNode = g.getVertexSet().stream().mapToInt(v -> v).min().orElseThrow(NoSuchElementException::new);
+		int minNode = g.findMinimumNodeLabel();
 		if (minNode==0)
 			zeroNode = true;
 		else
@@ -175,7 +175,7 @@ public class degreeDiscount
 			int run = param.getNumberOfSimulationRepetitions();
 			double r = param.getFalseNegativeProbability();
 			double p = param.getTransmissability();
-			System.out.println("Finding "+k+" highest degree discount nodes: "+g.getNetworkName()+"network; "
+			System.out.println("Finding "+k+" highest degree single discount nodes: "+g.getNetworkName()+"network; "
 					+t_0+" time step(s); "
 					+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			tic = Instant.now();
