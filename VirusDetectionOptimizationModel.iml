@@ -33,5 +33,6 @@
     <orderEntry type="library" name="com.opencsv:opencsv:5.2" level="project" />
     <orderEntry type="library" name="gurobi" level="project" />
     <orderEntry type="library" name="org.projectlombok:lombok:1.18.12" level="project" />
+    <orderEntry type="library" name="org.apache.commons:commons-math3:3.3" level="project" />
   </component>
 </module>
