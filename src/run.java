@@ -1,7 +1,10 @@
+import algorithm.degreeCentrality;
+import algorithm.degreeDiscount;
 import algorithm.nodeInMaxRowsGreedyHeuristic;
 import analysis.multipleReplicationsProcedure;
 import dataTypes.parameters;
 import network.graph;
+import optimization.gurobiSolver;
 import org.javatuples.Pair;
 import org.jgrapht.alg.util.Triple;
 import simulation.simulationRuns;
@@ -29,6 +32,9 @@ public class run
 		
 		String networkInfoFilename = outputFolder + "network_info.csv";
 		String simulationsSerialFilename;
+		String mipLogFilename = outputFolder + modelName + "_mip.log";
+		String mipFormulationFilename = outputFolder + modelName + "_mip.lp";
+		String mipOutputFilename = outputFolder + "mip_results.csv";
 		String heuristicOutputFilename = outputFolder + "heuristic_results.csv";
 		String degreeCentralityOutputFilename = outputFolder + "degreeCentrality_results.csv";
 		String degreeDiscountOutputFilename = outputFolder + "degreeDiscount_results.csv";
@@ -105,24 +111,32 @@ public class run
 		if (ranNewSimulations)
 			simulationResults.serializeRuns(simulationsSerialFilename);
 
+		// MIP
+		int threads = 16;
+		int timeLimit = 300;
+		gurobiSolver mipResults = new gurobiSolver();
+		mipResults.solveSAA(network, simulationResults, listOfParams, threads, timeLimit,mipLogFilename);
+		//System.out.println(mipResults.toString());
+		mipResults.writeToCSV(mipOutputFilename, append);
+		
 		// Heuristic
 		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-		heuristicResults.runSAAUsingHeuristic(modelName, network, simulationResults, listOfParams);
+		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
 		//System.out.println(heuristicResults.toString());
 		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 
-//		// Degree centrality
-//		degreeCentrality degreeCentralityResults = new degreeCentrality();
-//		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(modelName, network, simulationResults, listOfParams);
-//		//System.out.println(degreeCentralityResults.toString());
-//		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
-//
-//		// Degree discount
-//		degreeDiscount degreeDiscountResults = new degreeDiscount();
-//		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(modelName, network, simulationResults,
-//																			listOfParams);
-//		//System.out.println(degreeDiscountResults.toString());
-//		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
+		// Degree centrality
+		degreeCentrality degreeCentralityResults = new degreeCentrality();
+		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
+		//System.out.println(degreeCentralityResults.toString());
+		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
+
+		// Degree discount
+		degreeDiscount degreeDiscountResults = new degreeDiscount();
+		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(network, simulationResults,
+																			listOfParams);
+		//System.out.println(degreeDiscountResults.toString());
+		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
 		
 		multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
 		MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 100000, 20,

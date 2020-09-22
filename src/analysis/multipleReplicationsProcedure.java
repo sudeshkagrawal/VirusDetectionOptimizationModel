@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 21, 2020.
+ * Last Updated: September 22, 2020.
  */
 public class multipleReplicationsProcedure
 {
@@ -221,7 +221,7 @@ public class multipleReplicationsProcedure
 				if (algorithm.equals("greedy"))
 				{
 					algoResults = new nodeInMaxRowsGreedyHeuristic();
-					algoResults.runSAAUsingHeuristic(modelName, g, observations, listOfParams);
+					algoResults.runSAAUsingHeuristic(g, observations, listOfParams);
 				}
 				else
 				{
@@ -236,7 +236,7 @@ public class multipleReplicationsProcedure
 				List<List<Integer>> virtualDetectionSamples =
 						observations.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().get(key);
 				List<List<Integer>> successfulDetectMatrix;
-				List<Integer> honeypots = candidate.getValue().getHoneypot();
+				List<Integer> honeypots = candidate.getValue().getHoneypots();
 				Set<Integer> candidates;
 				if (r>0)
 				{

@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of greedy heuristic on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 21, 2020.
+ * Last Updated: September 22, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
@@ -64,9 +64,9 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
-	 * Overrides {@code toString}.
+	 * Returns a string representation of the object.
 	 *
-	 * @return string representation of values of field(s) in the class.
+	 * @return a string representation of the object.
 	 */
 	@Override
 	public String toString()
@@ -77,7 +77,7 @@ public class nodeInMaxRowsGreedyHeuristic
 		{
 			str.append("\n\t<").append(e.getKey()).append(",");
 			str.append("\n\t\t Objective value:\n\t\t\t").append(e.getValue().getObjectiveValue());
-			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypot());
+			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypots());
 			str.append("\n\t\t a priori UB:\n\t\t\t").append(e.getValue().getAPrioriUB());
 			str.append("\n\t\t posterior UB:\n\t\t\t").append(e.getValue().getPosteriorUB());
 			str.append("\n\t\t Wall time (second):\n\t\t\t").append(e.getValue().getWallTime());
@@ -123,7 +123,7 @@ public class nodeInMaxRowsGreedyHeuristic
 			line[6] = String.valueOf(e.getKey().getNumberOfHoneypots());
 			double objectiveValue = e.getValue().getObjectiveValue();
 			line[7] = String.valueOf(objectiveValue);
-			line[8] = e.getValue().getHoneypot().toString();
+			line[8] = e.getValue().getHoneypots().toString();
 			line[9] = String.valueOf(e.getValue().getAPrioriUB());
 			double posteriorUB = e.getValue().getPosteriorUB();
 			line[10] = String.valueOf(posteriorUB);
@@ -143,16 +143,16 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * See model 4.6 in
 	 * Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
-	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
 	 * @param g network graph
 	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
 	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}.
 	 * @throws Exception thrown if graph {@code g} has self-loops,
-	 *  or if {@code p}<=0,
-	 *  or if node labels are negative integers.
+	 *  or if node labels are negative integers,
+	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
+	 *      do not match,
+	 *  or if the number of nodes is less than the number of honeypots in any of the parameters in {@code listOfParams}.
 	 */
-	public void runSAAUsingHeuristic(String modelName, graph g,
-	                                 simulationRuns simulationResults,
+	public void runSAAUsingHeuristic(graph g, simulationRuns simulationResults,
 	                                 List<parameters> listOfParams) throws Exception
 	{
 		if (g.hasSelfLoops())
@@ -172,6 +172,10 @@ public class nodeInMaxRowsGreedyHeuristic
 		//for (Triple<Integer, Integer, Integer> v : k_t0_runs)
 		for (parameters param: listOfParams)
 		{
+			String modelName = param.getSpreadModelName();
+			String networkName = param.getNetworkName();
+			if (!networkName.equals(g.getNetworkName()))
+				throw new Exception("Parameters are for a different network than that has been provided as input!");
 			int k = param.getNumberOfHoneypots();
 			if (k>g.getVertexSet().size())
 				throw new Exception("Number of honeypots cannot be greater than the number of nodes!");
@@ -181,9 +185,9 @@ public class nodeInMaxRowsGreedyHeuristic
 			double p = param.getTransmissability();
 			
 			Sextet<String, String, Integer, Integer, Double, Double> keyForSimulation =
-														new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, p);
+														new Sextet<>(modelName, networkName, t_0, run, r, p);
 			
-			System.out.println("Using greedy algorithm: "+modelName+" spread model on "+g.getNetworkName()
+			System.out.println("Using greedy algorithm: "+modelName+" spread model on "+networkName
 								+"network; "+k+" honeypots; "+t_0+" time step(s); "
 								+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			List<List<Integer>> virusSpreadSamples =
@@ -205,23 +209,24 @@ public class nodeInMaxRowsGreedyHeuristic
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 							Collections.unmodifiableList(newVirusSpreadSamples),
 							Collections.unmodifiableList(virtualDetectionSamples));
-					candidates = g.getG().vertexSet().stream().map(e -> e+1).collect(Collectors.toSet());
+					candidates = g.getVertexSet().stream().map(e -> e+1).collect(Collectors.toSet());
 				}
 				else
 				{
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 												Collections.unmodifiableList(virusSpreadSamples),
 												Collections.unmodifiableList(virtualDetectionSamples));
-					candidates = new HashSet<>(g.getG().vertexSet());
+					candidates = new HashSet<>(g.getVertexSet());
 				}
 			}
 			else
 			{
 				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
-				candidates = new HashSet<>(g.getG().vertexSet());
+				candidates = new HashSet<>(g.getVertexSet());
 			}
-			// System.out.println("Successful detection matrix: \n"+successfulDetectMatrix.toString()+"\n---------------------------");
-			// System.out.println("Candidate nodes: \n"+candidates.toString()+"\n---------------------------");
+			//System.out.println("Successful detection matrix: \n"
+			//		 +successfulDetectMatrix.toString()+"\n---------------------------");
+			//System.out.println("Candidate nodes: \n"+candidates.toString()+"\n---------------------------");
 			
 			List<Integer> honeypots = new ArrayList<>();
 			int numberOfHoneypotsFound = 0;
@@ -235,7 +240,8 @@ public class nodeInMaxRowsGreedyHeuristic
 				List<List<Integer>> samplesToBeConsidered = IntStream.range(0, successfulDetectMatrix.size())
 						.filter(indicesOfSamplesToBeConsidered::contains)
 						.mapToObj(successfulDetectMatrix::get).collect(Collectors.toList());
-				int currentCandidate = commonMethods.findMaxRowFrequencyNode(Collections.unmodifiableList(samplesToBeConsidered),
+				int currentCandidate = commonMethods.findMaxRowFrequencyNode(
+										Collections.unmodifiableList(samplesToBeConsidered),
 										List.copyOf(candidates));
 				// System.out.println("Current candidate: "+currentCandidate);
 				honeypots.add(currentCandidate);

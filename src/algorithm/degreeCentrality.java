@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * Represents results of degree centrality on {@code simulationRuns}.
  * In degree centrality we choose the k vertices with highest degrees.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 19, 2020.
+ * Last Updated: September 22, 2020.
  */
 public class degreeCentrality
 {
@@ -58,7 +58,7 @@ public class degreeCentrality
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code outputMap}.
+	 * @return {@code outputMap}.
 	 */
 	public Map<parameters, algorithmOutput> getOutputMap()
 	{
@@ -66,18 +66,94 @@ public class degreeCentrality
 	}
 	
 	/**
+	 * Returns a string representation of the object.
+	 *
+	 * @return a string representation of the object.
+	 */
+	@Override
+	public String toString()
+	{
+		StringBuilder str = new StringBuilder(1000);
+		str.append("degreeCentrality:");
+		for(Map.Entry<parameters, algorithmOutput> e: outputMap.entrySet())
+		{
+			str.append("\n\t<").append(e.getKey()).append(",");
+			str.append("\n\t\t Objective value:\n\t\t\t").append(e.getValue().getObjectiveValue());
+			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypots());
+			str.append("\n\t\t a priori UB:\n\t\t\t").append(e.getValue().getAPrioriUB());
+			str.append("\n\t\t posterior UB:\n\t\t\t").append(e.getValue().getPosteriorUB());
+			str.append("\n\t\t Wall time (second):\n\t\t\t").append(e.getValue().getWallTime());
+			str.append("\n\t>");
+		}
+		return str.toString();
+	}
+	
+	/**
+	 * Writes algorithm results to csv file.
+	 *
+	 * @param filename path to output file
+	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @throws IOException thrown if error in input-output operation.
+	 */
+	public void writeToCSV(String filename, boolean append) throws IOException
+	{
+		File fileObj = new File(filename);
+		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
+				"transmissability (p)", "no. of honeypots", "objective value", "honeypots",
+				"a priori UB", "posterior UB", "Posterior Gap (%)", "Wall time (s)", "UTC"};
+		boolean writeHeader = false;
+		if (!fileObj.exists())
+			writeHeader = true;
+		else if (!append)
+			writeHeader = true;
+		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
+		if (writeHeader)
+		{
+			writer.writeNext(header);
+			writer.flush();
+		}
+		String now = Instant.now().toString();
+		for (Map.Entry<parameters, algorithmOutput> e: outputMap.entrySet())
+		{
+			String[] line = new String[14];
+			line[0] = e.getKey().getSpreadModelName();
+			line[1] = e.getKey().getNetworkName();
+			line[2] = String.valueOf(e.getKey().getTimeStep());
+			line[3] = String.valueOf(e.getKey().getNumberOfSimulationRepetitions());
+			line[4] = String.valueOf(e.getKey().getFalseNegativeProbability());
+			line[5] = String.valueOf(e.getKey().getTransmissability());
+			line[6] = String.valueOf(e.getKey().getNumberOfHoneypots());
+			double objectiveValue = e.getValue().getObjectiveValue();
+			line[7] = String.valueOf(objectiveValue);
+			line[8] = e.getValue().getHoneypots().toString();
+			line[9] = String.valueOf(e.getValue().getAPrioriUB());
+			double posteriorUB = e.getValue().getPosteriorUB();
+			line[10] = String.valueOf(posteriorUB);
+			line[11] = String.valueOf(
+					100.0*(posteriorUB-objectiveValue)/(objectiveValue));
+			line[12] = String.valueOf(e.getValue().getWallTime());
+			line[13] = now;
+			writer.writeNext(line);
+		}
+		writer.flush();
+		writer.close();
+		System.out.println("Degree centrality results successfully written to \""+filename+"\".");
+	}
+	
+	/**
 	 * Find the k highest degree nodes to use as honeypots
 	 * and evaluates the objective value, upper bounds and execution time.
 	 *
-	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
 	 * @param g network graph
 	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
 	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}.
 	 * @throws Exception thrown if the graph {@code g} has self loops,
 	 *  or if the label of a node in {@code g} is a negative integer,
+	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
+	 *      do not match,
 	 *  or if the number of nodes is less than the number of honeypots in any of the parameters in {@code listOfParams}.
 	 */
-	public void runSAAUsingKHighestDegreeNodes(String modelName, graph g, simulationRuns simulationResults,
+	public void runSAAUsingKHighestDegreeNodes(graph g, simulationRuns simulationResults,
 	                                           List<parameters> listOfParams) throws Exception
 	{
 		if (g.hasSelfLoops())
@@ -85,7 +161,7 @@ public class degreeCentrality
 		
 		// minimum label of vertex
 		boolean zeroNode = false;
-		int minNode = g.getVertexSet().stream().mapToInt(v -> v).min().orElseThrow(NoSuchElementException::new);
+		int minNode = g.findMinimumNodeLabel();
 		if (minNode==0)
 			zeroNode = true;
 		else
@@ -103,6 +179,10 @@ public class degreeCentrality
 		double commonWallTimeInSeconds = 1.0*Duration.between(tic, toc).toMillis()/1000;
 		for (parameters param: listOfParams)
 		{
+			String modelName = param.getSpreadModelName();
+			String networkName = param.getNetworkName();
+			if (!networkName.equals(g.getNetworkName()))
+				throw new Exception("Parameters are for a different network than that has been provided as input!");
 			int k = param.getNumberOfHoneypots();
 			if (k>g.getVertexSet().size())
 				throw new Exception("Number of honeypots cannot be greater than the number of nodes!");
@@ -110,7 +190,7 @@ public class degreeCentrality
 			int run = param.getNumberOfSimulationRepetitions();
 			double r = param.getFalseNegativeProbability();
 			double p = param.getTransmissability();
-			System.out.println("Finding "+k+" highest degree nodes: "+g.getNetworkName()+"network; "
+			System.out.println("Finding "+k+" highest degree nodes: "+networkName+"network; "
 					+t_0+" time step(s); "
 					+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			// find K highest degree nodes
@@ -122,7 +202,7 @@ public class degreeCentrality
 			
 			// find objective value
 			Sextet<String, String, Integer, Integer, Double, Double> key =
-															new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, p);
+															new Sextet<>(modelName, networkName, t_0, run, r, p);
 			List<List<Integer>> virusSpreadSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
@@ -173,82 +253,5 @@ public class degreeCentrality
 					commonWallTimeInSeconds+wallTimeInSeconds, Math.min(factor*objectiveValue, 1),
 					Math.min(objectiveValue+delta, 1)));
 		}
-	}
-	
-	
-	
-	/**
-	 * Writes algorithm results to csv file.
-	 *
-	 * @param filename path to output file
-	 * @param append true, if you wish to append to existing file; false, otherwise.
-	 * @throws IOException thrown if error in input-output operation.
-	 */
-	public void writeToCSV(String filename, boolean append) throws IOException
-	{
-		File fileObj = new File(filename);
-		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
-				"transmissability (p)", "no. of honeypots", "objective value", "honeypots",
-				"a priori UB", "posterior UB", "Posterior Gap (%)", "Wall time (s)", "UTC"};
-		boolean writeHeader = false;
-		if (!fileObj.exists())
-			writeHeader = true;
-		else if (!append)
-			writeHeader = true;
-		CSVWriter writer = new CSVWriter(new FileWriter(filename, append));
-		if (writeHeader)
-		{
-			writer.writeNext(header);
-			writer.flush();
-		}
-		String now = Instant.now().toString();
-		for (Map.Entry<parameters, algorithmOutput> e: outputMap.entrySet())
-		{
-			String[] line = new String[14];
-			line[0] = e.getKey().getSpreadModelName();
-			line[1] = e.getKey().getNetworkName();
-			line[2] = String.valueOf(e.getKey().getTimeStep());
-			line[3] = String.valueOf(e.getKey().getNumberOfSimulationRepetitions());
-			line[4] = String.valueOf(e.getKey().getFalseNegativeProbability());
-			line[5] = String.valueOf(e.getKey().getTransmissability());
-			line[6] = String.valueOf(e.getKey().getNumberOfHoneypots());
-			double objectiveValue = e.getValue().getObjectiveValue();
-			line[7] = String.valueOf(objectiveValue);
-			line[8] = e.getValue().getHoneypot().toString();
-			line[9] = String.valueOf(e.getValue().getAPrioriUB());
-			double posteriorUB = e.getValue().getPosteriorUB();
-			line[10] = String.valueOf(posteriorUB);
-			line[11] = String.valueOf(
-					100.0*(posteriorUB-objectiveValue)/(objectiveValue));
-			line[12] = String.valueOf(e.getValue().getWallTime());
-			line[13] = now;
-			writer.writeNext(line);
-		}
-		writer.flush();
-		writer.close();
-		System.out.println("Degree centrality results successfully written to \""+filename+"\".");
-	}
-	
-	/**
-	 * Overrides {@code toString()}.
-	 *
-	 * @return returns string representation of values of field(s) in the class.
-	 */
-	@Override
-	public String toString()
-	{
-		StringBuilder str = new StringBuilder(1000);
-		str.append("degreeCentrality:");
-		for(Map.Entry<parameters, algorithmOutput> e: outputMap.entrySet())
-		{
-			str.append("\n\t<").append(e.getKey()).append(",");
-			str.append("\n\t\t Objective value:\n\t\t\t").append(e.getValue().getObjectiveValue());
-			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypot());
-			str.append("\n\t\t a priori UB:\n\t\t\t").append(e.getValue().getAPrioriUB());
-			str.append("\n\t\t posterior UB:\n\t\t\t").append(e.getValue().getPosteriorUB());
-			str.append("\n\t\t Wall time (second):\n\t\t\t").append(e.getValue().getWallTime());
-			str.append("\n\t>");
-		}
-		return str.toString();
 	}
 }

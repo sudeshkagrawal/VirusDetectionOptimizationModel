@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * <i>Proceedings of the 15th ACM SIGKDD international conference on Knowledge discovery and data mining.</i> 2009.
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 21, 2020.
+ * Last Updated: September 22, 2020.
  */
 public class degreeDiscount
 {
@@ -62,7 +62,7 @@ public class degreeDiscount
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code outputMap}.
+	 * @return {@code outputMap}.
 	 */
 	public Map<parameters, algorithmOutput> getOutputMap()
 	{
@@ -70,9 +70,9 @@ public class degreeDiscount
 	}
 	
 	/**
-	 * Overrides {@code toString()}.
+	 * Returns a string representation of the object.
 	 *
-	 * @return returns string representation of values of field(s) in the class.
+	 * @return a string representation of the object.
 	 */
 	@Override
 	public String toString()
@@ -83,7 +83,7 @@ public class degreeDiscount
 		{
 			str.append("\n\t<").append(e.getKey()).append(",");
 			str.append("\n\t\t Objective value:\n\t\t\t").append(e.getValue().getObjectiveValue());
-			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypot());
+			str.append("\n\t\t Honeypots:\n\t\t\t").append(e.getValue().getHoneypots());
 			str.append("\n\t\t a priori UB:\n\t\t\t").append(e.getValue().getAPrioriUB());
 			str.append("\n\t\t posterior UB:\n\t\t\t").append(e.getValue().getPosteriorUB());
 			str.append("\n\t\t Wall time (second):\n\t\t\t").append(e.getValue().getWallTime());
@@ -129,7 +129,7 @@ public class degreeDiscount
 			line[6] = String.valueOf(e.getKey().getNumberOfHoneypots());
 			double objectiveValue = e.getValue().getObjectiveValue();
 			line[7] = String.valueOf(objectiveValue);
-			line[8] = e.getValue().getHoneypot().toString();
+			line[8] = e.getValue().getHoneypots().toString();
 			line[9] = String.valueOf(e.getValue().getAPrioriUB());
 			double posteriorUB = e.getValue().getPosteriorUB();
 			line[10] = String.valueOf(posteriorUB);
@@ -148,7 +148,6 @@ public class degreeDiscount
 	 * Find the k highest degree nodes after single discount to use as honeypots
 	 * and evaluates the objective value, upper bounds and execution time.
 	 *
-	 * @param modelName name of virus spread model (TN11C, RAEPC, etc.)
 	 * @param g network graph
 	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
 	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}.
@@ -156,7 +155,7 @@ public class degreeDiscount
 	 *  or if the label of a node in {@code g} is a negative integer,
 	 *  or if the number of nodes is less than the number of honeypots in any of the parameters in {@code listOfParams}.
 	 */
-	public void runSAAUsingKHighestDegreeSingleDiscountNodes(String modelName, graph g,
+	public void runSAAUsingKHighestDegreeSingleDiscountNodes(graph g,
 	                                                         simulationRuns simulationResults,
 	                                                         List<parameters> listOfParams) throws Exception
 	{
@@ -180,6 +179,10 @@ public class degreeDiscount
 		double commonWallTimeInSeconds = 1.0* Duration.between(tic, toc).toMillis()/1000;
 		for (parameters param: listOfParams)
 		{
+			String modelName = param.getSpreadModelName();
+			String networkName = param.getNetworkName();
+			if (!networkName.equals(g.getNetworkName()))
+				throw new Exception("Parameters are for a different network than that has been provided as input!");
 			int k = param.getNumberOfHoneypots();
 			if (k>g.getVertexSet().size())
 				throw new Exception("Number of honeypots cannot be greater than the number of nodes!");
@@ -187,7 +190,7 @@ public class degreeDiscount
 			int run = param.getNumberOfSimulationRepetitions();
 			double r = param.getFalseNegativeProbability();
 			double p = param.getTransmissability();
-			System.out.println("Finding "+k+" highest degree single discount nodes: "+g.getNetworkName()+"network; "
+			System.out.println("Finding "+k+" highest degree single discount nodes: "+networkName+"network; "
 					+t_0+" time step(s); "
 					+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
 			tic = Instant.now();
@@ -225,7 +228,7 @@ public class degreeDiscount
 			
 			// find objective value
 			Sextet<String, String, Integer, Integer, Double, Double> key =
-					new Sextet<>(modelName, g.getNetworkName(), t_0, run, r, p);
+															new Sextet<>(modelName, networkName, t_0, run, r, p);
 			List<List<Integer>> virusSpreadSamples =
 					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
