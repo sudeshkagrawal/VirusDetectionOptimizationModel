@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Represents parameters for model simulation, optimization, etc.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 11, 2020.
+ * Last Updated: September 22, 2020.
  */
 @EqualsAndHashCode
 public class parameters
@@ -94,7 +94,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code spreadModelName}.
+	 * @return {@code spreadModelName}.
 	 */
 	public String getSpreadModelName()
 	{
@@ -104,7 +104,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code networkName}.
+	 * @return {@code networkName}.
 	 */
 	public String getNetworkName()
 	{
@@ -114,7 +114,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code timeStep}.
+	 * @return {@code timeStep}.
 	 */
 	public int getTimeStep()
 	{
@@ -124,7 +124,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code numberOfSimulationRepetitions}.
+	 * @return {@code numberOfSimulationRepetitions}.
 	 */
 	public int getNumberOfSimulationRepetitions()
 	{
@@ -134,7 +134,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code falseNegativeProbability}.
+	 * @return {@code falseNegativeProbability}.
 	 */
 	public double getFalseNegativeProbability()
 	{
@@ -144,7 +144,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code transmissability}.
+	 * @return {@code transmissability}.
 	 */
 	public double getTransmissability()
 	{
@@ -154,7 +154,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code numberOfHoneypots}.
+	 * @return {@code numberOfHoneypots}.
 	 */
 	public int getNumberOfHoneypots()
 	{
@@ -164,7 +164,7 @@ public class parameters
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code percentInfection}.
+	 * @return {@code percentInfection}.
 	 */
 	public double getPercentInfection()
 	{
@@ -252,9 +252,9 @@ public class parameters
 	}
 	
 	/**
-	 * Overrides {@code toString}.
+	 * Returns a string representation of the object.
 	 *
-	 * @return returns a string representation of all the fields in the class.
+	 * @return a string representation of the object.
 	 */
 	@Override
 	public String toString()
@@ -271,11 +271,12 @@ public class parameters
 	}
 	
 	/**
-	 * Overrides {@code equals}.
+	 * Indicates whether some other object is "equal to" this one.
 	 * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">
 	 *     "Equals and Hash Code"</a>.
-	 * @param obj an object.
-	 * @return returns true if the values of all individual fields match; false, otherwise.
+	 *
+	 * @param o the reference object with which to compare.
+	 * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
 	 */
 	@Override
 	public boolean equals(Object obj)
@@ -308,11 +309,11 @@ public class parameters
 	
 	// TODO: Which implementation of hashCode is more efficient?
 	///**
-	// * Overrides {@code hashCode}.
+	// * Returns a hash code value for the object.
 	// * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">
 	// *     "Equals and Hash Code"</a>.
 	// *
-	// * @return returns a integer value representing the hash code for an object.
+	// * @return a hash code value for this object.
 	// */
 	//@Override
 	//public int hashCode()
@@ -337,10 +338,9 @@ public class parameters
 	//}
 	
 	/**
-	 * Overrides {@code hashCode}.
-	 * Uses lombok.
+	 * Returns a hash code value for the object.
 	 *
-	 * @return returns a integer value representing the hash code for an object.
+	 * @return a hash code value for this object.
 	 */
 	@Override
 	public int hashCode()

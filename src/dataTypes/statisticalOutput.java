@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Represents output (mean, CI width, etc.) of a statistical analysis.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 21, 2020.
+ * Last Updated: September 22, 2020.
  */
 public class statisticalOutput
 {
@@ -58,7 +58,7 @@ public class statisticalOutput
 	/**
 	 * Getter.
 	 *
-	 * @return the mean.
+	 * @return the mean {@code mean}.
 	 */
 	public double getMean()
 	{
@@ -78,7 +78,7 @@ public class statisticalOutput
 	/**
 	 * Getter.
 	 *
-	 * @return the standard deviation.
+	 * @return the standard deviation {@code stDev}.
 	 */
 	public double getStDev()
 	{
@@ -118,7 +118,7 @@ public class statisticalOutput
 	/**
 	 * Getter.
 	 *
-	 * @return the width of the confidence interval.
+	 * @return the width of the confidence interval {@code CIWidth}.
 	 */
 	public double getCIWidth()
 	{
@@ -136,8 +136,7 @@ public class statisticalOutput
 	}
 	
 	/**
-	 * Returns a string representation of all the fields in the object.
-	 * Overrides {@code toString}.
+	 * Returns a string representation of the object.
 	 *
 	 * @return a string representation of the object.
 	 */
@@ -151,12 +150,12 @@ public class statisticalOutput
 	}
 	
 	/**
-	 * Overrides {@code equals}.
+	 * Indicates whether some other object is "equal to" this one.
 	 * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">
 	 *     "Equals and Hash Code"</a>.
 	 *
-	 * @param o an object.
-	 * @return returns true if the values of all individual fields match; false, otherwise.
+	 * @param o the reference object with which to compare.
+	 * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
 	 */
 	@Override
 	public boolean equals(Object o)
@@ -171,9 +170,9 @@ public class statisticalOutput
 	}
 	
 	/**
-	 * Overrides {@code hashCode}.
+	 * Returns a hash code value for the object.
 	 *
-	 * @return returns a integer value representing the hash code for an object of this class.
+	 * @return a hash code value for this object.
 	 */
 	@Override
 	public int hashCode()

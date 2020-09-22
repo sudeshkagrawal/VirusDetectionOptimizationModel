@@ -217,9 +217,9 @@ public class solverOutput
 	}
 	
 	/**
-	 * Overrides {@code toString}.
+	 * Returns a string representation of the object.
 	 *
-	 * @return string representation of values of field(s) in the class.
+	 * @return a string representation of the object.
 	 */
 	@Override
 	public String toString()
@@ -235,12 +235,12 @@ public class solverOutput
 	}
 	
 	/**
-	 * Overrides {@code equals}.
+	 * Indicates whether some other object is "equal to" this one.
 	 * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">
 	 *     "Equals and Hash Code"</a>.
 	 *
-	 * @param o an object.
-	 * @return true if the values of all individual fields match; false, otherwise.
+	 * @param o the reference object with which to compare.
+	 * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
 	 */
 	@Override
 	public boolean equals(Object o)
@@ -257,9 +257,9 @@ public class solverOutput
 	}
 	
 	/**
-	 * Overrides {@code hashCode}.
+	 * Returns a hash code value for the object.
 	 *
-	 * @return an integer value representing the hash code for an object of this class.
+	 * @return a hash code value for this object.
 	 */
 	@Override
 	public int hashCode()
