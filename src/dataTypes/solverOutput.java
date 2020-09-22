@@ -1,5 +1,6 @@
 package dataTypes;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -84,6 +85,15 @@ public class solverOutput
 		this.wallTimeInSeconds = output.wallTimeInSeconds;
 		this.solverOptionsUsed = output.solverOptionsUsed;
 		this.solverMessage = output.solverMessage;
+	}
+	
+	/**
+	 * Constructor.
+	 */
+	public solverOutput()
+	{
+		this.solverOptionsUsed = new HashMap<>();
+		this.solverMessage = "";
 	}
 	
 	/**
