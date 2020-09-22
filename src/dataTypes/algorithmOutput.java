@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Represents output of an algorithm.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 11, 2020.
+ * Last Updated: September 22, 2020.
  */
 public class algorithmOutput
 {
@@ -15,9 +15,9 @@ public class algorithmOutput
 	 */
 	double objectiveValue;
 	/**
-	 * Nodes in the honeypot.
+	 * Nodes where detectors are placed.
 	 */
-	List<Integer> honeypot;
+	List<Integer> honeypots;
 	/**
 	 * Algorithm execution time.
 	 */
@@ -35,16 +35,16 @@ public class algorithmOutput
 	 * Constructor.
 	 *
 	 * @param objectiveValue value of the objective function
-	 * @param honeypot nodes in the honeypot
+	 * @param honeypots nodes in the honeypots
 	 * @param wallTime algorithm execution time
 	 * @param aPrioriUB a priori upper bound
 	 * @param posteriorUB posterior upper bound.
 	 */
-	public algorithmOutput(double objectiveValue, List<Integer> honeypot, double wallTime,
+	public algorithmOutput(double objectiveValue, List<Integer> honeypots, double wallTime,
 	                       double aPrioriUB, double posteriorUB)
 	{
 		this.objectiveValue = objectiveValue;
-		this.honeypot = honeypot;
+		this.honeypots = honeypots;
 		this.wallTime = wallTime;
 		this.aPrioriUB = aPrioriUB;
 		this.posteriorUB = posteriorUB;
@@ -58,7 +58,7 @@ public class algorithmOutput
 	public algorithmOutput(algorithmOutput output)
 	{
 		this.objectiveValue = output.objectiveValue;
-		this.honeypot = output.honeypot;
+		this.honeypots = output.honeypots;
 		this.wallTime = output.wallTime;
 		this.aPrioriUB = output.aPrioriUB;
 		this.posteriorUB = output.posteriorUB;
@@ -67,7 +67,7 @@ public class algorithmOutput
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code objectiveValue}.
+	 * @return {@code objectiveValue}.
 	 */
 	public double getObjectiveValue()
 	{
@@ -87,27 +87,27 @@ public class algorithmOutput
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code honeypot}.
+	 * @return {@code honeypots}.
 	 */
-	public List<Integer> getHoneypot()
+	public List<Integer> getHoneypots()
 	{
-		return honeypot;
+		return honeypots;
 	}
 	
 	/**
 	 * Setter.
 	 *
-	 * @param honeypot nodes in the honeypot.
+	 * @param honeypots nodes in the honeypots.
 	 */
-	public void setHoneypot(List<Integer> honeypot)
+	public void setHoneypots(List<Integer> honeypots)
 	{
-		this.honeypot = honeypot;
+		this.honeypots = honeypots;
 	}
 	
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code wallTime}.
+	 * @return {@code wallTimeInSeconds}.
 	 */
 	public double getWallTime()
 	{
@@ -127,7 +127,7 @@ public class algorithmOutput
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code aPrioriUB}.
+	 * @return {@code aPrioriUB}.
 	 */
 	public double getAPrioriUB()
 	{
@@ -147,7 +147,7 @@ public class algorithmOutput
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code posteriorUB}.
+	 * @return {@code posteriorUB}.
 	 */
 	public double getPosteriorUB()
 	{
@@ -165,8 +165,7 @@ public class algorithmOutput
 	}
 	
 	/**
-	 * Returns a string representation of all the fields in the object.
-	 * Overrides {@code toString()}.
+	 * Returns a string representation of the object.
 	 *
 	 * @return a string representation of the object.
 	 */
@@ -175,19 +174,19 @@ public class algorithmOutput
 	{
 		return "Algorithm output: "
 				+"objective value = "+this.objectiveValue+"; "
-				+"honeypot --- "+this.honeypot+"; "
+				+"honeypots --- "+this.honeypots +"; "
 				+"wall time = "+this.wallTime+"; "
 				+"a priori upper bound = "+this.aPrioriUB+"; "
 				+"posterior upper bound = "+this.posteriorUB+".";
 	}
 	
 	/**
-	 * Overrides {@code equals}.
+	 * Indicates whether some other object is "equal to" this one.
 	 * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">
 	 *     "Equals and Hash Code"</a>.
 	 *
-	 * @param o an object.
-	 * @return returns true if the values of all individual fields match; false, otherwise.
+	 * @param o the reference object with which to compare.
+	 * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
 	 */
 	@Override
 	public boolean equals(Object o)
@@ -199,17 +198,17 @@ public class algorithmOutput
 				Double.compare(that.wallTime, wallTime) == 0 &&
 				Double.compare(that.aPrioriUB, aPrioriUB) == 0 &&
 				Double.compare(that.posteriorUB, posteriorUB) == 0 &&
-				honeypot.equals(that.honeypot);
+				honeypots.equals(that.honeypots);
 	}
 	
 	/**
-	 * Overrides {@code hashCode()}.
+	 * Returns a hash code value for the object.
 	 *
-	 * @return returns a integer value representing the hash code for an object of this class.
+	 * @return a hash code value for this object.
 	 */
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(objectiveValue, honeypot, wallTime, aPrioriUB, posteriorUB);
+		return Objects.hash(objectiveValue, honeypots, wallTime, aPrioriUB, posteriorUB);
 	}
 }
