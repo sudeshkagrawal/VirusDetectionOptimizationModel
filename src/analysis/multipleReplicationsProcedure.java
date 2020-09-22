@@ -155,6 +155,8 @@ public class multipleReplicationsProcedure
 	 * @param algorithm possible values: {"greedy"}.
 	 * @throws Exception throw if 0<{@code alpha}<1 does not hold,
 	 *  or if the label of a node in {@code g} is a negative integer,
+	 *  or if in one of the parameters of {@code algorithmOutputs}, {@code p}<=0,
+	 *  or if {@code algorithm} has a value for which gap estimation calculation has not been implemented.
 	 */
 	public void estimateGap(graph g, Map<parameters, algorithmOutput> algorithmOutputs,
 	                        double alpha, int sampleSize, int replicationSize, String algorithm) throws Exception
