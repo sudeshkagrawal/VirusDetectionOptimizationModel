@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 23, 2020.
  */
 public class gurobiSolver
 {
@@ -53,6 +53,16 @@ public class gurobiSolver
 	public gurobiSolver()
 	{
 		this(new HashMap<>());
+	}
+	
+	/**
+	 * Getter.
+	 *
+	 * @return {@code outputMap}.
+	 */
+	public Map<parameters, solverOutput> getOutputMap()
+	{
+		return outputMap;
 	}
 	
 	/**
