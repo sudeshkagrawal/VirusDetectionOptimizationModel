@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 /**
  * Contains methods required across several classes.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 19, 2020.
+ * Last Updated: September 22, 2020.
  */
 public class commonMethods
 {
@@ -25,7 +25,8 @@ public class commonMethods
 	 *          Corresponding inner lists should also be of same size,
 	 *          but that exception is not thrown since the check would be expensive.
 	 */
-	public static List<List<Integer>> elementwiseMultiplyMatrix(List<List<Integer>> a, List<List<Integer>> b) throws Exception
+	public static List<List<Integer>> elementwiseMultiplyMatrix(List<List<Integer>> a,
+	                                                            List<List<Integer>> b) throws Exception
 	{
 		List<List<Integer>> output = new ArrayList<>(a.size());
 		if (a.size()!=b.size())

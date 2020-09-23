@@ -153,6 +153,8 @@ public class degreeDiscount
 	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}.
 	 * @throws Exception thrown if the graph {@code g} has self loops,
 	 *  or if the label of a node in {@code g} is a negative integer,
+	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
+	 *      do not match,
 	 *  or if the number of nodes is less than the number of honeypots in any of the parameters in {@code listOfParams}.
 	 */
 	public void runSAAUsingKHighestDegreeSingleDiscountNodes(graph g,

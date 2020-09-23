@@ -153,8 +153,10 @@ public class multipleReplicationsProcedure
 	 * @param sampleSize sample size
 	 * @param replicationSize replication size
 	 * @param algorithm possible values: {"greedy"}.
-	 * @throws Exception throw if 0<{@code alpha}<1 does not hold,
+	 * @throws Exception thrown if 0<{@code alpha}<1 does not hold,
 	 *  or if the label of a node in {@code g} is a negative integer,
+	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
+	 *      do not match,
 	 *  or if in one of the parameters of {@code algorithmOutputs}, {@code p}<=0,
 	 *  or if {@code algorithm} has a value for which gap estimation calculation has not been implemented.
 	 */
@@ -181,6 +183,8 @@ public class multipleReplicationsProcedure
 			int hashCode = candidate.getKey().hashCode();
 			String modelName = candidate.getKey().getSpreadModelName();
 			String networkName = candidate.getKey().getNetworkName();
+			if (!networkName.equals(g.getNetworkName()))
+				throw new Exception("Parameters are for a different network than that has been provided as input!");
 			int t_0 = candidate.getKey().getTimeStep();
 			double r = candidate.getKey().getFalseNegativeProbability();
 			double p = candidate.getKey().getTransmissability();
