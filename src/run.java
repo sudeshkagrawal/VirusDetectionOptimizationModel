@@ -1,7 +1,5 @@
-import algorithm.degreeCentrality;
-import algorithm.degreeDiscount;
 import algorithm.nodeInMaxRowsGreedyHeuristic;
-import analysis.multipleReplicationsProcedure;
+import analysis.McNemarsProcedure;
 import dataTypes.parameters;
 import network.graph;
 import optimization.gurobiSolver;
@@ -39,6 +37,7 @@ public class run
 		String degreeCentralityOutputFilename = outputFolder + "degreeCentrality_results.csv";
 		String degreeDiscountOutputFilename = outputFolder + "degreeDiscount_results.csv";
 		String MRPOutputFilename = outputFolder + "heuristic_quality_gap_estimate.csv";
+		String comparisonOutputFilename = outputFolder + "compare_mip_and_heuristic.csv";
 		
 		int[] k = {100, 200, 250};
 		List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
@@ -125,23 +124,30 @@ public class run
 		//System.out.println(heuristicResults.toString());
 		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 
-		// Degree centrality
-		degreeCentrality degreeCentralityResults = new degreeCentrality();
-		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
-		//System.out.println(degreeCentralityResults.toString());
-		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
-
-		// Degree discount
-		degreeDiscount degreeDiscountResults = new degreeDiscount();
-		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(network, simulationResults,
-																			listOfParams);
-		//System.out.println(degreeDiscountResults.toString());
-		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
+		//// Degree centrality
+		//degreeCentrality degreeCentralityResults = new degreeCentrality();
+		//degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
+		////System.out.println(degreeCentralityResults.toString());
+		//degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
+//
+		//// Degree discount
+		//degreeDiscount degreeDiscountResults = new degreeDiscount();
+		//degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(network, simulationResults,
+		//																	listOfParams);
+		////System.out.println(degreeDiscountResults.toString());
+		//degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
+		//
+		//// Multiple Replications Procedure
+		//multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
+		//MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 100000, 20,
+		//						"greedy");
+		//MRPResults.writeToCSV(MRPOutputFilename, append);
 		
-		multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
-		MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 100000, 20,
-								"greedy");
-		MRPResults.writeToCSV(MRPOutputFilename, append);
+		// McNemar's procedure to compare MIP and greedy heuristic
+		McNemarsProcedure comparisonResults = new McNemarsProcedure();
+		comparisonResults.compareMIPAndHeuristic(network, heuristicResults.getOutputMap(),
+				mipResults.getOutputMap(), 0.05, 2000000);
+		comparisonResults.writeToCSV(comparisonOutputFilename, append);
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)

@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 23, 2020.
  */
 public class multipleReplicationsProcedure
 {
@@ -101,7 +101,7 @@ public class multipleReplicationsProcedure
 	 * Writes MRP results to csv file.
 	 *
 	 * @param filename path to output file
-	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @param append {@code true}, if you wish to append to existing file; {@code false}, otherwise.
 	 * @throws IOException thrown if error in input-output operation.
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
@@ -188,6 +188,8 @@ public class multipleReplicationsProcedure
 			int t_0 = candidate.getKey().getTimeStep();
 			double r = candidate.getKey().getFalseNegativeProbability();
 			double p = candidate.getKey().getTransmissability();
+			System.out.println("Using MRP: "+candidate.getKey().toString()+";\n\t"+sampleSize
+									+" samples for procedure");
 			int k = candidate.getKey().getNumberOfHoneypots();
 			List<Double> gaps = new ArrayList<>(replicationSize);
 			for (int i=1; i<=replicationSize; i++)
