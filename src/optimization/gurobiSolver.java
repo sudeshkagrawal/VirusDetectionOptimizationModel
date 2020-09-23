@@ -357,4 +357,40 @@ public class gurobiSolver
 		}
 		env.dispose();
 	}
+	
+	/**
+	 * Solves SAA by calling {@code solveSAA} only for those parameters
+	 * whose results are not already there in {@code outputMap}.
+	 *
+	 * @param g network graph
+	 * @param simulationResults results of simulation as an instance of {@code simulationRuns}
+	 * @param listOfParams list of the set of parameters used to get {@code simulationResults}
+	 * @param threads number of threads solver should use
+	 * @param timeLimit total time to spend in optimization, solver terminates the optimization process after this much
+	 *                      time is expended
+	 * @param logFilename file path to log file; logs from solver written here.
+	 * @throws Exception thrown if the graph {@code g} has self loops,
+	 *  or if the label of a node in {@code g} is a negative integer,
+	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
+	 *      do not match,
+	 *  or if the number of nodes is less than the number of honeypots in any of the parameters in {@code listOfParams}.
+	 */
+	public boolean solveSAAOnlyNecessaryOnes(graph g, simulationRuns simulationResults, List<parameters> listOfParams,
+	                     int threads, int timeLimit, String logFilename) throws Exception
+	{
+		boolean ranNewSimulations = false;
+		List<parameters> newListOfParams = new ArrayList<>();
+		for (parameters param: listOfParams)
+		{
+			if (!outputMap.containsKey(param))
+				newListOfParams.add(param);
+		}
+		if (newListOfParams.size()>0)
+		{
+			System.out.println("Running MIP for: \n\t"+newListOfParams.toString());
+			solveSAA(g, simulationResults, newListOfParams, threads, timeLimit, logFilename);
+			ranNewSimulations = true;
+		}
+		return ranNewSimulations;
+	}
 }
