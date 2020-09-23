@@ -273,6 +273,44 @@ public class nodeInMaxRowsGreedyHeuristic
 	}
 	
 	/**
+	 * Serializes {@code outputMap}.
+	 *
+	 * @param serialFilename path of the file where the serialized object is to be stored.
+	 */
+	public void serializeResults(String serialFilename)
+	{
+		try
+		{
+			FileOutputStream fout = new FileOutputStream(serialFilename);
+			BufferedOutputStream bout = new BufferedOutputStream(fout);
+			ObjectOutputStream objout = new ObjectOutputStream(bout);
+			List<Object> serObject = new ArrayList<>(1);
+			serObject.add(outputMap);
+			objout.writeObject(serObject);
+			objout.close();
+			bout.close();
+			fout.close();
+			System.out.println("Heuristic results serialized at \""+serialFilename+"\".");
+		}
+		catch (IOException e1)
+		{
+			System.out.println("Input-Output Exception:");
+			e1.printStackTrace();
+			System.out.print("Writing of serial file to disk failed!");
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
+		catch (Exception e2)
+		{
+			System.out.println("An exception occurred:");
+			e2.printStackTrace();
+			System.out.print("Writing of serial file to disk failed!");
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
+	}
+	
+	/**
 	 * Loads any results of algorithm from serialized object in file.
 	 *
 	 * @param serialFilename path of the file where the serialized object is stored.
@@ -300,43 +338,6 @@ public class nodeInMaxRowsGreedyHeuristic
 		{
 			System.out.println("An exception occurred:");
 			e2.printStackTrace();
-			System.out.println("Exiting the program...");
-			System.exit(0);
-		}
-	}
-	/**
-	 * Serializes {@code outputMap}.
-	 *
-	 * @param serialFilename path of the file where the serialized object is to be stored.
-	 */
-	public void serializeResults(String serialFilename)
-	{
-		try
-		{
-			FileOutputStream fout = new FileOutputStream(serialFilename);
-			BufferedOutputStream bout = new BufferedOutputStream(fout);
-			ObjectOutputStream objout = new ObjectOutputStream(bout);
-			List<Object> serObject = new ArrayList<>(3);
-			serObject.add(outputMap);
-			objout.writeObject(serObject);
-			objout.close();
-			bout.close();
-			fout.close();
-			System.out.println("Heuristic results serialized at \""+ serialFilename +"\".");
-		}
-		catch (IOException e1)
-		{
-			System.out.println("Input-Output Exception:");
-			e1.printStackTrace();
-			System.out.print("Writing of serial file to disk failed!");
-			System.out.println("Exiting the program...");
-			System.exit(0);
-		}
-		catch (Exception e2)
-		{
-			System.out.println("An exception occurred:");
-			e2.printStackTrace();
-			System.out.print("Writing of serial file to disk failed!");
 			System.out.println("Exiting the program...");
 			System.exit(0);
 		}
