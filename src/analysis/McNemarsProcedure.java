@@ -7,6 +7,7 @@ import dataTypes.parameters;
 import dataTypes.solverOutput;
 import helper.commonMethods;
 import network.graph;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.javatuples.Pair;
 import org.javatuples.Sextet;
 import simulation.simulationRuns;
@@ -175,11 +176,13 @@ public class McNemarsProcedure
 				throw new Exception("Node labels are negative integers!");
 		}
 		
+		NormalDistribution mynormdist = new NormalDistribution(0, 1);
+		double zValue = mynormdist.inverseCumulativeProbability(1-0.5*alpha);
 		for (parameters param: heuristicOutputs.keySet())
 		{
 			if (!optimizationOutputs.containsKey(param))
 			{
-				System.out.println(param.toString()+" does not exist in solver output, skipping!");
+				System.out.println(param.toString()+" does not exist in optimization output, skipping!");
 				continue;
 			}
 			int hashcode = param.hashCode();
@@ -190,6 +193,8 @@ public class McNemarsProcedure
 			int t_0 = param.getTimeStep();
 			double r = param.getFalseNegativeProbability();
 			double p = param.getTransmissability();
+			System.out.println("Using McNemar's procedure: "+param.toString()+";\n\t"+sampleSize
+									+" samples for procedure");
 			simulationRuns observations = new simulationRuns();
 			List<Pair<Integer, Integer>> t0_runs = new ArrayList<>();
 			t0_runs.add(new Pair<>(t_0, sampleSize));
@@ -223,19 +228,19 @@ public class McNemarsProcedure
 				if (zeroNode)
 				{
 					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
-							.map(virusSpreadSample -> virusSpreadSample.stream()
+									.map(virusSpreadSample -> virusSpreadSample.stream()
 									.map(integer -> integer + 1)
-									.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
-							.collect(Collectors.toCollection(() -> new ArrayList<>(sampleSize)));
+									.collect(Collectors.toCollection(ArrayList::new)))
+									.collect(Collectors.toCollection(() -> new ArrayList<>(sampleSize)));
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
-							Collections.unmodifiableList(newVirusSpreadSamples),
-							Collections.unmodifiableList(virtualDetectionSamples));
+												Collections.unmodifiableList(newVirusSpreadSamples),
+												Collections.unmodifiableList(virtualDetectionSamples));
 				}
 				else
 				{
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
-							Collections.unmodifiableList(virusSpreadSamples),
-							Collections.unmodifiableList(virtualDetectionSamples));
+												Collections.unmodifiableList(virusSpreadSamples),
+												Collections.unmodifiableList(virtualDetectionSamples));
 				}
 			}
 			else
@@ -244,81 +249,21 @@ public class McNemarsProcedure
 			}
 			List<Integer> heuristicPots = heuristicOutputs.get(param).getHoneypots();
 			List<Integer> optimalPots = optimizationOutputs.get(param).getHoneypots();
-			Map<String, Integer> table = getContingencyTable(successfulDetectMatrix, heuristicPots, optimalPots);
+			Map<String, Integer> table = commonMethods.getContingencyTable(successfulDetectMatrix,
+																			heuristicPots, optimalPots);
+			double commonDenominator = 1.0/sampleSize;
+			double dhat = (table.get("n12")-table.get("n21"))*commonDenominator;
+			double n12term = commonDenominator*table.get("n12");
+			double n21term = commonDenominator*table.get("n21");
+			double sampleVarFirst = n12term*(1-n12term);
+			double sampleVarSecond = n21term*(1-n21term);
+			double sampleVarThird = 2*n12term*n21term;
+			double sampleVar = commonDenominator*(sampleVarFirst+sampleVarSecond+sampleVarThird);
+			double sampleStDev = Math.sqrt(sampleVar);
+			double width = zValue * sampleStDev;
+			
+			outputMap.put(param, new McNemarsOutput(dhat, sampleStDev,
+										alpha, dhat - width, dhat + width));
 		}
-	}
-	/**
-	 * Finds n11, n12, n21, and n22:
-	 <dl>
-	 *     <dt>n11</dt> <dd>number of rows in {@code arr} where a node
-	 *              from both {@code nodes1} and {@code nodes2} are present</dd>
-	 *     <dt>n12</dt> <dd>number of rows in {@code arr} where a node
-	 * 	 *          from {@code nodes1} is present, but no nodes from {@code nodes2} are present</dd>
-	 *     <dt>n21</dt> <dd>number of rows in {@code arr} where no nodes
-	 * 	 *          from {@code nodes1} are present, but a node from {@code nodes2} is present</dd>
-	 *     <dt>n22</dt> <dd>number of rows in {@code arr} where no nodes
-	 * 	 *          from either {@code nodes1} or {@code nodes2} are present.</dd>
-	 * </dl>
-	 *
-	 * @param arr a list of lists of integers.
-	 * @param nodes1 a list of integers.
-	 * @param nodes2 a list of integers.
-	 * @return a map from {n11, n12, n21, and n22} to corresponding value.
-	 */
-	private Map<String, Integer> getContingencyTable(List<List<Integer>> arr,
-	                                                 List<Integer> nodes1, List<Integer> nodes2)
-	{
-		int n11 = 0;
-		int n12 = 0;
-		int n21 = 0;
-		int n22 = 0;
-		for (List<Integer> row: arr)
-		{
-			boolean onePresent = false;
-			boolean twoPresent = false;
-			for (Integer columnElement: row)
-			{
-				for (Integer e1: nodes1)
-				{
-					if (e1.equals(columnElement))
-					{
-						onePresent = true;
-						break;
-					}
-					
-				}
-				for (Integer e2: nodes2)
-				{
-					if (e2.equals(columnElement))
-					{
-						twoPresent = true;
-						break;
-					}
-					
-				}
-				if (onePresent && twoPresent)
-					break;
-			}
-			if (onePresent && twoPresent)
-				n11++;
-			else
-			{
-				if ((!onePresent) && (!twoPresent))
-					n22++;
-				else
-				{
-					if (!onePresent)
-						n21++;
-					else
-						n12++;
-				}
-			}
-		}
-		Map<String, Integer> output = new HashMap<>();
-		output.put("n11", n11);
-		output.put("n12", n12);
-		output.put("n21", n21);
-		output.put("n22", n22);
-		return output;
 	}
 }
