@@ -10,7 +10,7 @@ import java.util.stream.IntStream;
 /**
  * Contains methods required across several classes.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 23, 2020.
  */
 public class commonMethods
 {
@@ -182,5 +182,80 @@ public class commonMethods
 			}
 		}
 		return topKDegreeNodes;
+	}
+	
+	/**
+	 * Finds n11, n12, n21, and n22:
+	 <dl>
+	 *     <dt>n11</dt> <dd>number of rows in {@code arr} where a node
+	 *              from both {@code nodes1} and {@code nodes2} are present</dd>
+	 *     <dt>n12</dt> <dd>number of rows in {@code arr} where a node
+	 * 	 *          from {@code nodes1} is present, but no nodes from {@code nodes2} are present</dd>
+	 *     <dt>n21</dt> <dd>number of rows in {@code arr} where no nodes
+	 * 	 *          from {@code nodes1} are present, but a node from {@code nodes2} is present</dd>
+	 *     <dt>n22</dt> <dd>number of rows in {@code arr} where no nodes
+	 * 	 *          from either {@code nodes1} or {@code nodes2} are present.</dd>
+	 * </dl>
+	 *
+	 * @param arr a list of lists of integers.
+	 * @param nodes1 a list of integers.
+	 * @param nodes2 a list of integers.
+	 * @return a map from {n11, n12, n21, and n22} to corresponding value.
+	 */
+	public static Map<String, Integer> getContingencyTable(List<List<Integer>> arr,
+	                                                 List<Integer> nodes1, List<Integer> nodes2)
+	{
+		int n11 = 0;
+		int n12 = 0;
+		int n21 = 0;
+		int n22 = 0;
+		for (List<Integer> row: arr)
+		{
+			boolean onePresent = false;
+			boolean twoPresent = false;
+			for (Integer columnElement: row)
+			{
+				for (Integer e1: nodes1)
+				{
+					if (e1.equals(columnElement))
+					{
+						onePresent = true;
+						break;
+					}
+					
+				}
+				for (Integer e2: nodes2)
+				{
+					if (e2.equals(columnElement))
+					{
+						twoPresent = true;
+						break;
+					}
+					
+				}
+				if (onePresent && twoPresent)
+					break;
+			}
+			if (onePresent && twoPresent)
+				n11++;
+			else
+			{
+				if ((!onePresent) && (!twoPresent))
+					n22++;
+				else
+				{
+					if (!onePresent)
+						n21++;
+					else
+						n12++;
+				}
+			}
+		}
+		Map<String, Integer> output = new HashMap<>();
+		output.put("n11", n11);
+		output.put("n12", n12);
+		output.put("n21", n21);
+		output.put("n22", n22);
+		return output;
 	}
 }

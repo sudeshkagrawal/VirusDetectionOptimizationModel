@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -243,5 +244,37 @@ class commonMethodsTest
 		assert (topKDegreeNodes.contains(5) || topKDegreeNodes.contains(4));
 		topKDegreeNodes = commonMethods.getKHighestDegreeNodes(degreesOfNodes, 5);
 		assert (topKDegreeNodes.contains(5) && topKDegreeNodes.contains(4));
+	}
+	
+	@Test
+	void getContingencyTable() throws IOException
+	{
+		// create simulation results
+		String simulationResultsFile = "./test/resources/dummySimulationRunsForEUemailcomm6core_1.txt";
+		String separator = ",";
+		List<List<Integer>> simulationResults = new ArrayList<>(15);
+		BufferedReader br = new BufferedReader(new FileReader(simulationResultsFile));
+		String line = br.readLine();
+		while (line!=null)
+		{
+			List<Integer> samplePath = Arrays.stream(line.split(separator))
+					.mapToInt(e -> Integer.parseInt(e.trim())).boxed().collect(Collectors.toList());
+			simulationResults.add(samplePath);
+			line = br.readLine();
+		}
+		br.close();
+		
+		List<Integer> heuristicPots = new ArrayList<>(2);
+		heuristicPots.add(5);
+		heuristicPots.add(146);
+		List<Integer> optimalPots = new ArrayList<>(2);
+		optimalPots.add(5);
+		optimalPots.add(11);
+		
+		Map<String, Integer> table = commonMethods.getContingencyTable(simulationResults, heuristicPots, optimalPots);
+		assert table.get("n11")==6;
+		assert table.get("n12")==3;
+		assert table.get("n21")==2;
+		assert table.get("n22")==1;
 	}
 }
