@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * <i>Proceedings of the 15th ACM SIGKDD international conference on Knowledge discovery and data mining.</i> 2009.
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 23, 2020.
  */
 public class degreeDiscount
 {
@@ -96,7 +96,7 @@ public class degreeDiscount
 	 * Writes algorithm results to csv file.
 	 *
 	 * @param filename path to output file
-	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @param append {@code true}, if you wish to append to existing file; {@code false}, otherwise.
 	 * @throws IOException thrown if error in input-output operation.
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
@@ -245,7 +245,7 @@ public class degreeDiscount
 					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
 							.map(virusSpreadSample -> virusSpreadSample.stream()
 									.map(integer -> integer + 1)
-									.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
+									.collect(Collectors.toCollection(ArrayList::new)))
 							.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 							Collections.unmodifiableList(newVirusSpreadSamples),

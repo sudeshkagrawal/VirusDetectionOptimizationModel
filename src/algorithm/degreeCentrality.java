@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * Represents results of degree centrality on {@code simulationRuns}.
  * In degree centrality we choose the k vertices with highest degrees.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 23, 2020.
  */
 public class degreeCentrality
 {
@@ -92,7 +92,7 @@ public class degreeCentrality
 	 * Writes algorithm results to csv file.
 	 *
 	 * @param filename path to output file
-	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @param append {@code true}, if you wish to append to existing file; {@code false}, otherwise.
 	 * @throws IOException thrown if error in input-output operation.
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
@@ -217,7 +217,7 @@ public class degreeCentrality
 					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
 									.map(virusSpreadSample -> virusSpreadSample.stream()
 									.map(integer -> integer + 1)
-									.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
+									.collect(Collectors.toCollection(ArrayList::new)))
 									.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 												Collections.unmodifiableList(newVirusSpreadSamples),

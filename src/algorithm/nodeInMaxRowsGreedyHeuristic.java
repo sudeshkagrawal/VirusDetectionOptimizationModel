@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of greedy heuristic on {@code simulationRuns}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 23, 2020.
  */
 public class nodeInMaxRowsGreedyHeuristic
 {
@@ -90,7 +90,7 @@ public class nodeInMaxRowsGreedyHeuristic
 	 * Writes algorithm results to csv file.
 	 *
 	 * @param filename path to output file
-	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @param append {@code true}, if you wish to append to existing file; {@code false}, otherwise.
 	 * @throws IOException thrown if error in input-output operation.
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
@@ -204,7 +204,7 @@ public class nodeInMaxRowsGreedyHeuristic
 					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
 								.map(virusSpreadSample -> virusSpreadSample.stream()
 								.map(integer -> integer + 1)
-								.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
+								.collect(Collectors.toCollection(ArrayList::new)))
 								.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 							Collections.unmodifiableList(newVirusSpreadSamples),
@@ -238,8 +238,8 @@ public class nodeInMaxRowsGreedyHeuristic
 			while (numberOfHoneypotsFound<k)
 			{
 				List<List<Integer>> samplesToBeConsidered = IntStream.range(0, successfulDetectMatrix.size())
-						.filter(indicesOfSamplesToBeConsidered::contains)
-						.mapToObj(successfulDetectMatrix::get).collect(Collectors.toList());
+													.filter(indicesOfSamplesToBeConsidered::contains)
+													.mapToObj(successfulDetectMatrix::get).collect(Collectors.toList());
 				int currentCandidate = commonMethods.findMaxRowFrequencyNode(
 										Collections.unmodifiableList(samplesToBeConsidered),
 										List.copyOf(candidates));
