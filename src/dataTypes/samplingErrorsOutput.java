@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Represents output of sampling errors (see {@link analysis.samplingErrors}).
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 23, 2020.
+ * Last Updated: September 24, 2020.
  */
 public class samplingErrorsOutput
 {
