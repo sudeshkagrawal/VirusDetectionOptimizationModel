@@ -31,12 +31,12 @@ import java.util.stream.Collectors;
  *     12.2 (1947): 153&ndash;157.
  * </p>
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 24, 2020.
  */
 public class McNemarsProcedure
 {
 	/**
-	 * A map from {@code parameters} to {@code statisticalOutput}.
+	 * A map from {@code parameters} to {@code McNemarsOutput}.
 	 * Basically, stores the outputs for different input parameters.
 	 * <p>
 	 *     Parameters: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
@@ -154,7 +154,7 @@ public class McNemarsProcedure
 	 * @param optimizationOutputs results of optimization model
 	 * @param alpha alpha value for confidence interval
 	 * @param sampleSize sample size.
-	 * @throws Exception throw if 0<{@code alpha}<1 does not hold,
+	 * @throws Exception thrown if 0<{@code alpha}<1 does not hold,
 	 *  or if the label of a node in {@code g} is a negative integer,
 	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
 	 *      do not match.
