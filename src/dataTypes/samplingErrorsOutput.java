@@ -27,19 +27,27 @@ public class samplingErrorsOutput
 	double halfWidth;
 	
 	/**
+	 * Sample size.
+	 */
+	int sampleSize;
+	
+	/**
 	 * Constructor.
 	 *
 	 * @param pointEstimate point estimate
 	 * @param standardError standard error of the point estimator
 	 * @param alpha alpha value used
-	 * @param halfWidth half-width of confidence interval.
+	 * @param halfWidth half-width of confidence interval
+	 * @param sampleSize sample size.
 	 */
-	public samplingErrorsOutput(double pointEstimate, double standardError, double alpha, double halfWidth)
+	public samplingErrorsOutput(double pointEstimate, double standardError, double alpha,
+	                            double halfWidth, int sampleSize)
 	{
 		this.pointEstimate = pointEstimate;
 		this.standardError = standardError;
 		this.alpha = alpha;
 		this.halfWidth = halfWidth;
+		this.sampleSize = sampleSize;
 	}
 	
 	/**
@@ -53,6 +61,7 @@ public class samplingErrorsOutput
 		this.standardError = output.standardError;
 		this.alpha = output.alpha;
 		this.halfWidth = output.halfWidth;
+		this.sampleSize = output.sampleSize;
 	}
 	
 	/**
@@ -136,6 +145,26 @@ public class samplingErrorsOutput
 	}
 	
 	/**
+	 * Getter.
+	 *
+	 * @return {@code sampleSize}.
+	 */
+	public int getSampleSize()
+	{
+		return sampleSize;
+	}
+	
+	/**
+	 * Setter.
+	 *
+	 * @param sampleSize sample size.
+	 */
+	public void setSampleSize(int sampleSize)
+	{
+		this.sampleSize = sampleSize;
+	}
+	
+	/**
 	 * Returns a string representation of the object.
 	 *
 	 * @return a string representation of the object.
@@ -144,6 +173,7 @@ public class samplingErrorsOutput
 	public String toString()
 	{
 		return "Point estimate and sampling error: "
+				+"sample size = "+this.sampleSize+"; "
 				+"point estimate = "+this.pointEstimate+"; "
 				+"std. err. = "+this.standardError+"; "
 				+"half-width (alpha = "+this.alpha+" ) = "+this.halfWidth+".";
@@ -166,7 +196,8 @@ public class samplingErrorsOutput
 		return Double.compare(that.pointEstimate, pointEstimate) == 0 &&
 				Double.compare(that.standardError, standardError) == 0 &&
 				Double.compare(that.alpha, alpha) == 0 &&
-				Double.compare(that.halfWidth, halfWidth) == 0;
+				Double.compare(that.halfWidth, halfWidth) == 0 &&
+				sampleSize == that.sampleSize;
 	}
 	
 	/**
@@ -177,6 +208,6 @@ public class samplingErrorsOutput
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(pointEstimate, standardError, alpha, halfWidth);
+		return Objects.hash(pointEstimate, standardError, alpha, halfWidth, sampleSize);
 	}
 }

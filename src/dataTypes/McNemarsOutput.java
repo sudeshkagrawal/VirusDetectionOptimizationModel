@@ -6,7 +6,7 @@ import java.util.Objects;
  * Represents output of McNemar's procedure.
  * The procedure is use to judge the significance of the difference between correlated proportions.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: September 24, 2020.
  */
 public class McNemarsOutput
 {
@@ -35,21 +35,29 @@ public class McNemarsOutput
 	double upperCI;
 	
 	/**
+	 * Sample size used.
+	 */
+	int sampleSize;
+	
+	/**
 	 * Constructor.
 	 *
 	 * @param dHat difference between the marginal proportions
 	 * @param sampleStandardError sample standard error
 	 * @param alpha alpha value used to generate the confidence interval [{@code lowerCI}, {@code upperCI}]
 	 * @param lowerCI lower bound of confidence interval
-	 * @param upperCI upper bound of confidence interval.
+	 * @param upperCI upper bound of confidence interval
+	 * @param sampleSize sample size.
 	 */
-	public McNemarsOutput(double dHat, double sampleStandardError, double alpha, double lowerCI, double upperCI)
+	public McNemarsOutput(double dHat, double sampleStandardError, double alpha,
+	                      double lowerCI, double upperCI, int sampleSize)
 	{
 		this.dHat = dHat;
 		this.sampleStandardError = sampleStandardError;
 		this.alpha = alpha;
 		this.lowerCI = lowerCI;
 		this.upperCI = upperCI;
+		this.sampleSize = sampleSize;
 	}
 	
 	/**
@@ -103,6 +111,16 @@ public class McNemarsOutput
 	}
 	
 	/**
+	 * Getter.
+	 *
+	 * @return {@code sampleSize}.
+	 */
+	public int getSampleSize()
+	{
+		return sampleSize;
+	}
+	
+	/**
 	 * Setter.
 	 *
 	 * @param dHat difference between the marginal proportions.
@@ -153,6 +171,16 @@ public class McNemarsOutput
 	}
 	
 	/**
+	 * Setter.
+	 *
+	 * @param sampleSize sample size.
+	 */
+	public void setSampleSize(int sampleSize)
+	{
+		this.sampleSize = sampleSize;
+	}
+	
+	/**
 	 * Returns a string representation of the object.
 	 *
 	 * @return a string representation of the object.
@@ -160,6 +188,7 @@ public class McNemarsOutput
 	@Override
 	public String toString()
 	{return "McNemar's output: "
+				+"sample size = "+this.sampleSize+"; "
 				+"dhat = "+this.dHat+"; "
 				+"sample std. err. = "+this.sampleStandardError +"; "
 				+"CI (alpha = "+this.alpha+") = ["+this.lowerCI+", "+this.upperCI+"].";
@@ -183,7 +212,8 @@ public class McNemarsOutput
 				Double.compare(that.sampleStandardError, sampleStandardError) == 0 &&
 				Double.compare(that.alpha, alpha) == 0 &&
 				Double.compare(that.lowerCI, lowerCI) == 0 &&
-				Double.compare(that.upperCI, upperCI) == 0;
+				Double.compare(that.upperCI, upperCI) == 0 &&
+				sampleSize == that.sampleSize;
 	}
 	
 	/**
@@ -194,6 +224,6 @@ public class McNemarsOutput
 	@Override
 	public int hashCode()
 	{
-		return Objects.hash(dHat, sampleStandardError, alpha, lowerCI, upperCI);
+		return Objects.hash(dHat, sampleStandardError, alpha, lowerCI, upperCI, sampleSize);
 	}
 }

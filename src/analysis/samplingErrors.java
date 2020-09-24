@@ -79,6 +79,7 @@ public class samplingErrors
 		for(Map.Entry<parameters, samplingErrorsOutput> e: outputMap.entrySet())
 		{
 			sb.append("\n\t<").append(e.getKey().toString()).append(", ");
+			sb.append("\n\t\t sample size =\n\t\t\t").append(e.getValue().getSampleSize());
 			sb.append("\n\t\t point estimate =\n\t\t\t").append(e.getValue().getPointEstimate());
 			sb.append("\n\t\t std. err. = \n\t\t\t").append(e.getValue().getStandardError());
 			sb.append("\n\t\t half-width (alpha = ").append(e.getValue().getAlpha());
@@ -100,7 +101,7 @@ public class samplingErrors
 		File fileObj = new File(filename);
 		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
 							"transmissability (p)", "no. of honeypots", "point estimate", "std. err.", "alpha",
-							"half-width", "CI lower bound", "CI upper bound", "UTC"};
+							"half-width", "CI lower bound", "CI upper bound", "sample size", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -115,7 +116,7 @@ public class samplingErrors
 		String now = Instant.now().toString();
 		for (Map.Entry<parameters, samplingErrorsOutput> e: outputMap.entrySet())
 		{
-			String[] line = new String[14];
+			String[] line = new String[15];
 			line[0] = e.getKey().getSpreadModelName();
 			line[1] = e.getKey().getNetworkName();
 			line[2] = String.valueOf(e.getKey().getTimeStep());
@@ -131,7 +132,8 @@ public class samplingErrors
 			line[10] = String.valueOf(hw);
 			line[11] = String.valueOf(mean-hw);
 			line[12] = String.valueOf(mean+hw);
-			line[13] = now;
+			line[13] = String.valueOf(e.getValue().getSampleSize());
+			line[14] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();
@@ -244,7 +246,7 @@ public class samplingErrors
 			double estimate = 1.0*frequency/sampleSize;
 			double err = Math.sqrt(estimate*(1-estimate)/sampleSize);
 			double hw = zValue*err;
-			outputMap.put(candidate.getKey(), new samplingErrorsOutput(estimate, err, alpha, hw));
+			outputMap.put(candidate.getKey(), new samplingErrorsOutput(estimate, err, alpha, hw, sampleSize));
 		}
 	}
 	
@@ -354,7 +356,7 @@ public class samplingErrors
 			double err = Math.sqrt(estimate*(1-estimate)/sampleSize);
 			double hw = zValue*err;
 			
-			outputMap.put(candidate.getKey(), new samplingErrorsOutput(estimate, err, alpha, hw));
+			outputMap.put(candidate.getKey(), new samplingErrorsOutput(estimate, err, alpha, hw, sampleSize));
 		}
 	}
 }

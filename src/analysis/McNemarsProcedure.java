@@ -88,6 +88,7 @@ public class McNemarsProcedure
 		for(Map.Entry<parameters, McNemarsOutput> e: outputMap.entrySet())
 		{
 			sb.append("\n\t<").append(e.getKey().toString()).append(", ");
+			sb.append("\n\t\t sample size =\n\t\t\t").append(e.getValue().getSampleSize());
 			sb.append("\n\t\t dhat =\n\t\t\t").append(e.getValue().getdHat());
 			sb.append("\n\t\t sample std. err. = \n\t\t\t").append(e.getValue().getSampleStandardError());
 			sb.append("\n\t\t CI (alpha = ").append(e.getValue().getAlpha());
@@ -110,7 +111,7 @@ public class McNemarsProcedure
 		File fileObj = new File(filename);
 		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
 							"transmissability (p)", "no. of honeypots", "dhat", "sample std. err.", "alpha",
-							"CI lower bound", "CI upper bound", "UTC"};
+							"CI lower bound", "CI upper bound", "sample size", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -125,7 +126,7 @@ public class McNemarsProcedure
 		String now = Instant.now().toString();
 		for (Map.Entry<parameters, McNemarsOutput> e: outputMap.entrySet())
 		{
-			String[] line = new String[13];
+			String[] line = new String[14];
 			line[0] = e.getKey().getSpreadModelName();
 			line[1] = e.getKey().getNetworkName();
 			line[2] = String.valueOf(e.getKey().getTimeStep());
@@ -138,7 +139,8 @@ public class McNemarsProcedure
 			line[9] = String.valueOf(e.getValue().getAlpha());
 			line[10] = String.valueOf(e.getValue().getLowerCI());
 			line[11] = String.valueOf(e.getValue().getUpperCI());
-			line[12] = now;
+			line[12] = String.valueOf(e.getValue().getSampleSize());
+			line[13] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();
@@ -271,7 +273,7 @@ public class McNemarsProcedure
 			double width = zValue * sampleStDev;
 			
 			outputMap.put(param, new McNemarsOutput(dhat, sampleStDev,
-										alpha, dhat - width, dhat + width));
+										alpha, dhat - width, dhat + width, sampleSize));
 		}
 	}
 }

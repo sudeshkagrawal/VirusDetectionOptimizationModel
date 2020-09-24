@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 23, 2020.
+ * Last Updated: September 24, 2020.
  */
 public class multipleReplicationsProcedure
 {
@@ -88,6 +88,8 @@ public class multipleReplicationsProcedure
 		for(Map.Entry<parameters, statisticalOutput> e: outputMap.entrySet())
 		{
 			sb.append("\n\t<").append(e.getKey().toString()).append(", ");
+			sb.append("\n\t\t replication size =\n\t\t\t").append(e.getValue().getReplicationSize());
+			sb.append("\n\t\t sample size =\n\t\t\t").append(e.getValue().getSampleSize());
 			sb.append("\n\t\t mean =\n\t\t\t").append(e.getValue().getMean());
 			sb.append("\n\t\t std. dev = \n\t\t\t").append(e.getValue().getStDev());
 			sb.append("\n\t\t CI width (alpha = ").append(e.getValue().getAlpha());
@@ -108,7 +110,8 @@ public class multipleReplicationsProcedure
 	{
 		File fileObj = new File(filename);
 		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "FN probability",
-				"transmissability (p)", "no. of honeypots", "mean", "std. dev.", "alpha", "CI width", "UTC"};
+							"transmissability (p)", "no. of honeypots", "mean", "std. dev.", "alpha", "CI width",
+							"sample size", "replication size", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -123,7 +126,7 @@ public class multipleReplicationsProcedure
 		String now = Instant.now().toString();
 		for (Map.Entry<parameters, statisticalOutput> e: outputMap.entrySet())
 		{
-			String[] line = new String[12];
+			String[] line = new String[14];
 			line[0] = e.getKey().getSpreadModelName();
 			line[1] = e.getKey().getNetworkName();
 			line[2] = String.valueOf(e.getKey().getTimeStep());
@@ -135,7 +138,9 @@ public class multipleReplicationsProcedure
 			line[8] = String.valueOf(e.getValue().getStDev());
 			line[9] = String.valueOf(e.getValue().getAlpha());
 			line[10] = String.valueOf(e.getValue().getCIWidth());
-			line[11] = now;
+			line[11]= String.valueOf(e.getValue().getSampleSize());
+			line[12]= String.valueOf(e.getValue().getReplicationSize());
+			line[13] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();
@@ -288,7 +293,8 @@ public class multipleReplicationsProcedure
 			double stDev = Math.sqrt(variance);
 			double CIWidth = tValue*stDev/Math.sqrt(replicationSize);
 			
-			outputMap.put(candidate.getKey(), new statisticalOutput(gapPointEstimate, stDev, alpha, CIWidth));
+			outputMap.put(candidate.getKey(), new statisticalOutput(gapPointEstimate, stDev, alpha, CIWidth,
+																	sampleSize, replicationSize));
 		}
 	}
 }
