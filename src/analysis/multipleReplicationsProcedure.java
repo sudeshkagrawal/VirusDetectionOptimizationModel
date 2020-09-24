@@ -249,20 +249,20 @@ public class multipleReplicationsProcedure
 					if (zeroNode)
 					{
 						List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
-								.map(virusSpreadSample -> virusSpreadSample.stream()
+										.map(virusSpreadSample -> virusSpreadSample.stream()
 										.map(integer -> integer + 1)
-										.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
-								.collect(Collectors.toCollection(() -> new ArrayList<>(sampleSize)));
+										.collect(Collectors.toCollection(ArrayList::new)))
+										.collect(Collectors.toCollection(() -> new ArrayList<>(sampleSize)));
 						successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
-								Collections.unmodifiableList(newVirusSpreadSamples),
-								Collections.unmodifiableList(virtualDetectionSamples));
+													Collections.unmodifiableList(newVirusSpreadSamples),
+													Collections.unmodifiableList(virtualDetectionSamples));
 						candidates = honeypots.stream().map(e -> e+1).collect(Collectors.toSet());
 					}
 					else
 					{
 						successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
-								Collections.unmodifiableList(virusSpreadSamples),
-								Collections.unmodifiableList(virtualDetectionSamples));
+													Collections.unmodifiableList(virusSpreadSamples),
+													Collections.unmodifiableList(virtualDetectionSamples));
 						candidates = new HashSet<>(honeypots);
 					}
 				}
