@@ -219,10 +219,13 @@ public class McNemarsProcedure
 			Sextet<String, String, Integer, Integer, Double, Double> key =
 														new Sextet<>(modelName, networkName, t_0, sampleSize, r, p);
 			List<List<Integer>> virusSpreadSamples =
-					observations.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
+									observations.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
 			List<List<Integer>> virtualDetectionSamples =
-					observations.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().get(key);
+									observations.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().get(key);
 			List<List<Integer>> successfulDetectMatrix;
+			List<Integer> heuristicPots = heuristicOutputs.get(param).getHoneypots();
+			List<Integer> optimalPots = optimizationOutputs.get(param).getHoneypots();
+			Set<Integer> mappedHeuristicPots, mappedOptimalPots;
 			if (r>0)
 			{
 				if (zeroNode)
@@ -235,22 +238,27 @@ public class McNemarsProcedure
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 												Collections.unmodifiableList(newVirusSpreadSamples),
 												Collections.unmodifiableList(virtualDetectionSamples));
+					mappedHeuristicPots = heuristicPots.stream().map(e -> e+1).collect(Collectors.toSet());
+					mappedOptimalPots = optimalPots.stream().map(e -> e+1).collect(Collectors.toSet());
 				}
 				else
 				{
 					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
 												Collections.unmodifiableList(virusSpreadSamples),
 												Collections.unmodifiableList(virtualDetectionSamples));
+					mappedHeuristicPots = new HashSet<>(heuristicPots);
+					mappedOptimalPots = new HashSet<>(optimalPots);
 				}
 			}
 			else
 			{
 				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
+				mappedHeuristicPots = new HashSet<>(heuristicPots);
+				mappedOptimalPots = new HashSet<>(optimalPots);
 			}
-			List<Integer> heuristicPots = heuristicOutputs.get(param).getHoneypots();
-			List<Integer> optimalPots = optimizationOutputs.get(param).getHoneypots();
 			Map<String, Integer> table = commonMethods.getContingencyTable(successfulDetectMatrix,
-																			heuristicPots, optimalPots);
+																			new ArrayList<>(mappedHeuristicPots),
+																			new ArrayList<>(mappedOptimalPots));
 			double commonDenominator = 1.0/sampleSize;
 			double dhat = (table.get("n12")-table.get("n21"))*commonDenominator;
 			double n12term = commonDenominator*table.get("n12");
