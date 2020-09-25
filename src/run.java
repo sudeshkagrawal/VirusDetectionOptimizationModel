@@ -1,8 +1,3 @@
-import algorithm.degreeCentrality;
-import algorithm.degreeDiscount;
-import algorithm.nodeInMaxRowsGreedyHeuristic;
-import analysis.McNemarsProcedure;
-import analysis.samplingErrors;
 import dataTypes.parameters;
 import network.graph;
 import optimization.gurobiSolver;
@@ -29,8 +24,8 @@ public class run
 		double r = 0;
 		double p = 1;
 		boolean doNotUseSerialFile = false;
+		boolean doNotUseMIPResultsInCSVFile = false;
 		boolean append = true;
-		int sampleSize = 2000000;
 		
 		String networkInfoFilename = outputFolder + "network_info.csv";
 		String simulationsSerialFilename;
@@ -46,7 +41,7 @@ public class run
 		String samplingErrorsAlgoFilename = outputFolder + "heuristic_point_estimates.csv";
 		String samplingErrorsMIPFilename = outputFolder + "mip_point_estimates.csv";
 		
-		int[] k = {200};
+		int[] k = {100};
 		List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
 		
 		List<parameters> listOfParams = new ArrayList<>();
@@ -118,50 +113,61 @@ public class run
 		// MIP
 		int threads = 16;
 		int timeLimit = 300;
+		boolean ranNewOptimization = true;
 		gurobiSolver mipResults = new gurobiSolver();
-		mipResults.solveSAA(network, simulationResults, listOfParams, threads, timeLimit, mipLogFilename);
+		if (doNotUseMIPResultsInCSVFile)
+		{
+			mipResults.solveSAA(network, simulationResults, listOfParams, threads, timeLimit, mipLogFilename);
+		}
+		else
+		{
+			mipResults.loadResultsFromCSVFile(mipOutputFilename);
+			ranNewOptimization = mipResults.solveSAAOnlyNecessaryOnes(network, simulationResults, listOfParams,
+																		threads, timeLimit, mipLogFilename);
+		}
 		//System.out.println(mipResults.toString());
-		mipResults.writeToCSV(mipOutputFilename, append);
+		if (ranNewOptimization)
+			mipResults.writeToCSV(mipOutputFilename, append);
 		
-		// Heuristic
-		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
-		//System.out.println(heuristicResults.toString());
-		heuristicResults.writeToCSV(heuristicOutputFilename, append);
-
-		// Degree centrality
-		degreeCentrality degreeCentralityResults = new degreeCentrality();
-		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
-		//System.out.println(degreeCentralityResults.toString());
-		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
-
-		// Degree discount
-		degreeDiscount degreeDiscountResults = new degreeDiscount();
-		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(network, simulationResults,
-																			listOfParams);
-		//System.out.println(degreeDiscountResults.toString());
-		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
-
+//		// Heuristic
+//		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
+//		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
+//		//System.out.println(heuristicResults.toString());
+//		heuristicResults.writeToCSV(heuristicOutputFilename, append);
+//
+//		// Degree centrality
+//		degreeCentrality degreeCentralityResults = new degreeCentrality();
+//		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
+//		//System.out.println(degreeCentralityResults.toString());
+//		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
+//
+//		// Degree discount
+//		degreeDiscount degreeDiscountResults = new degreeDiscount();
+//		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(network, simulationResults,
+//																			listOfParams);
+//		//System.out.println(degreeDiscountResults.toString());
+//		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
+//
 //		// Multiple Replications Procedure
 //		multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
 //		MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 100000, 20,
 //								"greedy");
 //		MRPResults.writeToCSV(MRPOutputFilename, append);
-		
-		// McNemar's procedure to compare MIP and greedy heuristic
-		McNemarsProcedure comparisonResults = new McNemarsProcedure();
-		comparisonResults.compareMIPAndHeuristic(network, heuristicResults.getOutputMap(),
-				mipResults.getOutputMap(), 0.05, 2000000);
-		comparisonResults.writeToCSV(comparisonOutputFilename, append);
-		
-		// Point estimates and sampling errors
-		samplingErrors statisticalEstimates = new samplingErrors();
-		statisticalEstimates.getPointEstimatesAndErrorsForAlgos(network, heuristicResults.getOutputMap(), 0.05,
-				100000);
-		statisticalEstimates.writeToCSV(samplingErrorsAlgoFilename, append);
-		statisticalEstimates.getPointEstimatesAndErrorsForMIP(network, mipResults.getOutputMap(), 0.05,
-				100000);
-		statisticalEstimates.writeToCSV(samplingErrorsMIPFilename, append);
+//
+//		// McNemar's procedure to compare MIP and greedy heuristic
+//		McNemarsProcedure comparisonResults = new McNemarsProcedure();
+//		comparisonResults.compareMIPAndHeuristic(network, heuristicResults.getOutputMap(),
+//				mipResults.getOutputMap(), 0.05, 10000000);
+//		comparisonResults.writeToCSV(comparisonOutputFilename, append);
+//
+//		// Point estimates and sampling errors
+//		samplingErrors statisticalEstimates = new samplingErrors();
+//		statisticalEstimates.getPointEstimatesAndErrorsForAlgos(network, heuristicResults.getOutputMap(), 0.05,
+//				10000000);
+//		statisticalEstimates.writeToCSV(samplingErrorsAlgoFilename, append);
+//		statisticalEstimates.getPointEstimatesAndErrorsForMIP(network, mipResults.getOutputMap(), 0.05,
+//				10000000);
+//		statisticalEstimates.writeToCSV(samplingErrorsMIPFilename, append);
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)

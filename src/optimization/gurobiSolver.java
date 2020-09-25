@@ -9,9 +9,7 @@ import network.graph;
 import org.javatuples.Sextet;
 import simulation.simulationRuns;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 23, 2020.
+ * Last Updated: September 24, 2020.
  */
 public class gurobiSolver
 {
@@ -392,5 +390,83 @@ public class gurobiSolver
 			ranNewSimulations = true;
 		}
 		return ranNewSimulations;
+	}
+	
+	public void loadResultsFromCSVFile(String filename)
+	{
+		try
+		{
+			FileReader fileReader = new FileReader(filename);
+			BufferedReader csvReader = new BufferedReader(fileReader);
+			String row;
+			boolean header = true;
+			Map<parameters, Instant> timeRecordOfRows = new HashMap<>();
+			while ((row = csvReader.readLine()) != null)
+			{
+				if (!header)
+				{
+					String[] data = row.split("\",");
+					String modelName = data[0].substring(1);
+					String networkName = data[1].substring(1);
+					int timeSteps = Integer.parseInt(data[2].substring(1));
+					int runs = Integer.parseInt(data[3].substring(1));
+					double falseNegProb = Double.parseDouble(data[4].substring(1));
+					double transmissability = Double.parseDouble(data[5].substring(1));
+					int numberOfHoneypots = Integer.parseInt(data[6].substring(1));
+					//String solverName = data[7].substring(1);
+					double objective = Double.parseDouble(data[9].substring(1));
+					double bestUB = Double.parseDouble(data[10].substring(1));
+					String solverMessage = data[11].substring(1);
+					double wallTime = Double.parseDouble(data[13].substring(1));
+					Map<String, String> solverOptions;
+					String solverOptionsAsString = data[8].substring(1);
+					String[] tokens = solverOptionsAsString
+										.substring(1).split(",");
+					solverOptions = Arrays.stream(tokens).map(token -> token.split("="))
+									.collect(Collectors
+									.toMap(innerTokens -> innerTokens[0], innerTokens -> innerTokens[1], (a, b) -> b));
+					
+					List<Integer> honeypots = new ArrayList<>(numberOfHoneypots);
+					Scanner scanner = new Scanner(data[12].substring(1));
+					while (scanner.hasNextInt())
+					{
+						honeypots.add(scanner.nextInt());
+					}
+					parameters param = new parameters(modelName, networkName, timeSteps, runs, falseNegProb,
+														transmissability, numberOfHoneypots, 0);
+					solverOutput output = new solverOutput(objective, bestUB, honeypots, wallTime,
+															solverOptions, solverMessage);
+					Instant timeStamp = Instant.parse(data[14].substring(1, data[14].length()-1));
+					if (timeRecordOfRows.containsKey(param))
+					{
+						if (timeStamp.compareTo(timeRecordOfRows.get(param)) > 0)
+						{
+							outputMap.put(param, output);
+							timeRecordOfRows.put(param, timeStamp);
+						}
+					}
+					else
+					{
+						outputMap.put(param, output);
+						timeRecordOfRows.put(param, timeStamp);
+						System.out.println("Using MIP results in \""+filename+"\" for "+param.toString());
+					}
+					
+				}
+				header = false;
+			}
+		}
+		catch (FileNotFoundException e1)
+		{
+			System.out.println("Error, file not found!");
+			System.out.println(e1.getMessage());
+		}
+		catch (Exception e2)
+		{
+			System.out.println("An exception occurred:");
+			e2.printStackTrace();
+			System.out.println("Exiting the program...");
+			System.exit(0);
+		}
 	}
 }
