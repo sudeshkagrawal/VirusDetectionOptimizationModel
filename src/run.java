@@ -1,3 +1,9 @@
+import algorithm.degreeCentrality;
+import algorithm.degreeDiscount;
+import algorithm.nodeInMaxRowsGreedyHeuristic;
+import analysis.McNemarsProcedure;
+import analysis.multipleReplicationsProcedure;
+import analysis.samplingErrors;
 import dataTypes.parameters;
 import network.graph;
 import optimization.gurobiSolver;
@@ -129,45 +135,45 @@ public class run
 		if (ranNewOptimization)
 			mipResults.writeToCSV(mipOutputFilename, append);
 		
-//		// Heuristic
-//		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-//		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
-//		//System.out.println(heuristicResults.toString());
-//		heuristicResults.writeToCSV(heuristicOutputFilename, append);
-//
-//		// Degree centrality
-//		degreeCentrality degreeCentralityResults = new degreeCentrality();
-//		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
-//		//System.out.println(degreeCentralityResults.toString());
-//		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
-//
-//		// Degree discount
-//		degreeDiscount degreeDiscountResults = new degreeDiscount();
-//		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(network, simulationResults,
-//																			listOfParams);
-//		//System.out.println(degreeDiscountResults.toString());
-//		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
-//
-//		// Multiple Replications Procedure
-//		multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
-//		MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 100000, 20,
-//								"greedy");
-//		MRPResults.writeToCSV(MRPOutputFilename, append);
-//
-//		// McNemar's procedure to compare MIP and greedy heuristic
-//		McNemarsProcedure comparisonResults = new McNemarsProcedure();
-//		comparisonResults.compareMIPAndHeuristic(network, heuristicResults.getOutputMap(),
-//				mipResults.getOutputMap(), 0.05, 10000000);
-//		comparisonResults.writeToCSV(comparisonOutputFilename, append);
-//
-//		// Point estimates and sampling errors
-//		samplingErrors statisticalEstimates = new samplingErrors();
-//		statisticalEstimates.getPointEstimatesAndErrorsForAlgos(network, heuristicResults.getOutputMap(), 0.05,
-//				10000000);
-//		statisticalEstimates.writeToCSV(samplingErrorsAlgoFilename, append);
-//		statisticalEstimates.getPointEstimatesAndErrorsForMIP(network, mipResults.getOutputMap(), 0.05,
-//				10000000);
-//		statisticalEstimates.writeToCSV(samplingErrorsMIPFilename, append);
+		// Heuristic
+		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
+		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
+		//System.out.println(heuristicResults.toString());
+		heuristicResults.writeToCSV(heuristicOutputFilename, append);
+
+		// Degree centrality
+		degreeCentrality degreeCentralityResults = new degreeCentrality();
+		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
+		//System.out.println(degreeCentralityResults.toString());
+		degreeCentralityResults.writeToCSV(degreeCentralityOutputFilename, append);
+
+		// Degree discount
+		degreeDiscount degreeDiscountResults = new degreeDiscount();
+		degreeDiscountResults.runSAAUsingKHighestDegreeSingleDiscountNodes(network, simulationResults,
+																			listOfParams);
+		//System.out.println(degreeDiscountResults.toString());
+		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
+
+		// Multiple Replications Procedure
+		multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
+		MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 500000, 20,
+								"greedy");
+		MRPResults.writeToCSV(MRPOutputFilename, append);
+
+		// McNemar's procedure to compare MIP and greedy heuristic
+		McNemarsProcedure comparisonResults = new McNemarsProcedure();
+		comparisonResults.compareMIPAndHeuristic(network, heuristicResults.getOutputMap(),
+				mipResults.getOutputMap(), 0.05, 10000000);
+		comparisonResults.writeToCSV(comparisonOutputFilename, append);
+
+		// Point estimates and sampling errors
+		samplingErrors statisticalEstimates = new samplingErrors();
+		statisticalEstimates.getPointEstimatesAndErrorsForAlgos(network, heuristicResults.getOutputMap(), 0.05,
+				10000000);
+		statisticalEstimates.writeToCSV(samplingErrorsAlgoFilename, append);
+		statisticalEstimates.getPointEstimatesAndErrorsForMIP(network, mipResults.getOutputMap(), 0.05,
+				10000000);
+		statisticalEstimates.writeToCSV(samplingErrorsMIPFilename, append);
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)

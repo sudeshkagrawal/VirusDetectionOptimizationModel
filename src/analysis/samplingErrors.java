@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 /**
  * Represents statistical results of evaluating honeypots on a larger independent sample.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 24, 2020.
+ * Last Updated: October 1, 2020.
  */
 public class samplingErrors
 {
@@ -148,7 +148,7 @@ public class samplingErrors
 	 * @param algorithmOutputs results of an algorithm (greedy heuristic, for example)
 	 * @param alpha alpha value for confidence interval
 	 * @param sampleSize sample size.
-	 * @throws Exception thrown if 0<{@code alpha}<1 does not hold,
+	 * @throws Exception thrown if {@code 0<alpha<1} does not hold,
 	 *  if the label of a node in {@code g} is a negative integer,
 	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
 	 *      do not match.
@@ -257,7 +257,7 @@ public class samplingErrors
 	 * @param solverOutputs results of SAA using a solver.
 	 * @param alpha alpha value for confidence interval
 	 * @param sampleSize sample size.
-	 * @throws Exception thrown if 0<{@code alpha}<1 does not hold,
+	 * @throws Exception thrown if {@code 0<alpha<1} does not hold,
 	 *  if the label of a node in {@code g} is a negative integer,
 	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
 	 *      do not match.

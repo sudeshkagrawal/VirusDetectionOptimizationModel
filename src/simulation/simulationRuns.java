@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of simulation runs.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 16, 2020.
+ * Last Updated: October 1, 2020.
  */
 public class simulationRuns
 {
@@ -96,7 +96,7 @@ public class simulationRuns
 	 * @param t0_runs list of a pair of (t0, runs), where t0 is simulation time,
 	 *                   and runs is number of repetitions of simulation
 	 * @param r false negative probability
-	 * @param seed an array of length 2 (for r=0) or 3 (for r>0);
+	 * @param seed an array of length 2 (for {@code r=0}) or 3 (for {@code r>0});
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for random choice of neighbor while spreading,
 	 *             and the third is for virtual detections.
@@ -338,14 +338,14 @@ public class simulationRuns
 	 *                and runs is number of repetitions of simulation
 	 * @param r false negative probability
 	 * @param p transmissability probability
-	 * @param seed an array of length 3 (for r=0) or 4 (for r>0);
+	 * @param seed an array of length 3 (for {@code r=0}) or 4 (for {@code r>0});
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for random choice of neighbor while spreading,
 	 *             the third is for transmissability,
 	 *             and the fourth is for virtual detections.
 	 * @throws Exception exception thrown if length of {@code seed} is not {3, 4},
 	 *  or if the graph {@code g} has self-loops,
-	 *  or if {@code p}<=0.
+	 *  or if {@code p<=0}.
 	 */
 	public void simulateRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
 	                              double p, int[] seed) throws Exception
@@ -434,7 +434,7 @@ public class simulationRuns
 	 *                and runs is number of repetitions of simulation
 	 * @param r false negative probability
 	 * @param p transmissability probability
-	 * @param seed an array of length 3 (for r=0) or 4 (for r>0);
+	 * @param seed an array of length 3 (for {@code r=0}) or 4 (for {@code r>0});
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for random choice of neighbor while spreading,
 	 *             the third is for transmissability,
@@ -442,7 +442,7 @@ public class simulationRuns
 	 * @return returns true, if new simulations were run; false, otherwise.
 	 * @throws Exception exception thrown if length of {@code seed} is not {3, 4},
 	 *  or if the graph {@code g} has self-loops,
-	 *  or if {@code p}<=0.
+	 *  or if {@code p<=0}.
 	 */
 	public boolean simulateOnlyNecessaryRA1PCRuns(graph g, List<Pair<Integer, Integer>> t0_runs,
 	                                              double r, double p, int[] seed) throws Exception
@@ -480,13 +480,13 @@ public class simulationRuns
 	 *                and runs is number of repetitions of simulation
 	 * @param r false negative probability
 	 * @param p transmissability probability
-	 * @param seed an array of length 2 (for r=0) or 3 (for r>0);
+	 * @param seed an array of length 2 (for {@code r=0}) or 3 (for {@code r>0});
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for transmissability,
 	 *             and the third is for virtual detections.
 	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3},
 	 *  or if the graph {@code g} has self-loops,
-	 *  or if {@code p}<=0.
+	 *  or if {@code p<=0}.
 	 */
 	public void simulateRAEPCRuns(graph g, List<Pair<Integer, Integer>> t0_runs, double r,
 	                              double p, int[] seed) throws Exception
@@ -582,14 +582,14 @@ public class simulationRuns
 	 *                   and runs is number of repetitions of simulation
 	 * @param r false negative probability
 	 * @param p transmissability probability
-	 * @param seed an array of length 2 (for r=0) or 3 (for r>0);
+	 * @param seed an array of length 2 (for {@code r=0}) or 3 (for {@code r>0});
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for transmissability,
 	 *             and the third is for virtual detections.
 	 * @return returns true, if new simulations were run; false, otherwise.
 	 * @throws Exception exception thrown if length of {@code seed} is not {2, 3},
 	 *  or if the graph {@code g} has self-loops,
-	 *  or if {@code p}<=0.
+	 *  or if {@code p<=0}.
 	 */
 	public boolean simulateOnlyNecessaryRAEPCRuns(graph g, List<Pair<Integer, Integer>> t0_runs,
 	                                              double r, double p, int[] seed) throws Exception

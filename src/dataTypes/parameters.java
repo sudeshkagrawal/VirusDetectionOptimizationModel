@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Represents parameters for model simulation, optimization, etc.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 22, 2020.
+ * Last Updated: October 1, 2020.
  */
 @EqualsAndHashCode
 public class parameters
@@ -275,7 +275,7 @@ public class parameters
 	 * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">
 	 *     "Equals and Hash Code"</a>.
 	 *
-	 * @param o the reference object with which to compare.
+	 * @param obj the reference object with which to compare.
 	 * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
 	 */
 	@Override

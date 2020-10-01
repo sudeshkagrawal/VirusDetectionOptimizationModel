@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 24, 2020.
+ * Last Updated: October 1, 2020.
  */
 public class multipleReplicationsProcedure
 {
@@ -158,11 +158,11 @@ public class multipleReplicationsProcedure
 	 * @param sampleSize sample size
 	 * @param replicationSize replication size
 	 * @param algorithm possible values: {"greedy"}.
-	 * @throws Exception thrown if 0<{@code alpha}<1 does not hold,
+	 * @throws Exception thrown if {@code 0<alpha<1} does not hold,
 	 *  or if the label of a node in {@code g} is a negative integer,
 	 *  or if the network name in one of the parameters and the network name stored in the graph {@code g}
 	 *      do not match,
-	 *  or if in one of the parameters of {@code algorithmOutputs}, {@code p}<=0,
+	 *  or if in one of the parameters of {@code algorithmOutputs}, {@code p<=0},
 	 *  or if {@code algorithm} has a value for which gap estimation calculation has not been implemented.
 	 */
 	public void estimateGap(graph g, Map<parameters, algorithmOutput> algorithmOutputs,

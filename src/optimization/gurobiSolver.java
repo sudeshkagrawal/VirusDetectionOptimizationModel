@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 24, 2020.
+ * Last Updated: October 1, 2020.
  */
 public class gurobiSolver
 {
@@ -392,6 +392,11 @@ public class gurobiSolver
 		return ranNewSimulations;
 	}
 	
+	/**
+	 * Loads results created using {@code writeToCSV} from previous run(s).
+	 *
+	 * @param filename path of the file where results from previous run(s) are stored.
+	 */
 	public void loadResultsFromCSVFile(String filename)
 	{
 		try

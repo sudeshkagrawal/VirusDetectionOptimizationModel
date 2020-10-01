@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 /**
  * Represents a network graph.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 17, 2020.
+ * Last Updated: October 1, 2020.
  */
 public class graph
 {
@@ -65,10 +65,10 @@ public class graph
 	}
 	
 	/**
-	 * Initialize an empty graph g with a complete graph of given size.
+	 * Initialize an empty graph {@code g} with a complete graph of given size.
 	 *
 	 * @param size number of vertices (nodes) in the complete graph.
-	 * @throws Exception exception thrown if vertex set of {@code g} is not empty.
+	 * @throws Exception thrown if vertex set of {@code g} is not empty.
 	 */
 	public void initializeCompleteGraph(int size) throws Exception
 	{
@@ -94,11 +94,13 @@ public class graph
 	
 	/**
 	 * Initialize an empty graph {@code g} with a circulant graph of given size.
-	 * A circulant graph is a graph of n (={@code size}) vertices in which the i-th vertex is adjacent to the (i+j)-th and the (i-j)-th vertices for each j in the array offsets.
+	 * A circulant graph is a graph of {@code n (= size)} vertices in which the {@code i}<sup>th</sup> vertex is
+	 * adjacent to the {@code (i+j)}<sup>th</sup> and the {@code (i-j)}<sup>th</sup> vertices for each {@code j} in the
+	 * array offsets.
 	 *
 	 * @param size number of vertices (nodes) in the circulant graph
 	 * @param offsets defines the list of all distances in any edge.
-	 * @throws Exception exception thrown if vertex set of {@code g} is not empty.
+	 * @throws Exception thrown if vertex set of {@code g} is not empty.
 	 */
 	public void initializeCirculantGraph(int size, int[] offsets) throws Exception
 	{
@@ -125,7 +127,7 @@ public class graph
 	 *
 	 * @param filename path to file to be read
 	 * @param separator character that separates source node and target node.
-	 * @throws Exception exception thrown if vertex set of {@code g} is not empty.
+	 * @throws Exception thrown if vertex set of {@code g} is not empty.
 	 */
 	public void buildGraphFromFile(String filename, String separator) throws Exception
 	{
@@ -165,7 +167,7 @@ public class graph
 	/**
 	 * Getter for {@code g}.
 	 *
-	 * @return returns the graph.
+	 * @return the graph {@code g}.
 	 */
 	public Graph<Integer, DefaultEdge> getG()
 	{
@@ -175,7 +177,7 @@ public class graph
 	/**
 	 * Getter for {@code networkName}.
 	 *
-	 * @return returns the network name as String.
+	 * @return the network name as String.
 	 */
 	public String getNetworkName()
 	{
@@ -225,7 +227,7 @@ public class graph
 	/**
 	 * Checks whether the graph {@code g} has self-loops.
 	 *
-	 * @return returns true if graph {@code g} has self-loops, false otherwise.
+	 * @return {@code true} if graph {@code g} has self-loops, {@code false} otherwise.
 	 */
 	public boolean hasSelfLoops()
 	{
@@ -235,7 +237,7 @@ public class graph
 	/**
 	 * Finds the distances between all pairs of nodes in the graph {@code g}.
 	 *
-	 * @return a the distances between all pairs of nodes in the graph {@code g}.
+	 * @return the distances between all pairs of nodes in the graph {@code g}.
 	 */
 	public Map<Pair<Integer, Integer>, Double> findDistancesBetweenNodes()
 	{
@@ -412,7 +414,7 @@ public class graph
 	/**
 	 * Changes the graph to one of its largest components.
 	 *
-	 * @throws Exception exception thrown if graph {@code g} does not have a vertex.
+	 * @throws Exception thrown if graph {@code g} does not have a vertex.
 	 */
 	public void changeGraphToLargestConnectedComponent() throws Exception
 	{
@@ -462,7 +464,7 @@ public class graph
 	 * Modifies the graph {@code g} to its k-core subgraph.
 	 *
 	 * @param k the order of the core.
-	 * @throws Exception exception thrown if graph contains self-loops.
+	 * @throws Exception thrown if graph contains self-loops.
 	 */
 	public void dokCoreDecomposition(int k) throws Exception
 	{
@@ -476,7 +478,7 @@ public class graph
 	 *
 	 * @param k the order of the core.
 	 * @return the k-core subgraph.
-	 * @throws Exception exception thrown if graph contains self-loops.
+	 * @throws Exception thrown if graph contains self-loops.
 	 */
 	public Graph<Integer, DefaultEdge> getkCore(int k) throws Exception
 	{
@@ -506,17 +508,17 @@ public class graph
 	 * <p>
 	 * [1] An O(m) Algorithm for Cores Decomposition of Networks
 	 * Vladimir Batagelj and Matjaz Zaversnik, 2003.
-	 * <a href="https://arxiv.org/abs/cs.DS/0310049", target="_blank">https://arxiv.org/abs/cs.DS/0310049</a>
+	 * <a href="https://arxiv.org/abs/cs.DS/0310049" target="_blank">https://arxiv.org/abs/cs.DS/0310049</a>
 	 * </p>
 	 * <p>
-	 * [2] <a href="https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number",
-	 *      target="_blank">
+	 * [2]
+	 * <a href="https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number" target="_blank">
 	 *      https://networkx.github.io/documentation/stable/_modules/networkx/algorithms/core.html#core_number
 	 *     </a>
 	 * </p>
 	 *
-	 * @return returns the core number for each vertex.
-	 * @throws Exception exception thrown if graph contains self-loops.
+	 * @return the core number for each vertex.
+	 * @throws Exception thrown if graph contains self-loops.
 	 */
 	private Map<Integer, Integer> getCoreNumbers() throws Exception
 	{
@@ -581,7 +583,7 @@ public class graph
 	 * Writes network information (max degree, avg. distance, etc.) to csv file.
 	 *
 	 * @param filename path to output file
-	 * @param append true, if you wish to append to existing file; false, otherwise.
+	 * @param append {@code true}, if you wish to append to existing file; {@code false}, otherwise.
 	 * @throws Exception thrown if error in input-output operation.
 	 */
 	public void writeNetworkInfoToCSV(String filename, boolean append) throws Exception
@@ -616,9 +618,9 @@ public class graph
 	}
 	
 	/**
-	 * Overrides {@code toString()}.
+	 * Returns a string representation of the object.
 	 *
-	 * @return returns a string representation of values in class.
+	 * @return a string representation of the object.
 	 */
 	@Override
 	public String toString()
@@ -627,10 +629,12 @@ public class graph
 	}
 	
 	/**
-	 * Overrides {@code equals}.
+	 * Indicates whether some other object is "equal to" this one.
+	 * Used guidelines at <a href="http://www.technofundo.com/tech/java/equalhash.html" target="_blank">
+	 *     "Equals and Hash Code"</a>.
 	 *
-	 * @param o an object.
-	 * @return returns true if the values of all individual fields match; false, otherwise.
+	 * @param o the reference object with which to compare.
+	 * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
 	 */
 	@Override
 	public boolean equals(Object o)
@@ -644,10 +648,9 @@ public class graph
 	}
 	
 	/**
-	 * Overrides {@code hashCode}.
-	 * Uses lombok.
+	 * Returns a hash code value for the object.
 	 *
-	 * @return returns a integer value representing the hash code for an object.
+	 * @return a hash code value for this object.
 	 */
 	@Override
 	public int hashCode()
