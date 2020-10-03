@@ -16,30 +16,36 @@ import java.util.stream.IntStream;
 /**
  * Simulation runs to choose appropriate time step for a given spread model and parameters.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 4, 2020.
+ * Last Updated: October 2, 2020.
  */
 public class chooseTimeStep
 {
 	/**
-	 * A map from a 7-tuple to the simulation runs.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
-	 * 7-tuple is represented through {@code parameters} class.
+	 * A map from {@code parameters} to the sample paths of simulation runs.
+	 * Basically, stores the simulation outputs for different input parameters.
+	 * <p>
+	 *     Parameters: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 *     false negative probability, transmissability (p), number of honeypots).
+	 * </p>
 	 */
 	Map<parameters, List<List<Integer>>> mapParametersToSimulationRuns;
+	
 	/**
-	 * A map from a 7-tuple to the time steps required to get a given percentage infection.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
-	 * 7-tuple is represented through {@code parameters} class.
+	 * A map from {@code parameters} to the time steps required to get a given percentage infection.
 	 * Each element in the list is the time steps for a simulation repetition.
+	 * <p>
+	 *     Parameters: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 *     false negative probability, transmissability (p), number of honeypots).
+	 * </p>
 	 */
 	Map<parameters, List<Integer>> mapParametersToTimeForInfection;
+	
 	/**
-	 * A map from a 7-tuple to the average time steps required to get a given percentage infection.
-	 * 7-tuple: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
-	 * false negative probability, transmissability (p), number of honeypots).
-	 * 7-tuple is represented through {@code parameters} class.
+	 * A map from {@code parameters} to the average time steps required to get a given percentage infection.
+	 * <p>
+	 *     Parameters: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
+	 *     false negative probability, transmissability (p), number of honeypots).
+	 * </p>
 	 */
 	Map<parameters, Double> mapParametersToMeanInfectionTime;
 	
@@ -72,7 +78,7 @@ public class chooseTimeStep
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code mapParametersToSimulationRuns}.
+	 * @return {@code mapParametersToSimulationRuns}.
 	 */
 	public Map<parameters, List<List<Integer>>> getMapParametersToSimulationRuns()
 	{
@@ -82,7 +88,7 @@ public class chooseTimeStep
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code mapParametersToTimeForInfection}.
+	 * @return {@code mapParametersToTimeForInfection}.
 	 */
 	public Map<parameters, List<Integer>> getMapParametersToTimeForInfection()
 	{
@@ -92,7 +98,7 @@ public class chooseTimeStep
 	/**
 	 * Getter.
 	 *
-	 * @return returns {@code mapParametersToMeanInfectionTime}.
+	 * @return {@code mapParametersToMeanInfectionTime}.
 	 */
 	public Map<parameters, Double> getMapParametersToMeanInfectionTime()
 	{
@@ -100,7 +106,7 @@ public class chooseTimeStep
 	}
 	
 	/**
-	 * Function to determine what values of t_0 are appropriate for TN1PC spread dynamics.
+	 * Function to determine what values of {@code t_0} are appropriate for TN1PC spread dynamics.
 	 * See Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
 	 * @param g network graph
@@ -109,7 +115,7 @@ public class chooseTimeStep
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for random choice of neighbor while spreading,
 	 *             and the third is for transmissability.
-	 * @throws Exception exception thrown if length of {@code seed} is not 3.
+	 * @throws Exception thrown if length of {@code seed} is not 3.
 	 */
 	public void TN1PCSimulationRuns(graph g, List<parameters> params, int[] seed) throws Exception
 	{
@@ -188,7 +194,7 @@ public class chooseTimeStep
 	}
 	
 	/**
-	 * Function to determine what values of t_0 are appropriate for RA1PC spread dynamics.
+	 * Function to determine what values of {@code t_0} are appropriate for RA1PC spread dynamics.
 	 * See Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
 	 * @param g network graph
@@ -197,7 +203,7 @@ public class chooseTimeStep
 	 *             the first seed is for the initial random location of the virus,
 	 *             the second is for random choice of neighbor while spreading,
 	 *             and the third is for transmissability.
-	 * @throws Exception exception thrown if length of {@code seed} is not 3.
+	 * @throws Exception thrown if length of {@code seed} is not 3.
 	 */
 	public void RA1PCSimulationRuns(graph g, List<parameters> params, int[] seed) throws Exception
 	{
@@ -276,7 +282,7 @@ public class chooseTimeStep
 	}
 	
 	/**
-	 * Function to determine what values of t_0 are appropriate for RAEPC spread dynamics.
+	 * Function to determine what values of {@code t_0} are appropriate for RAEPC spread dynamics.
 	 * See Lee, Jinho. Stochastic optimization models for rapid detection of viruses in cellphone networks. Diss. 2012.
 	 *
 	 * @param g network graph
@@ -284,7 +290,7 @@ public class chooseTimeStep
 	 * @param seed an array of length 2;
 	 *             the first seed is for the initial random location of the virus,
 	 *             and the second is for transmissability.
-	 * @throws Exception exception thrown if length of {@code seed} is not 2.
+	 * @throws Exception thrown if length of {@code seed} is not 2.
 	 */
 	public void RAEPCSimulationRuns(graph g, List<parameters> params, int[] seed) throws Exception
 	{
@@ -371,7 +377,7 @@ public class chooseTimeStep
 	 * @param g network graph
 	 * @param params parameters
 	 * @param seed seed array.
-	 * @throws Exception exception thrown if invalid model name found in any element of {@code params}.
+	 * @throws Exception thrown if invalid model name found in any element of {@code params}.
 	 */
 	public void doSimulationRuns(graph g, List<parameters> params, int[] seed) throws Exception
 	{
@@ -401,7 +407,7 @@ public class chooseTimeStep
 	 *
 	 * @param filename path to output file
 	 * @param append true, if you wish to append to existing file; false, otherwise.
-	 * @throws IOException exception thrown if error in input-output operation.
+	 * @throws IOException thrown if error in input-output operation.
 	 */
 	public void writeToCSV(String filename, boolean append) throws IOException
 	{
@@ -419,6 +425,7 @@ public class chooseTimeStep
 			writer.writeNext(header);
 			writer.flush();
 		}
+		String now = Instant.now().toString();
 		for (parameters key : mapParametersToTimeForInfection.keySet())
 		{
 			String[] line = new String[7];
@@ -428,7 +435,7 @@ public class chooseTimeStep
 			line[3] = String.valueOf(key.getNumberOfSimulationRepetitions());
 			line[4] = String.valueOf(key.getTransmissability());
 			line[5] = String.valueOf(mapParametersToMeanInfectionTime.get(key));
-			line[6] = Instant.now().toString();
+			line[6] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();
@@ -437,17 +444,17 @@ public class chooseTimeStep
 	}
 	
 	/**
-	 * Overrides {@code toString}.
+	 * Returns a string representation of the object.
 	 *
-	 * @return returns a string representation of all the fields in the class.
+	 * @return a string representation of the object.
 	 */
 	@Override
 	public String toString()
 	{
 		return "chooseTimeStep{" +
-				"\nmapParametersToSimulationRuns=" + mapParametersToSimulationRuns +
-				", \nmapParametersToTimeForInfection=" + mapParametersToTimeForInfection +
-				", \nmapParametersToMeanInfectionTime=" + mapParametersToMeanInfectionTime +
+				"\nmapParametersToSimulationRuns=" + mapParametersToSimulationRuns.toString() +
+				", \nmapParametersToTimeForInfection=" + mapParametersToTimeForInfection.toString() +
+				", \nmapParametersToMeanInfectionTime=" + mapParametersToMeanInfectionTime.toString() +
 				"\n}";
 	}
 }
