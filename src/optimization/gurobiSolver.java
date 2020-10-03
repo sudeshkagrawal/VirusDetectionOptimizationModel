@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: October 1, 2020.
+ * Last Updated: October 2, 2020.
  */
 public class gurobiSolver
 {
@@ -431,12 +431,11 @@ public class gurobiSolver
 									.collect(Collectors
 									.toMap(innerTokens -> innerTokens[0], innerTokens -> innerTokens[1], (a, b) -> b));
 					
-					List<Integer> honeypots = new ArrayList<>(numberOfHoneypots);
-					Scanner scanner = new Scanner(data[12].substring(1));
-					while (scanner.hasNextInt())
-					{
-						honeypots.add(scanner.nextInt());
-					}
+					String[] tokens2AsString = data[12].substring(2, data[12].length()-1).split(",");
+					List<Integer> honeypots = Arrays.stream(tokens2AsString)
+												.map(s -> Integer.parseInt(s.trim()))
+												.collect(Collectors.toCollection(() ->
+														new ArrayList<>(numberOfHoneypots)));
 					parameters param = new parameters(modelName, networkName, timeSteps, runs, falseNegProb,
 														transmissability, numberOfHoneypots, 0);
 					solverOutput output = new solverOutput(objective, bestUB, honeypots, wallTime,
