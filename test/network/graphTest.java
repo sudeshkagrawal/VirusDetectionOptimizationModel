@@ -2,6 +2,7 @@ package network;
 
 import org.javatuples.Pair;
 import org.jgrapht.Graphs;
+import org.jgrapht.graph.DefaultEdge;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Unit test for {@code graph}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 19, 2020.
+ * Last Updated: October 15, 2020.
  */
 class graphTest
 {
@@ -288,9 +289,71 @@ class graphTest
 	}
 	
 	@Test
-	void getEdgeSet()
+	void getEdgeSet() throws Exception
 	{
-	
+		String networkName = "testnetwork6withUnconnectedComponents";
+		graph network = new graph(networkName);
+		String separator = ",";
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
+		
+		Set<DefaultEdge> edgeSet = network.getEdgeSet();
+		for (DefaultEdge e: edgeSet)
+		{
+			int source = network.getG().getEdgeSource(e);
+			switch (source)
+			{
+				case 1:
+				case 3:
+					assert (network.getG().getEdgeTarget(e)==2 ||
+							network.getG().getEdgeTarget(e)==4);
+					break;
+				case 2:
+					assert (network.getG().getEdgeTarget(e)==1 ||
+							network.getG().getEdgeTarget(e)==3 ||
+							network.getG().getEdgeTarget(e)==4);
+					break;
+				case 4:
+					assert (network.getG().getEdgeTarget(e)==1 ||
+							network.getG().getEdgeTarget(e)==2 ||
+							network.getG().getEdgeTarget(e)==3);
+					break;
+				case 5:
+					assert (network.getG().getEdgeTarget(e)==6 ||
+							network.getG().getEdgeTarget(e)==7);
+					break;
+				case 6:
+					assert (network.getG().getEdgeTarget(e)==5 ||
+							network.getG().getEdgeTarget(e)==7);
+					break;
+				case 7:
+					assert (network.getG().getEdgeTarget(e)==5 ||
+							network.getG().getEdgeTarget(e)==6);
+					break;
+				case 8:
+					assert (network.getG().getEdgeTarget(e)==9 ||
+							network.getG().getEdgeTarget(e)==10);
+					break;
+				case 9:
+					assert (network.getG().getEdgeTarget(e)==8 ||
+							network.getG().getEdgeTarget(e)==10);
+					break;
+				case 10:
+					assert (network.getG().getEdgeTarget(e)==8 ||
+							network.getG().getEdgeTarget(e)==9 ||
+							network.getG().getEdgeTarget(e)==11 ||
+							network.getG().getEdgeTarget(e)==12);
+					break;
+				case 11:
+					assert (network.getG().getEdgeTarget(e)==10 ||
+							network.getG().getEdgeTarget(e)==12);
+					break;
+				case 12:
+					assert (network.getG().getEdgeTarget(e)==10 ||
+							network.getG().getEdgeTarget(e)==11);
+					break;
+				default: assert false;
+			}
+		}
 	}
 	
 	@Test
@@ -516,5 +579,30 @@ class graphTest
 				finalNetwork::findMinimumNodeLabel);
 		String actualMessage = exception.getMessage();
 		assertSame(null, actualMessage);
+	}
+	
+	@Test
+	void removeAllVertices() throws Exception
+	{
+		String networkName = "testnetwork6withUnconnectedComponents";
+		graph network = new graph(networkName);
+		String separator = ",";
+		network.buildGraphFromFile("./test/resources/networks/"+networkName+".txt", separator);
+		
+		assert network.getVertexSet().size()==12;
+		
+		Set<Integer> nodesToBeRemoved = new HashSet<>(network.getVertexSet().size());
+		nodesToBeRemoved.add(2);
+		nodesToBeRemoved.add(10);
+		nodesToBeRemoved.add(12);
+		network.removeAllVertices(nodesToBeRemoved);
+		assert network.getVertexSet().size()==12-nodesToBeRemoved.size();
+		for (int i=1; i<=12; i++)
+		{
+			if (nodesToBeRemoved.contains(i))
+				assert !network.getVertexSet().contains(i);
+			else
+				assert network.getVertexSet().contains(i);
+		}
 	}
 }
