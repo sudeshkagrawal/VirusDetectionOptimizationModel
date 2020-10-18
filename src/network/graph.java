@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 /**
  * Represents a network graph.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: October 1, 2020.
+ * Last Updated: October 18, 2020.
  */
 public class graph
 {
@@ -461,7 +461,7 @@ public class graph
 	}
 	
 	/**
-	 * Modifies the graph {@code g} to its k-core subgraph.
+	 * Modifies the graph {@code g} to the largest connected component of its k-core subgraph.
 	 *
 	 * @param k the order of the core.
 	 * @throws Exception thrown if graph contains self-loops.
