@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Unit test for {@code graph}.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: October 15, 2020.
+ * Last Updated: October 19, 2020.
  */
 class graphTest
 {
@@ -299,57 +299,57 @@ class graphTest
 		Set<DefaultEdge> edgeSet = network.getEdgeSet();
 		for (DefaultEdge e: edgeSet)
 		{
-			int source = network.getG().getEdgeSource(e);
+			int source = network.getEdgeSource(e);
 			switch (source)
 			{
 				case 1:
 				case 3:
-					assert (network.getG().getEdgeTarget(e)==2 ||
-							network.getG().getEdgeTarget(e)==4);
+					assert (network.getEdgeTarget(e)==2 ||
+							network.getEdgeTarget(e)==4);
 					break;
 				case 2:
-					assert (network.getG().getEdgeTarget(e)==1 ||
-							network.getG().getEdgeTarget(e)==3 ||
-							network.getG().getEdgeTarget(e)==4);
+					assert (network.getEdgeTarget(e)==1 ||
+							network.getEdgeTarget(e)==3 ||
+							network.getEdgeTarget(e)==4);
 					break;
 				case 4:
-					assert (network.getG().getEdgeTarget(e)==1 ||
-							network.getG().getEdgeTarget(e)==2 ||
-							network.getG().getEdgeTarget(e)==3);
+					assert (network.getEdgeTarget(e)==1 ||
+							network.getEdgeTarget(e)==2 ||
+							network.getEdgeTarget(e)==3);
 					break;
 				case 5:
-					assert (network.getG().getEdgeTarget(e)==6 ||
-							network.getG().getEdgeTarget(e)==7);
+					assert (network.getEdgeTarget(e)==6 ||
+							network.getEdgeTarget(e)==7);
 					break;
 				case 6:
-					assert (network.getG().getEdgeTarget(e)==5 ||
-							network.getG().getEdgeTarget(e)==7);
+					assert (network.getEdgeTarget(e)==5 ||
+							network.getEdgeTarget(e)==7);
 					break;
 				case 7:
-					assert (network.getG().getEdgeTarget(e)==5 ||
-							network.getG().getEdgeTarget(e)==6);
+					assert (network.getEdgeTarget(e)==5 ||
+							network.getEdgeTarget(e)==6);
 					break;
 				case 8:
-					assert (network.getG().getEdgeTarget(e)==9 ||
-							network.getG().getEdgeTarget(e)==10);
+					assert (network.getEdgeTarget(e)==9 ||
+							network.getEdgeTarget(e)==10);
 					break;
 				case 9:
-					assert (network.getG().getEdgeTarget(e)==8 ||
-							network.getG().getEdgeTarget(e)==10);
+					assert (network.getEdgeTarget(e)==8 ||
+							network.getEdgeTarget(e)==10);
 					break;
 				case 10:
-					assert (network.getG().getEdgeTarget(e)==8 ||
-							network.getG().getEdgeTarget(e)==9 ||
-							network.getG().getEdgeTarget(e)==11 ||
-							network.getG().getEdgeTarget(e)==12);
+					assert (network.getEdgeTarget(e)==8 ||
+							network.getEdgeTarget(e)==9 ||
+							network.getEdgeTarget(e)==11 ||
+							network.getEdgeTarget(e)==12);
 					break;
 				case 11:
-					assert (network.getG().getEdgeTarget(e)==10 ||
-							network.getG().getEdgeTarget(e)==12);
+					assert (network.getEdgeTarget(e)==10 ||
+							network.getEdgeTarget(e)==12);
 					break;
 				case 12:
-					assert (network.getG().getEdgeTarget(e)==10 ||
-							network.getG().getEdgeTarget(e)==11);
+					assert (network.getEdgeTarget(e)==10 ||
+							network.getEdgeTarget(e)==11);
 					break;
 				default: assert false;
 			}
@@ -395,6 +395,50 @@ class graphTest
 		assert neighbors.get(10).size()==4;
 		assert neighbors.get(11).size()==2;
 		assert neighbors.get(12).size()==2;
+	}
+	
+	/**
+	 * Unit test for {@link graph#getEdgeSource(DefaultEdge)}.
+	 *
+	 */
+	@Test
+	void getEdgeSource()
+	{
+		String networkName = "testNetwork";
+		graph network = new graph(networkName);
+		
+		network.addVertex(-1);
+		network.addVertex(10);
+		network.addEdge(-1, 10);
+		List<DefaultEdge> edgeSet = new ArrayList<>(network.getEdgeSet());
+		assert network.getEdgeSource(edgeSet.get(0))==-1;
+		
+		network.addVertex(11);
+		network.addEdge(11, -1);
+		edgeSet = new ArrayList<>(network.getEdgeSet());
+		assert network.getEdgeSource(edgeSet.get(1))==11;
+	}
+	
+	/**
+	 * Unit test for {@link graph#getEdgeTarget(DefaultEdge)}.
+	 *
+	 */
+	@Test
+	void getEdgeTarget()
+	{
+		String networkName = "testNetwork";
+		graph network = new graph(networkName);
+		
+		network.addVertex(-1);
+		network.addVertex(10);
+		network.addEdge(-1, 10);
+		List<DefaultEdge> edgeSet = new ArrayList<>(network.getEdgeSet());
+		assert network.getEdgeTarget(edgeSet.get(0))==10;
+		
+		network.addVertex(11);
+		network.addEdge(11, -1);
+		edgeSet = new ArrayList<>(network.getEdgeSet());
+		assert network.getEdgeTarget(edgeSet.get(1))==-1;
 	}
 	
 	@Test

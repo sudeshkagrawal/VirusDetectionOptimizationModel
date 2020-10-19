@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 /**
  * Represents a network graph.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: October 18, 2020.
+ * Last Updated: October 19, 2020.
  */
 public class graph
 {
@@ -216,6 +216,28 @@ public class graph
 	}
 	
 	/**
+	 * Find the source node of an edge.
+	 *
+	 * @param e an edge in the network.
+	 * @return the source node of the edge.
+	 */
+	public Integer getEdgeSource(DefaultEdge e)
+	{
+		return this.getG().getEdgeSource(e);
+	}
+	
+	/**
+	 * Find the target node of an edge.
+	 *
+	 * @param e an edge in the network.
+	 * @return the target node of the edge.
+	 */
+	public Integer getEdgeTarget(DefaultEdge e)
+	{
+		return this.getG().getEdgeTarget(e);
+	}
+	
+	/**
 	 * Removes self-loops from the graph.
 	 */
 	public void removeSelfLoops()
@@ -242,7 +264,7 @@ public class graph
 	public Map<Pair<Integer, Integer>, Double> findDistancesBetweenNodes()
 	{
 		Map<Pair<Integer, Integer>, Double> output = new HashMap<>();
-		DijkstraManyToManyShortestPaths paths = new DijkstraManyToManyShortestPaths(g);
+		DijkstraManyToManyShortestPaths<Integer, DefaultEdge> paths = new DijkstraManyToManyShortestPaths<>(g);
 		
 		for (Integer source: getVertexSet())
 		{
@@ -275,7 +297,7 @@ public class graph
 	 */
 	public double findDistanceBetweenNodes(int node1, int node2)
 	{
-		DijkstraShortestPath path = new DijkstraShortestPath(g);
+		DijkstraShortestPath<Integer, DefaultEdge> path = new DijkstraShortestPath<>(g);
 		return path.getPathWeight(node1, node2);
 	}
 	
@@ -426,9 +448,9 @@ public class graph
 		while (nodes.size()>0)
 		{
 			int startNode = nodes.get(0);
-			BreadthFirstIterator iter = new BreadthFirstIterator(g, startNode);
+			BreadthFirstIterator<Integer, DefaultEdge> iter = new BreadthFirstIterator<>(g, startNode);
 			List<Integer> connectedComponent = new ArrayList<>();
-			iter.forEachRemaining(e -> connectedComponent.add((Integer) e));
+			iter.forEachRemaining(connectedComponent::add);
 			nodes.removeAll(connectedComponent);
 			connectedComponents.add(connectedComponent);
 		}
