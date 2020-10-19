@@ -12,7 +12,6 @@ import org.jgrapht.generate.CompleteGraphGenerator;
 import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.graph.DefaultUndirectedGraph;
-import org.jgrapht.graph.SimpleGraph;
 import org.jgrapht.traverse.BreadthFirstIterator;
 import org.jgrapht.util.SupplierUtil;
 
@@ -65,59 +64,85 @@ public class graph
 	}
 	
 	/**
-	 * Initialize an empty graph {@code g} with a complete graph of given size.
+	 * Initialize {@link graph#g}, assumed to be empty, with a complete graph of given size.
 	 *
-	 * @param size number of vertices (nodes) in the complete graph.
-	 * @throws Exception thrown if vertex set of {@code g} is not empty.
+	 * @param size number of vertices (nodes) in the complete graph
+	 * @param startingNodeLabel node numbering to start from.
+	 * @throws Exception thrown if {@code size<0},
+	 * or if {@code startingNodeLabel<0},
+	 * or if {@code startingNodeLabel>=size},
+	 * or if vertex set of {@link graph#g} is not empty.
 	 */
-	public void initializeCompleteGraph(int size) throws Exception
+	public void initializeAsCompleteGraph(int size, int startingNodeLabel) throws Exception
 	{
-		if ((!g.vertexSet().isEmpty()) && (g.vertexSet().size()>0))
+		if (size<0)
+			throw new Exception("Size cannot be negative!");
+		if (startingNodeLabel<0)
+			throw new Exception("Node labels should be non-negative integers!");
+		if (startingNodeLabel>=size)
+			throw new Exception("'startingNodeLabel<size' should hold!");
+		if ((!this.g.vertexSet().isEmpty()) && (this.g.vertexSet().size()>0))
 			throw new Exception("Graph is not empty!");
-		else
+		
+		Supplier<Integer> vertexSupplier = new Supplier<>()
 		{
-			Supplier<Integer> vSupplier = new Supplier<>()
+			private int id = startingNodeLabel;
+			
+			@Override
+			public Integer get()
 			{
-				private int id = 0;
-				
-				@Override
-				public Integer get()
-				{
-					return id++;
-				}
-			};
-			this.g = new SimpleGraph<>(vSupplier, SupplierUtil.createDefaultEdgeSupplier(), false);
-			CompleteGraphGenerator<Integer, DefaultEdge> completeGraphGenerator = new CompleteGraphGenerator<>(size);
-			completeGraphGenerator.generateGraph(this.g);
-		}
+				return id++;
+			}
+		};
+		this.g = new DefaultUndirectedGraph<>(vertexSupplier, SupplierUtil.createDefaultEdgeSupplier(),
+				false);
+		CompleteGraphGenerator<Integer, DefaultEdge> completeGraphGenerator =
+				new CompleteGraphGenerator<>(size);
+		completeGraphGenerator.generateGraph(this.g);
 	}
 	
 	/**
-	 * Initialize an empty graph {@code g} with a circulant graph of given size.
+	 * Initialize an empty graph {@link graph#g} with a circulant graph of given size.
+	 * <br>
 	 * A circulant graph is a graph of {@code n (= size)} vertices in which the {@code i}<sup>th</sup> vertex is
 	 * adjacent to the {@code (i+j)}<sup>th</sup> and the {@code (i-j)}<sup>th</sup> vertices for each {@code j} in the
 	 * array offsets.
 	 *
 	 * @param size number of vertices (nodes) in the circulant graph
-	 * @param offsets defines the list of all distances in any edge.
-	 * @throws Exception thrown if vertex set of {@code g} is not empty.
+	 * @param offsets defines the list of all distances in any edge
+	 * @param startingNodeLabel node numbering to start from.
+	 * @throws Exception thrown if {@code size<0},
+	 * or if {@code startingNodeLabel<0},
+	 * or if {@code startingNodeLabel>=size},
+	 * or if vertex set of {@link graph#g} is not empty,
+	 * of if {@code offsets} has invalid values.
 	 */
-	public void initializeCirculantGraph(int size, int[] offsets) throws Exception
+	public void initializeAsCirculantGraph(int size, int[] offsets, int startingNodeLabel) throws Exception
 	{
-		if (g.vertexSet().size()>0)
+		if (size<0)
+			throw new Exception("Size cannot be negative!");
+		if (startingNodeLabel<0)
+			throw new Exception("Node labels should be non-negative integers!");
+		if (startingNodeLabel>=size)
+			throw new Exception("'startingNodeLabel<size' should hold!");
+		if ((!this.g.vertexSet().isEmpty()) && (this.g.vertexSet().size()>0))
 			throw new Exception("Graph is not empty!");
-		else
+		if (Arrays.stream(offsets).min().orElse(1)<0)
+			throw new Exception("Offset values cannot be negative!");
+		if (Arrays.stream(offsets).max().orElse(size-1)>size)
+			throw new Exception("Offset values cannot be larger than size of the network!");
+		
+		// add vertices
+		for (int i=startingNodeLabel; i<(size+startingNodeLabel); i++)
+			this.g.addVertex(i);
+		// add edges
+		for (int i=startingNodeLabel; i<(size+startingNodeLabel); i++)
 		{
-			// add vertices
-			for (int i=0; i<size; i++)
-				g.addVertex(i);
-			// add edges
-			for (int i=0; i<size; i++)
-				for (int offset : offsets)
-				{
-					g.addEdge(i, i - offset >= 0 ? (i - offset) % size : (i - offset + size));
-					g.addEdge(i, (i + offset) % size);
-				}
+			for (int offset : offsets)
+			{
+				this.g.addEdge(i, i-offset>=startingNodeLabel ? i-offset : (i-offset+size));
+				this.g.addEdge(i, i+offset<(size+startingNodeLabel) ? i+offset : (i+offset)%size);
+			}
 		}
 	}
 	
