@@ -1,8 +1,10 @@
+import algorithm.nodeInMaxRowsGreedyHeuristic;
 import dataTypes.parameters;
 import network.graph;
+import optimization.gurobiSolver;
 import org.javatuples.Pair;
 import org.jgrapht.alg.util.Triple;
-import simulation.chooseTimeStep;
+import simulation.simulationRuns;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,154 +26,154 @@ public class run
 		network.changeGraphToLargestConnectedComponent();
 		//network.writeNetworkInfoToCSV(networkInfoFilename, append);
 		
-		// ----------------------------------------------------------------------------------------------------
-		// FIND TIME STEPS
-		String modelNameForTimeSteps = "RA1PC";
-		String timeStepsResultsFilename = outputFolder + "simulation_results_estimating_time_threshold.csv";
-		chooseTimeStep timeStepSimulationResults = new chooseTimeStep();
-		List<parameters> listOfParamsForTimeSteps = new ArrayList<>();
-		double[] percentInfections = {0.1, 0.5, 1, 5};
-		int[] runsForTimeSteps = {50000, 100000};
-		double[] pForTimeSteps = {0.25, 0.5, 0.75, 1};
-		for (double pi: percentInfections)
+//		// ----------------------------------------------------------------------------------------------------
+//		// FIND TIME STEPS
+//		String modelNameForTimeSteps = "RA1PC";
+//		String timeStepsResultsFilename = outputFolder + "simulation_results_estimating_time_threshold.csv";
+//		chooseTimeStep timeStepSimulationResults = new chooseTimeStep();
+//		List<parameters> listOfParamsForTimeSteps = new ArrayList<>();
+//		double[] percentInfections = {0.1, 0.5, 1, 5};
+//		int[] runsForTimeSteps = {50000, 100000};
+//		double[] pForTimeSteps = {0.25, 0.5, 0.75, 1};
+//		for (double pi: percentInfections)
+//		{
+//			for (int reps: runsForTimeSteps)
+//			{
+//				for (double trans: pForTimeSteps)
+//				{
+//					listOfParamsForTimeSteps.add(new parameters(modelNameForTimeSteps, networkName, 3,
+//							reps, 0, trans, 0, pi));
+//				}
+//			}
+//		}
+//		if (modelNameForTimeSteps.equals("TN11C") || modelNameForTimeSteps.equals("TN1PC")
+//				|| modelNameForTimeSteps.equals("RAEPC"))
+//		{
+//			int[]  seedForTimeSteps = {5072, 1012};
+//			timeStepSimulationResults.doSimulationRuns(network, listOfParamsForTimeSteps, seedForTimeSteps);
+//		}
+//		else //if (modelName.equals("RA1PC"))
+//		{
+//			int[] seedForTimeSteps = {5072, 1012, 5673};
+//			timeStepSimulationResults.doSimulationRuns(network, listOfParamsForTimeSteps, seedForTimeSteps);
+//		}
+//		timeStepSimulationResults.writeToCSV(timeStepsResultsFilename, true);
+//		// ----------------------------------------------------------------------------------------------------
+		
+		
+		String modelName = "TN11C";
+		int[] runs = {1000, 5000, 10000, 30000, 50000};
+		int[] t_0 = {4};
+		int[] k = {200};
+		double r = 0.05;
+		double p = 1.0;
+		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
+		//List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
+
+		boolean doNotUseSerialFile = false;
+		boolean doNotUseMIPResultsInCSVFile = false;
+		boolean append = true;
+
+		//String networkInfoFilename = outputFolder + "network_info.csv";
+		String simulationsSerialFilename;
+		String mipLogFilename = outputFolder + modelName + "_mip.log";
+		//String mipFormulationFilename = outputFolder + modelName + "_mip.lp";
+		String mipOutputFilename = outputFolder + "mip_results_"+modelName+".csv";
+		String mipSerialFilename = outputFolder + "mip_results_"+modelName+".ser";
+		String heuristicOutputFilename = outputFolder + "heuristic_results_"+modelName+".csv";
+		String degreeCentralityOutputFilename = outputFolder + "degreeCentrality_results_"+modelName+".csv";
+		String degreeDiscountOutputFilename = outputFolder + "degreeDiscount_results_"+modelName+".csv";
+		String MRPOutputFilename = outputFolder + "heuristic_quality_gap_estimate_"+modelName+".csv";
+		String comparisonOutputFilename = outputFolder + "compare_mip_and_heuristic_"+modelName+".csv";
+		String samplingErrorsAlgoFilename = outputFolder + "heuristic_point_estimates_"+modelName+".csv";
+		String samplingErrorsMIPFilename = outputFolder + "mip_point_estimates_"+modelName+".csv";
+
+		List<parameters> listOfParams = new ArrayList<>();
+		for (int timeStep: t_0)
 		{
-			for (int reps: runsForTimeSteps)
+			for (int numberOfSimulationRepetitions: runs)
 			{
-				for (double trans: pForTimeSteps)
+				for (int numberOfHoneypots: k)
 				{
-					listOfParamsForTimeSteps.add(new parameters(modelNameForTimeSteps, networkName, 3,
-							reps, 0, trans, 0, pi));
+					listOfParams.add(new parameters(modelName, networkName, timeStep, numberOfSimulationRepetitions, r,
+							p, numberOfHoneypots, 0));
 				}
 			}
 		}
-		if (modelNameForTimeSteps.equals("TN11C") || modelNameForTimeSteps.equals("TN1PC")
-				|| modelNameForTimeSteps.equals("RAEPC"))
+
+
+		// Simulations
+		simulationsSerialFilename = outputFolder
+									+ network.getNetworkName()+"_"+modelName+"_simulationresults_fixedt0.ser";
+		simulationRuns simulationResults = new simulationRuns();
+		boolean ranNewSimulations = true;
+		if (modelName.equals("TN11C"))
 		{
-			int[]  seedForTimeSteps = {5072, 1012};
-			timeStepSimulationResults.doSimulationRuns(network, listOfParamsForTimeSteps, seedForTimeSteps);
+			int[]  seed = {2507, 2101, 3567};
+			if (doNotUseSerialFile)
+				simulationResults.simulateTN11CRuns(network, t0_runs, r, seed);
+			else
+			{
+				simulationResults.loadRunsFromFile(simulationsSerialFilename);
+				// Check we have runs for all t0_runs
+				ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, r, seed);
+			}
 		}
-		else //if (modelName.equals("RA1PC"))
+		else
 		{
-			int[] seedForTimeSteps = {5072, 1012, 5673};
-			timeStepSimulationResults.doSimulationRuns(network, listOfParamsForTimeSteps, seedForTimeSteps);
+			if (modelName.equals("RA1PC"))
+			{
+				int[] seed = {2507, 2101, 2101, 3567};
+				if (doNotUseSerialFile)
+					simulationResults.simulateRA1PCRuns(network, t0_runs, r, p, seed);
+				else
+				{
+					simulationResults.loadRunsFromFile(simulationsSerialFilename);
+					// Check we have runs for all t0_runs
+					ranNewSimulations = simulationResults.simulateOnlyNecessaryRA1PCRuns(network, t0_runs, r, p, seed);
+				}
+			}
+			else if (modelName.equals("RAEPC"))
+			{
+				int[]  seed = {2507, 2101, 3567};
+				if (doNotUseSerialFile)
+					simulationResults.simulateRAEPCRuns(network, t0_runs, r, p, seed);
+				else
+				{
+					simulationResults.loadRunsFromFile(simulationsSerialFilename);
+					// Check we have runs for all t0_runs
+					ranNewSimulations = simulationResults.simulateOnlyNecessaryRAEPCRuns(network, t0_runs, r, p, seed);
+				}
+			}
 		}
-		timeStepSimulationResults.writeToCSV(timeStepsResultsFilename, true);
-		// ----------------------------------------------------------------------------------------------------
-		
-		
-//		String modelName = "TN11C";
-//		int[] runs = {1000, 5000, 10000, 30000, 50000};
-//		int[] t_0 = {3};
-//		int[] k = {250};
-//		double r = 0;
-//		double p = 1;
-//		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
-//		//List<Triple<Integer, Integer, Integer>> k_t0_runs = getHoneypotsTimeRunTriplet(runs, t_0, k);
-//
-//		boolean doNotUseSerialFile = false;
-//		boolean doNotUseMIPResultsInCSVFile = false;
-//		boolean append = true;
-//
-//		//String networkInfoFilename = outputFolder + "network_info.csv";
-//		String simulationsSerialFilename;
-//		String mipLogFilename = outputFolder + modelName + "_mip.log";
-//		String mipFormulationFilename = outputFolder + modelName + "_mip.lp";
-//		String mipOutputFilename = outputFolder + "mip_results.csv";
-//		String mipSerialFilename = outputFolder + "mip_results.ser";
-//		String heuristicOutputFilename = outputFolder + "heuristic_results.csv";
-//		String degreeCentralityOutputFilename = outputFolder + "degreeCentrality_results.csv";
-//		String degreeDiscountOutputFilename = outputFolder + "degreeDiscount_results.csv";
-//		String MRPOutputFilename = outputFolder + "heuristic_quality_gap_estimate.csv";
-//		String comparisonOutputFilename = outputFolder + "compare_mip_and_heuristic.csv";
-//		String samplingErrorsAlgoFilename = outputFolder + "heuristic_point_estimates.csv";
-//		String samplingErrorsMIPFilename = outputFolder + "mip_point_estimates.csv";
-//
-//		List<parameters> listOfParams = new ArrayList<>();
-//		for (int timeStep: t_0)
-//		{
-//			for (int numberOfSimulationRepetitions: runs)
-//			{
-//				for (int numberOfHoneypots: k)
-//				{
-//					listOfParams.add(new parameters(modelName, networkName, timeStep, numberOfSimulationRepetitions, r,
-//							p, numberOfHoneypots, 0));
-//				}
-//			}
-//		}
-//
-//
-//		// Simulations
-//		simulationsSerialFilename = outputFolder
-//									+ network.getNetworkName()+"_"+modelName+"_simulationresults_fixedt0.ser";
-//		simulationRuns simulationResults = new simulationRuns();
-//		boolean ranNewSimulations = true;
-//		if (modelName.equals("TN11C"))
-//		{
-//			int[]  seed = {2507, 2101, 3567};
-//			if (doNotUseSerialFile)
-//				simulationResults.simulateTN11CRuns(network, t0_runs, r, seed);
-//			else
-//			{
-//				simulationResults.loadRunsFromFile(simulationsSerialFilename);
-//				// Check we have runs for all t0_runs
-//				ranNewSimulations = simulationResults.simulateOnlyNecessaryTN11CRuns(network, t0_runs, r, seed);
-//			}
-//		}
-//		else
-//		{
-//			if (modelName.equals("RA1PC"))
-//			{
-//				int[] seed = {2507, 2101, 2101, 3567};
-//				if (doNotUseSerialFile)
-//					simulationResults.simulateRA1PCRuns(network, t0_runs, r, p, seed);
-//				else
-//				{
-//					simulationResults.loadRunsFromFile(simulationsSerialFilename);
-//					// Check we have runs for all t0_runs
-//					ranNewSimulations = simulationResults.simulateOnlyNecessaryRA1PCRuns(network, t0_runs, r, p, seed);
-//				}
-//			}
-//			else if (modelName.equals("RAEPC"))
-//			{
-//				int[]  seed = {2507, 2101, 3567};
-//				if (doNotUseSerialFile)
-//					simulationResults.simulateRAEPCRuns(network, t0_runs, r, p, seed);
-//				else
-//				{
-//					simulationResults.loadRunsFromFile(simulationsSerialFilename);
-//					// Check we have runs for all t0_runs
-//					ranNewSimulations = simulationResults.simulateOnlyNecessaryRAEPCRuns(network, t0_runs, r, p, seed);
-//				}
-//			}
-//		}
-//		if (ranNewSimulations)
-//			simulationResults.serializeRuns(simulationsSerialFilename);
-//
-//		// MIP
-//		int threads = 1;
-//		int timeLimit = 3600;
-//		boolean ranNewOptimization = true;
-//		gurobiSolver mipResults = new gurobiSolver();
-//		if (doNotUseMIPResultsInCSVFile)
-//		{
-//			mipResults.solveSAA(network, simulationResults, listOfParams, threads, timeLimit, mipLogFilename);
-//		}
-//		else
-//		{
-//			mipResults.loadResultsFromCSVFile(mipOutputFilename);
-//			ranNewOptimization = mipResults.solveSAAOnlyNecessaryOnes(network, simulationResults, listOfParams,
-//																		threads, timeLimit, mipLogFilename);
-//		}
-//		//System.out.println(mipResults.toString());
-//		if (ranNewOptimization)
-//			mipResults.writeToCSV(mipOutputFilename, append);
-//
-//		// Heuristic
-//		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-//		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
-//		//System.out.println(heuristicResults.toString());
-//		heuristicResults.writeToCSV(heuristicOutputFilename, append);
-//
+		if (ranNewSimulations)
+			simulationResults.serializeRuns(simulationsSerialFilename);
+
+		// MIP
+		int threads = 1;
+		int timeLimit = 3600;
+		boolean ranNewOptimization = true;
+		gurobiSolver mipResults = new gurobiSolver();
+		if (doNotUseMIPResultsInCSVFile)
+		{
+			mipResults.solveSAA(network, simulationResults, listOfParams, threads, timeLimit, mipLogFilename);
+		}
+		else
+		{
+			mipResults.loadResultsFromCSVFile(mipOutputFilename);
+			ranNewOptimization = mipResults.solveSAAOnlyNecessaryOnes(network, simulationResults, listOfParams,
+																		threads, timeLimit, mipLogFilename);
+		}
+		//System.out.println(mipResults.toString());
+		if (ranNewOptimization)
+			mipResults.writeToCSV(mipOutputFilename, append);
+
+		// Heuristic
+		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
+		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
+		//System.out.println(heuristicResults.toString());
+		heuristicResults.writeToCSV(heuristicOutputFilename, append);
+
 //		// Degree centrality
 //		degreeCentrality degreeCentralityResults = new degreeCentrality();
 //		degreeCentralityResults.runSAAUsingKHighestDegreeNodes(network, simulationResults, listOfParams);
@@ -194,7 +196,7 @@ public class run
 //		// McNemar's procedure to compare MIP and greedy heuristic
 //		McNemarsProcedure comparisonResults = new McNemarsProcedure();
 //		comparisonResults.compareMIPAndHeuristic(network, heuristicResults.getOutputMap(),
-//				mipResults.getOutputMap(), 0.05, 10000000);
+//				mipResults.getOutputMap(), 0.05, 2000000);
 //		comparisonResults.writeToCSV(comparisonOutputFilename, append);
 //
 //		// Point estimates and sampling errors

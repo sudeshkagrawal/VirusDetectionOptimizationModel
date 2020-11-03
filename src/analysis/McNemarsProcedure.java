@@ -180,6 +180,7 @@ public class McNemarsProcedure
 		
 		NormalDistribution mynormdist = new NormalDistribution(0, 1);
 		double zValue = mynormdist.inverseCumulativeProbability(1-0.5*alpha);
+		System.out.println("Z-value used in McNemar's procedure = "+zValue);
 		for (parameters param: heuristicOutputs.keySet())
 		{
 			if (!optimizationOutputs.containsKey(param))
@@ -202,19 +203,19 @@ public class McNemarsProcedure
 			t0_runs.add(new Pair<>(t_0, sampleSize));
 			if (modelName.equals("TN11C"))
 			{
-				int[]  seed = {2507+hashcode, 2101+hashcode, 3567+hashcode};
+				int[]  seed = {5072+hashcode, 1012+hashcode, 5673+hashcode};
 				observations.simulateTN11CRuns(g, t0_runs, r, seed);
 			}
 			else
 			{
 				if (modelName.equals("RA1PC"))
 				{
-					int[] seed = {2507+hashcode, 2101+hashcode, 2101+hashcode, 3567+hashcode};
+					int[] seed = {5072+hashcode, 1012+hashcode, 1013+hashcode, 5673+hashcode};
 					observations.simulateRA1PCRuns(g, t0_runs, r, p, seed);
 				}
 				else if (modelName.equals("RAEPC"))
 				{
-					int[]  seed = {2507+hashcode, 2101+hashcode, 3567+hashcode};
+					int[]  seed = {5072+hashcode, 1012+hashcode, 5673+hashcode};
 					observations.simulateRAEPCRuns(g, t0_runs, r, p, seed);
 				}
 			}
@@ -265,9 +266,9 @@ public class McNemarsProcedure
 			double dhat = (table.get("n12")-table.get("n21"))*commonDenominator;
 			double n12term = commonDenominator*table.get("n12");
 			double n21term = commonDenominator*table.get("n21");
-			double sampleVarFirst = n12term*(1-n12term);
-			double sampleVarSecond = n21term*(1-n21term);
-			double sampleVarThird = 2*n12term*n21term;
+			double sampleVarFirst = n12term*(1.0-n12term);
+			double sampleVarSecond = n21term*(1.0-n21term);
+			double sampleVarThird = 2.0*n12term*n21term;
 			double sampleVar = commonDenominator*(sampleVarFirst+sampleVarSecond+sampleVarThird);
 			double sampleStDev = Math.sqrt(sampleVar);
 			double width = zValue * sampleStDev;
