@@ -61,10 +61,10 @@ public class run
 //		// ----------------------------------------------------------------------------------------------------
 		
 		
-		String modelName = "TN11C";
+		String modelName = "RA1PC";
 		int[] runs = {1000, 5000, 10000, 30000, 50000};
-		int[] t_0 = {4};
-		int[] k = {200};
+		int[] t_0 = {3};
+		int[] k = {50};
 		double r = 0.05;
 		double p = 1.0;
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
@@ -80,7 +80,9 @@ public class run
 		//String mipFormulationFilename = outputFolder + modelName + "_mip.lp";
 		String mipOutputFilename = outputFolder + "mip_results_"+modelName+".csv";
 		String mipSerialFilename = outputFolder + "mip_results_"+modelName+".ser";
-		String heuristicOutputFilename = outputFolder + "heuristic_results_"+modelName+".csv";
+		//String heuristicOutputFilename = outputFolder + "heuristic_results_"+modelName+".csv";
+		String heuristicOutputFilename = outputFolder + "heuristic_results_"+modelName+"_t"+t_0[0]+"_p"+(int) (100*p)
+														+"_k"+k[0]+"_r"+(int) (100*r)+".csv";
 		String degreeCentralityOutputFilename = outputFolder + "degreeCentrality_results_"+modelName+".csv";
 		String degreeDiscountOutputFilename = outputFolder + "degreeDiscount_results_"+modelName+".csv";
 		String MRPOutputFilename = outputFolder + "heuristic_quality_gap_estimate_"+modelName+".csv";

@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 /**
  * Represents results of simulation runs.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: October 1, 2020.
+ * Last Updated: November 3, 2020.
  */
 public class simulationRuns
 {
@@ -283,8 +283,8 @@ public class simulationRuns
 	}
 	
 	/**
-	 * Serializes {@code } mapModelNetworkT0RunsFalseNegativeToSimulationRuns}
-	 * and {@code mapModelNetworkT0RunsFalseNegativeToVirtualDetections} as a list of two objects.
+	 * Serializes {@link simulationRuns#mapModelNetworkT0RunsFalseNegativeToSimulationRuns}
+	 * and {@link simulationRuns#mapModelNetworkT0RunsFalseNegativeToVirtualDetections} as a list of two objects.
 	 *
 	 * @param serialFilename path of the file where the serialized object is to be stored.
 	 */
