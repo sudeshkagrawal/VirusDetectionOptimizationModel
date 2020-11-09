@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * </p>
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: October 1, 2020.
+ * Last Updated: November 8, 2020.
  */
 public class multipleReplicationsProcedure
 {
@@ -199,6 +199,7 @@ public class multipleReplicationsProcedure
 			List<Double> gaps = new ArrayList<>(replicationSize);
 			for (int i=1; i<=replicationSize; i++)
 			{
+				System.out.println("--------- Start of replication "+i+"---------");
 				int newHashCode = hashCode+i;
 				// sample iid observations of size sampleSize
 				simulationRuns observations = new simulationRuns();
@@ -283,6 +284,7 @@ public class multipleReplicationsProcedure
 				double gap = algoResults.getOutputMap().get(newKey).getObjectiveValue()
 								- candidateObjective;
 				gaps.add(gap);
+				System.out.println("--------- End of replication "+i+"---------");
 			}
 			
 			// calculate gap point estimate

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: October 2, 2020.
+ * Last Updated: November 5, 2020.
  */
 public class gurobiSolver
 {
@@ -244,6 +244,7 @@ public class gurobiSolver
 			for (int node: candidates)
 				x.put(node, model.addVar(0, 1, 0, GRB.BINARY, "x_" + node));
 			Map<Integer, GRBVar> u = new HashMap<>(run);
+			// u can be relaxed to GRB.CONTINUOUS
 			for (int i=0; i<run; i++)
 				u.put(i+1, model.addVar(0, 1, 0, GRB.BINARY, "u_" + (i+1)));
 			
