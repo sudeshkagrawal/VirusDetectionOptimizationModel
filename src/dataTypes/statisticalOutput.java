@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Represents output (mean, CI width, etc.) of a statistical analysis.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 24, 2020.
+ * Last Updated: November 14, 2020.
  */
 public class statisticalOutput
 {
@@ -44,7 +44,7 @@ public class statisticalOutput
 	 * @param alpha alpha value used to generate {@code CIWidth}
 	 * @param CIWidth width of confidence interval
 	 * @param sampleSize sample size
-	 * @param replicationSize replication size
+	 * @param replicationSize replication size.
 	 */
 	public statisticalOutput(double mean, double stDev, double alpha, double CIWidth,
 	                         int sampleSize, int replicationSize)
