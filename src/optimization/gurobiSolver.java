@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class gurobiSolver
 {
 	/**
-	 * A map from {@code parameters} to {@code solverOutput}.
+	 * A map from {@link dataTypes.parameters} to {@link dataTypes.solverOutput}.
 	 * Basically, stores the outputs for different input parameters.
 	 * <p>
 	 *     Parameters: (model (TN11C, RAEPC, etc.), network name, time step, repetitions,
@@ -36,13 +36,19 @@ public class gurobiSolver
 	Map<parameters, solverOutput> outputMap;
 	
 	/**
+	 * A map from {@link dataTypes.parameters} to a string representing UTC time.
+	 */
+	Map<parameters, String> mapParamsToUTC;
+	
+	/**
 	 * Constructor.
 	 *
-	 * @param outputMap a map from {@code parameters} to {@code solverOutput}.
+	 * @param outputMap a map from {@link dataTypes.parameters} to {@link dataTypes.solverOutput}.
 	 */
 	public gurobiSolver(Map<parameters, solverOutput> outputMap)
 	{
 		this.outputMap = outputMap;
+		this.mapParamsToUTC = new HashMap<>();
 	}
 	
 	/**
@@ -54,13 +60,35 @@ public class gurobiSolver
 	}
 	
 	/**
+	 * Constructor.
+	 *
+	 * @param outputMap a map from {@link dataTypes.parameters} to {@link dataTypes.solverOutput}
+	 * @param UTCMap a map from {@link dataTypes.parameters} to a string representing UTC time.
+	 */
+	public gurobiSolver(Map<parameters, solverOutput> outputMap, Map<parameters, String> UTCMap)
+	{
+		this.outputMap = outputMap;
+		this.mapParamsToUTC = UTCMap;
+	}
+	
+	/**
 	 * Getter.
 	 *
-	 * @return {@code outputMap}.
+	 * @return {@link gurobiSolver#outputMap}.
 	 */
 	public Map<parameters, solverOutput> getOutputMap()
 	{
 		return outputMap;
+	}
+	
+	/**
+	 * Getter.
+	 *
+	 * @return {@link gurobiSolver#mapParamsToUTC}.
+	 */
+	public Map<parameters, String> getMapParamsToUTC()
+	{
+		return mapParamsToUTC;
 	}
 	
 	/**
@@ -82,6 +110,7 @@ public class gurobiSolver
 			str.append("\n\t\t wall time (second) = ").append(e.getValue().getWallTimeInSeconds());
 			str.append("\n\t\t solver options used:\n\t\t\t").append(e.getValue().getSolverOptionsUsed());
 			str.append("\n\t\t solver message:\n\t\t\t").append(e.getValue().getSolverMessage());
+			str.append("\n\t\t UTC:\n\t\t\t").append(mapParamsToUTC.get(e.getKey()));
 			str.append("\n\t>");
 		}
 		return str.toString();
@@ -130,7 +159,15 @@ public class gurobiSolver
 			line[11] = e.getValue().getSolverMessage();
 			line[12] = e.getValue().getHoneypots().toString();
 			line[13] = String.valueOf(e.getValue().getWallTimeInSeconds());
-			line[14] = now;
+			if (mapParamsToUTC.containsKey(e.getKey()))
+			{
+				line[14] = mapParamsToUTC.get(e.getKey());
+			}
+			else
+			{
+				line[14] = now;
+				mapParamsToUTC.put(e.getKey(), now);
+			}
 			writer.writeNext(line);
 		}
 		writer.flush();
@@ -450,12 +487,14 @@ public class gurobiSolver
 						{
 							outputMap.put(param, output);
 							timeRecordOfRows.put(param, timeStamp);
+							mapParamsToUTC.put(param, timeStamp.toString());
 						}
 					}
 					else
 					{
 						outputMap.put(param, output);
 						timeRecordOfRows.put(param, timeStamp);
+						mapParamsToUTC.put(param, timeStamp.toString());
 						System.out.println("Using MIP results in \""+filename+"\" for "+param.toString());
 					}
 					
