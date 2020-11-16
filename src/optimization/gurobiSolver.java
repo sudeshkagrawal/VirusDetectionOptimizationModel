@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: November 5, 2020.
+ * Last Updated: November 16, 2020.
  */
 public class gurobiSolver
 {
@@ -394,7 +394,7 @@ public class gurobiSolver
 	}
 	
 	/**
-	 * Loads results created using {@code writeToCSV} from previous run(s).
+	 * Loads results created using {@link gurobiSolver#writeToCSV(String, boolean)} from previous run(s).
 	 *
 	 * @param filename path of the file where results from previous run(s) are stored.
 	 */
@@ -427,11 +427,13 @@ public class gurobiSolver
 					Map<String, String> solverOptions;
 					String solverOptionsAsString = data[8].substring(1);
 					String[] tokens = solverOptionsAsString
+										.replaceAll("\\s","")
+										.replaceAll("}", "")
 										.substring(1).split(",");
+					
 					solverOptions = Arrays.stream(tokens).map(token -> token.split("="))
 									.collect(Collectors
 									.toMap(innerTokens -> innerTokens[0], innerTokens -> innerTokens[1], (a, b) -> b));
-					
 					String[] tokens2AsString = data[12].substring(2, data[12].length()-1).split(",");
 					List<Integer> honeypots = Arrays.stream(tokens2AsString)
 												.map(s -> Integer.parseInt(s.trim()))
