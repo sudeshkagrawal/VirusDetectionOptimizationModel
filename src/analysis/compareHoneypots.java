@@ -27,7 +27,7 @@ public class compareHoneypots
 {
 	/**
 	 * A map from a {@code Triplet} of a pair of {@link parameters} and the out-of-sample size to evolve the two sets of
-	 * honeypots on, to objective values of the two sets of honeypots evaluated on this test sample.
+	 * honeypots on, to the objective function values of the two sets of honeypots evaluated on this test sample.
 	 */
 	Map<Triplet<parameters, parameters, Integer>, Pair<Double, Double>> mapParamsPairToObjectiveValues;
 	
@@ -70,14 +70,17 @@ public class compareHoneypots
 	public String toString()
 	{
 		final StringBuilder sb = new StringBuilder("Compare Honeypots:");
+		int count = 1;
 		for (Map.Entry<Triplet<parameters, parameters, Integer>,
 				Pair<Double, Double>> e: mapParamsPairToObjectiveValues.entrySet())
 		{
-			sb.append("\n\t<Parameter 1 - \n\t\t").append(e.getKey().getValue0().toString()).append(", ");
-			sb.append("\n\t Parameter 2 - \n\t\t").append(e.getKey().getValue1().toString()).append(", ");
-			sb.append("\n\t Test Sample Size = ").append(e.getKey().getValue2()).append(">, ");
-			sb.append("\n\t<Objective Value for Parameter 1 = ").append(e.getValue().getValue0()).append(", ");
-			sb.append("\n\t<Objective Value for Parameter 2 = ").append(e.getValue().getValue1()).append(">.");
+			sb.append("\n\tEntry ").append(count);
+			sb.append("\n\t\t<Parameter 1 - \n\t\t\t").append(e.getKey().getValue0().toString()).append(", ");
+			sb.append("\n\t\t Parameter 2 - \n\t\t\t").append(e.getKey().getValue1().toString()).append(", ");
+			sb.append("\n\t\t Test Sample Size = ").append(e.getKey().getValue2()).append(">, ");
+			sb.append("\n\t\t<Objective Value for Parameter 1 = ").append(e.getValue().getValue0()).append(", ");
+			sb.append("\n\t\t Objective Value for Parameter 2 = ").append(e.getValue().getValue1()).append(">.");
+			count++;
 		}
 		return sb.toString();
 	}

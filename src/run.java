@@ -219,8 +219,8 @@ public class run
 		boolean compareAppend = true;
 		int[] compareRuns = {50000};
 		int[] compareT0s= {3};
-		int[] compareKs = {50, 100, 200};
-		double[] compareRs = {0.05, 0.1};
+		int[] compareKs = {50, 100};
+		double[] compareRs = {0.05};
 		double compareP = 0.75;
 		List<Pair<parameters, parameters>> compareParams = new ArrayList<>();
 		
@@ -232,8 +232,10 @@ public class run
 				{
 					for (double compareR: compareRs)
 					{
-						parameters param1 = new parameters(compareModelName, networkName, compareT0, compareRun, 0, compareP, compareK, 0.0);
-						parameters param2 = new parameters(compareModelName, networkName, compareT0, compareRun, compareR, compareP, compareK, 0.0);
+						parameters param1 = new parameters(compareModelName, networkName, compareT0,
+												compareRun, 0, compareP, compareK, 0.0);
+						parameters param2 = new parameters(compareModelName, networkName, compareT0,
+												compareRun, compareR, compareP, compareK, 0.0);
 						compareParams.add(new Pair<>(param1, param2));
 					}
 				}
@@ -242,7 +244,8 @@ public class run
 		
 		compareHoneypots costOfFNModel = new compareHoneypots();
 		costOfFNModel.evaluateHoneypotsOnFalseNegativeModel(network, compareParams, outSampleSize);
-		costOfFNModel.writeToCSV(costOfFNModelFilename, compareAppend);
+		//costOfFNModel.writeToCSV(costOfFNModelFilename, compareAppend);
+		System.out.println(costOfFNModel.toString());
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)
