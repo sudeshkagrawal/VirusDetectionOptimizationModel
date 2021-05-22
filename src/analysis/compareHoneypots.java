@@ -16,12 +16,13 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Compares two sets of honeypot solutions on a larger independent sample.
  *
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: February 11, 2021.
+ * Last Updated: February 16, 2021.
  */
 public class compareHoneypots
 {
@@ -32,20 +33,30 @@ public class compareHoneypots
 	Map<Triplet<parameters, parameters, Integer>, Pair<Double, Double>> mapParamsPairToObjectiveValues;
 	
 	/**
+	 * A map from a {@code Triplet} of a pair of {@link parameters} and the out-of-sample size to evolve the two sets of
+	 * honeypots on, to the semi-hamming distance.
+	 */
+	Map<Triplet<parameters, parameters, Integer>, Integer> mapParamsPairToSemiHammingDistance;
+	
+	/**
 	 * Constructor.
 	 */
 	public compareHoneypots()
 	{
-		this(new HashMap<>());
+		this.mapParamsPairToObjectiveValues = new HashMap<>();
+		this.mapParamsPairToSemiHammingDistance = new HashMap<>();
 	}
 	
 	/**
 	 * Constructor.
 	 *
-	 * @param mapParamsPairToObjectiveValues an instance of {@link compareHoneypots#mapParamsPairToObjectiveValues}.
+	 * @param mapParamsPairToObjectiveValues an instance of {@link compareHoneypots#mapParamsPairToObjectiveValues}
+	 * @param mapParamsPairToSemiHammingDistance an instance of
+	 *  {@link compareHoneypots#mapParamsPairToSemiHammingDistance}.
 	 */
 	public compareHoneypots(Map<Triplet<parameters, parameters, Integer>,
-							Pair<Double, Double>> mapParamsPairToObjectiveValues)
+							Pair<Double, Double>> mapParamsPairToObjectiveValues,
+	                        Map<Triplet<parameters, parameters, Integer>, Integer> mapParamsPairToSemiHammingDistance)
 	{
 		this.mapParamsPairToObjectiveValues = mapParamsPairToObjectiveValues;
 	}
@@ -59,6 +70,16 @@ public class compareHoneypots
 				Pair<Double, Double>> getMapParamsPairToObjectiveValues()
 	{
 		return mapParamsPairToObjectiveValues;
+	}
+	
+	/**
+	 * Getter.
+	 *
+	 * @return the instance of {@link compareHoneypots#mapParamsPairToSemiHammingDistance}.
+	 */
+	public Map<Triplet<parameters, parameters, Integer>, Integer> getMapParamsPairToSemiHammingDistance()
+	{
+		return mapParamsPairToSemiHammingDistance;
 	}
 	
 	/**
@@ -79,7 +100,9 @@ public class compareHoneypots
 			sb.append("\n\t\t Parameter 2 - \n\t\t\t").append(e.getKey().getValue1().toString()).append(", ");
 			sb.append("\n\t\t Test Sample Size = ").append(e.getKey().getValue2()).append(">, ");
 			sb.append("\n\t\t<Objective Value for Parameter 1 = ").append(e.getValue().getValue0()).append(", ");
-			sb.append("\n\t\t Objective Value for Parameter 2 = ").append(e.getValue().getValue1()).append(">.");
+			sb.append("\n\t\t Objective Value for Parameter 2 = ").append(e.getValue().getValue1()).append(", ");
+			sb.append("\n\t\t Semi-hamming distance = ")
+						.append(this.mapParamsPairToSemiHammingDistance.get(e.getKey())).append(">.");
 			count++;
 		}
 		return sb.toString();
@@ -112,7 +135,6 @@ public class compareHoneypots
 			
 			String spreadModelName1 = cparam.getValue0().getSpreadModelName();
 			String spreadModelName2 = cparam.getValue1().getSpreadModelName();
-			
 			String networkName1 = cparam.getValue0().getNetworkName();
 			String networkName2 = cparam.getValue1().getNetworkName();
 			int timeStep1 = cparam.getValue0().getTimeStep();
@@ -151,7 +173,7 @@ public class compareHoneypots
 					numberOfSimulationRepetitions1, falseNegativeProbability2, transmissability1,
 					numberOfHoneypots1, 0);
 			
-			// for each tuple of parameters generate samples
+			// for each pair of parameters generate samples
 			Pair<Integer, Integer> t0_run1 = new Pair<>(timeStep1, numberOfSimulationRepetitions1);
 			Pair<Integer, Integer> t0_run2 = new Pair<>(timeStep2, numberOfSimulationRepetitions2);
 			Pair<Integer, Integer> t0_run = new Pair<>(timeStep1, outSampleSize);
@@ -261,15 +283,44 @@ public class compareHoneypots
 			double candidateObjective1 = frequency1*1.0/outSampleSize;
 			double candidateObjective2 = frequency2*1.0/outSampleSize;
 			
-			mapParamsPairToObjectiveValues.put(new Triplet<>(cparam.getValue0(), cparam.getValue1(),
-							outSampleSize), new Pair<>(candidateObjective1, candidateObjective2));
+			Triplet<parameters, parameters, Integer> key = new Triplet<>(cparam.getValue0(), cparam.getValue1(),
+																			outSampleSize);
+			mapParamsPairToObjectiveValues.put(key, new Pair<>(candidateObjective1, candidateObjective2));
+			
+			// find the semi-hamming distance
+			int semiHammingDistance = getSemiHammingDistance(g, honeypots1, honeypots2);
+			mapParamsPairToSemiHammingDistance.put(key, semiHammingDistance);
 		}
 		
 	}
 	
 	/**
+	 * This method returns half of the hamming distance between the two sets of honeypots.
+	 *
+	 * @param g network graph
+	 * @param honeypots1 the first set of honeypots
+	 * @param honeypots2 the second set of honeypots.
+	 * @return half of the hamming distance between the two sets.
+	 */
+	private int getSemiHammingDistance(graph g, List<Integer> honeypots1, List<Integer> honeypots2)
+	{
+		int numberOfNodes = g.getVertexSet().size();
+		List<Integer> vertices = new ArrayList<>(g.getVertexSet());
+		List<Integer> binaryCandidates1 = IntStream.range(0, numberOfNodes)
+				.mapToObj(i -> honeypots1.contains(vertices.get(i)) ? 1 : 0)
+				.collect(Collectors.toCollection(() -> new ArrayList<>(numberOfNodes)));
+		List<Integer> binaryCandidates2 = IntStream.range(0, numberOfNodes)
+				.mapToObj(i -> honeypots2.contains(vertices.get(i)) ? 1 : 0)
+				.collect(Collectors.toCollection(() -> new ArrayList<>(numberOfNodes)));
+		int hammingDistance = (int) IntStream.range(0, numberOfNodes)
+				.filter(i -> binaryCandidates1.get(i) != binaryCandidates2.get(i)).count();
+		return (int) (0.5*hammingDistance);
+	}
+	
+	/**
 	 * Writes results of {@link compareHoneypots#evaluateHoneypotsOnFalseNegativeModel(graph, List, int)}
-	 * stored in {@link compareHoneypots#mapParamsPairToObjectiveValues} to csv file.
+	 * stored in {@link compareHoneypots#mapParamsPairToObjectiveValues}
+	 * and {@link compareHoneypots#mapParamsPairToSemiHammingDistance} to csv file.
 	 *
 	 * @param filename path to output file
 	 * @param append {@code true}, if you wish to append to existing file; {@code false}, otherwise.
@@ -281,7 +332,7 @@ public class compareHoneypots
 		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "transmissability (p)",
 							"no. of honeypots", "FN probability 1", "FN probability 2",  "test sample size",
 							"objective for model with FN 1", "objective for model with FN 2",
-							"difference (FN1-FN2)", "UTC"};
+							"difference (FN1-FN2)", "semi-hamming dist.", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -297,7 +348,7 @@ public class compareHoneypots
 		for (Map.Entry<Triplet<parameters, parameters, Integer>,
 				Pair<Double, Double>> e: mapParamsPairToObjectiveValues.entrySet())
 		{
-			String[] line = new String[13];
+			String[] line = new String[14];
 			line[0] = e.getKey().getValue0().getSpreadModelName();
 			line[1] = e.getKey().getValue0().getNetworkName();
 			line[2] = String.valueOf(e.getKey().getValue0().getTimeStep());
@@ -310,7 +361,8 @@ public class compareHoneypots
 			line[9] = String.valueOf(e.getValue().getValue0());
 			line[10] = String.valueOf(e.getValue().getValue1());
 			line[11] = String.valueOf(e.getValue().getValue0()-e.getValue().getValue1());
-			line[12] = now;
+			line[12] = String.valueOf(this.mapParamsPairToSemiHammingDistance.get(e.getKey()));
+			line[13] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();

@@ -14,7 +14,7 @@ public class run
 	public static void main(String[] args) throws Exception
 	{
 		String outputFolder = "./out/production/VirusDetectionOptimizationModel/";
-		String networkName = "EUemailcomm_6-core";
+		String networkName = "EUemailcomm_35-core";
 		String separator = ",";
 		
 		// Read Network
@@ -61,9 +61,9 @@ public class run
 		
 		String modelName = "RA1PC";
 		int[] runs = {1000, 5000, 10000, 30000, 50000};
-		int[] t_0 = {3};
+		int[] t_0 = {2};
 		//int[] k = {5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200};
-		int[] k = {50, 100, 200};
+		int[] k = {25, 50, 100};
 		double r = 0.0;
 		double p = 0.75;
 		List<Pair<Integer, Integer>> t0_runs = getTimeRunPair(runs, t_0);
@@ -213,16 +213,19 @@ public class run
 //		statisticalEstimates.writeToCSV(samplingErrorsMIPFilename, append);
 	
 		// Cost of modeling false negative
-		int outSampleSize = 1000000;
+		int outSampleSize = 5000000;
 		String compareModelName = "RA1PC";
-		String costOfFNModelFilename = outputFolder + "cost_of_FNmodel_"+compareModelName+".csv";
 		boolean compareAppend = true;
 		int[] compareRuns = {50000};
 		int[] compareT0s= {3};
-		int[] compareKs = {50, 100};
-		double[] compareRs = {0.05};
-		double compareP = 0.75;
+		//int[] compareKs = {100, 200, 250};
+		int[] compareKs = {25, 50, 100};
+		double[] compareRs = {0.05, 0.1, 0.25, 0.3, 0.4, 0.5};
+		//double[] compareRs = {0.05};
+		double compareP = 0.5;
 		List<Pair<parameters, parameters>> compareParams = new ArrayList<>();
+		
+		
 		
 		for (int compareRun: compareRuns)
 		{
@@ -242,10 +245,12 @@ public class run
 			}
 		}
 		
+		String costOfFNModelFilename = outputFolder + "cost_of_FNmodel_"+networkName+"_"+compareModelName+".csv";
+		//String costOfFNModelFilename = outputFolder + "cost_of_FNmodel_"+networkName+"_"
+		//								+compareModelName+"_varyHoneypots_R5_P50.csv";
 		compareHoneypots costOfFNModel = new compareHoneypots();
 		costOfFNModel.evaluateHoneypotsOnFalseNegativeModel(network, compareParams, outSampleSize);
-		//costOfFNModel.writeToCSV(costOfFNModelFilename, compareAppend);
-		System.out.println(costOfFNModel.toString());
+		costOfFNModel.writeToCSV(costOfFNModelFilename, compareAppend);
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)
