@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Represents results of MIP on {@code simulationRuns} using the Gurobi solver.
  * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: November 16, 2020.
+ * Last Updated: May 22, 2020.
  */
 public class gurobiSolver
 {
@@ -195,7 +195,7 @@ public class gurobiSolver
 		}
 		writer.flush();
 		writer.close();
-		System.out.println("MIP results successfully written to \""+filename+"\".");
+		System.out.println("Optimization results successfully written to \""+filename+"\".");
 	}
 	
 	/**
@@ -451,6 +451,208 @@ public class gurobiSolver
 			ranNewSimulations = true;
 		}
 		return ranNewSimulations;
+	}
+	
+	public void solveSAALPRelaxation(graph g, simulationRuns simulationResults, List<parameters> listOfParams,
+	                                 int threads, int timeLimit, String logFilename) throws Exception
+	{
+		if (g.hasSelfLoops())
+			throw new Exception("Graphs has self-loops!");
+		final int n = g.getVertexSet().size();
+		
+		// minimum label of vertex
+		boolean zeroNode = false;
+		int minNode = g.findMinimumNodeLabel();
+		if (minNode==0)
+			zeroNode = true;
+		else
+		{
+			if (minNode<0)
+				throw new Exception("Node labels are negative integers!");
+		}
+		
+		// Create empty environment, set options, and start
+		GRBEnv env = new GRBEnv(true);
+		env.set("logFile", logFilename);
+		env.set(GRB.IntParam.LogToConsole, 0);
+		// OutputFlag turns on/off both console and log file output
+		// env.set(GRB.IntParam.valueOf("OutputFlag"), 0);
+		env.start();
+		
+		for (parameters param: listOfParams)
+		{
+			String modelName = param.getSpreadModelName();
+			String networkName = param.getNetworkName();
+			if (!networkName.equals(g.getNetworkName()))
+				throw new Exception("Parameters are for a different network than that has been provided as input!");
+			int k = param.getNumberOfHoneypots();
+			if (k>g.getVertexSet().size())
+				throw new Exception("Number of honeypots cannot be greater than the number of nodes!");
+			int t_0 = param.getTimeStep();
+			int run = param.getNumberOfSimulationRepetitions();
+			double r = param.getFalseNegativeProbability();
+			double p = param.getTransmissability();
+			
+			Sextet<String, String, Integer, Integer, Double, Double> key =
+					new Sextet<>(modelName, networkName, t_0, run, r, p);
+			System.out.println("Solving LP Relaxation: "+modelName+" spread model on "+networkName
+					+"network; "+k+" honeypots; "+t_0+" time step(s); "
+					+run+" samples; false negative probability="+r+"; transmissability (p)="+p);
+			List<List<Integer>> virusSpreadSamples =
+					simulationResults.getMapModelNetworkT0RunsFalseNegativeToSimulationRuns().get(key);
+			List<List<Integer>> virtualDetectionSamples =
+					simulationResults.getMapModelNetworkT0RunsFalseNegativeToVirtualDetections().get(key);
+			// System.out.println("Virus spread samples:\n"+virusSpreadSamples+"\n"+virtualDetectionSamples);
+			List<List<Integer>> successfulDetectMatrix;
+			Set<Integer> candidates;
+			if (r>0)
+			{
+				if (zeroNode)
+				{
+					List<List<Integer>> newVirusSpreadSamples = virusSpreadSamples.stream()
+							.map(virusSpreadSample -> virusSpreadSample.stream()
+									.map(integer -> integer + 1)
+									.collect(Collectors.toCollection(() -> new ArrayList<>(t_0 + 1))))
+							.collect(Collectors.toCollection(() -> new ArrayList<>(run)));
+					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(Collections
+									.unmodifiableList(newVirusSpreadSamples),
+							Collections.unmodifiableList(virtualDetectionSamples));
+					candidates = g.getVertexSet().stream().map(e -> e+1).collect(Collectors.toSet());
+				}
+				else
+				{
+					successfulDetectMatrix = commonMethods.elementwiseMultiplyMatrix(
+							Collections.unmodifiableList(virusSpreadSamples),
+							Collections.unmodifiableList(virtualDetectionSamples));
+					candidates = new HashSet<>(g.getVertexSet());
+				}
+			}
+			else
+			{
+				successfulDetectMatrix = new ArrayList<>(virusSpreadSamples);
+				candidates = new HashSet<>(g.getVertexSet());
+			}
+			
+			// Create empty model
+			GRBModel model = new GRBModel(env);
+			
+			// Create variables
+			Map<Integer, GRBVar> x = new HashMap<>(n);
+			for (int node: candidates)
+				x.put(node, model.addVar(0, 1, 0, GRB.CONTINUOUS, "x_" + node));
+			Map<Integer, GRBVar> u = new HashMap<>(run);
+			// u can be relaxed to GRB.CONTINUOUS
+			for (int i=0; i<run; i++)
+				u.put(i+1, model.addVar(0, 1, 0, GRB.CONTINUOUS, "u_" + (i+1)));
+			
+			// Create Objective
+			GRBLinExpr obj = new GRBLinExpr();
+			final double objCoefficient = 1.0/run;
+			for (int i=0; i<run; i++)
+				obj.addTerm(objCoefficient, u.get(i + 1));
+			model.setObjective(obj, GRB.MAXIMIZE);
+			
+			// Create Constraints
+			GRBLinExpr expr;
+			// honeypot in sample constraint
+			for (int i=0; i<run; i++)
+			{
+				expr  = new GRBLinExpr();
+				expr.addTerm(-1, u.get(i+1));
+				for (int node : candidates)
+					if (successfulDetectMatrix.get(i).contains(node))
+						expr.addTerm(1, x.get(node));
+				model.addConstr(expr, GRB.GREATER_EQUAL, 0, "Honeypot in sample "+(i+1)+" constraint");
+			}
+			
+			// honeypot budget constraint
+			expr  = new GRBLinExpr();
+			for (int node : candidates)
+				expr.addTerm(1.0, x.get(node));
+			model.addConstr(expr, GRB.EQUAL, k, "Honeypot budget constraint");
+			
+			// Solve the model
+			double intFeasTol = 1e-9, mipGap = 1e-2;
+			int presolve=-1;
+			// model.set(GRB.DoubleParam.IntFeasTol, intFeasTol);
+			// model.set(GRB.DoubleParam.MIPGap, mipGap);
+			model.set(GRB.IntParam.Threads, threads);
+			// Presolve: -1 is automatic; 0 is off; 1 is conservative; 2 is aggressive
+			model.set(GRB.IntParam.Presolve, presolve);
+			model.set(GRB.DoubleParam.TimeLimit, timeLimit);
+			
+			// model.write("mip.lp");
+			model.optimize();
+			
+			// Display/Return the results
+			solverOutput currOutput = new solverOutput();
+			currOutput.setObjectiveValue(model.get(GRB.DoubleAttr.ObjVal));
+			currOutput.setBestUB(model.get(GRB.DoubleAttr.ObjBound));
+			currOutput.setWallTimeInSeconds(model.get(GRB.DoubleAttr.Runtime));
+			
+			List<Integer> honeypots = new ArrayList<>();
+			for (int node : candidates)
+			{
+				//System.out.println("x value for node "+node+"= "+);
+				if (x.get(node).get(GRB.DoubleAttr.X)>0)
+					honeypots.add(node);
+			}
+			if ((r>0) && (zeroNode))
+				honeypots = honeypots.stream().map(e -> e - 1).collect(Collectors.toList());
+			currOutput.setHoneypots(honeypots);
+			currOutput.getSolverOptionsUsed().put("IntFeasTol", String.valueOf(intFeasTol));
+			currOutput.getSolverOptionsUsed().put("MIPGap", String.valueOf(mipGap));
+			currOutput.getSolverOptionsUsed().put("threads", String.valueOf(threads));
+			currOutput.getSolverOptionsUsed().put("Presolve", String.valueOf(presolve));
+			currOutput.getSolverOptionsUsed().put("TimeLimit", String.valueOf(timeLimit));
+			
+			// https://www.gurobi.com/documentation/9.0/refman/optimization_status_codes.html
+			switch (model.get(GRB.IntAttr.Status))
+			{
+				case 1 -> currOutput.setSolverMessage(
+						"Loaded: Model is loaded, but no solution info is available.");
+				case 2 -> currOutput.setSolverMessage(
+						"Optimal: Model was solved to optimality (subject to tolerances).");
+				case 3 -> currOutput.setSolverMessage("Infeasible: Model was proven to be infeasible.");
+				case 4 -> currOutput.setSolverMessage(
+						"Infeasible or Unbounded: Model was proven to be either infeasible or unbounded.");
+				case 5 -> currOutput.setSolverMessage("Unbounded: Model was proven to be unbounded.");
+				case 7 -> currOutput.setSolverMessage("Simplex Iteration Limit or Barrier Iteration Limit");
+				case 9 -> currOutput.setSolverMessage("Time Limit");
+				case 13 -> currOutput.setSolverMessage("Suboptimal");
+				case 14 -> currOutput.setSolverMessage("In progress");
+				case 6, 8, 10, 11, 12, 15 -> currOutput.setSolverMessage("Others");
+				default -> throw new IllegalStateException("Unexpected value: " + model.get(GRB.IntAttr.Status));
+			}
+			
+			// find average run time over several optimization calls
+			List<Double> wallTimes = new ArrayList<>(5);
+			double currentWallTime = model.get(GRB.DoubleAttr.Runtime);
+			wallTimes.add(currentWallTime);
+			int timerRepeat = 0;
+			if (currentWallTime <= 1)
+				timerRepeat = 5;
+			else if (currentWallTime <= 10)
+				timerRepeat = 3;
+			for (int i=1; i<=timerRepeat; i++)
+			{
+				// reset the value of variables
+				model.reset(0);
+				model.optimize();
+				// System.out.println("Last Objective Value = "+model.get(GRB.DoubleAttr.ObjVal));
+				wallTimes.add(model.get(GRB.DoubleAttr.Runtime));
+				
+			}
+			//System.out.println("Wall Times (s): "+wallTimes.toString());
+			currOutput.setWallTimeInSeconds(wallTimes.stream().mapToDouble(e -> e).average().getAsDouble());
+			
+			System.out.println("Objective value = "+currOutput.getObjectiveValue());
+			System.out.println("Wall time (second) = "+currOutput.getWallTimeInSeconds());
+			outputMap.put(param, currOutput);
+			
+			model.dispose();
+		}
+		env.dispose();
 	}
 	
 	/**
