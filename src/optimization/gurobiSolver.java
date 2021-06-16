@@ -625,26 +625,26 @@ public class gurobiSolver
 				default -> throw new IllegalStateException("Unexpected value: " + model.get(GRB.IntAttr.Status));
 			}
 			
-			// find average run time over several optimization calls
-			List<Double> wallTimes = new ArrayList<>(5);
-			double currentWallTime = model.get(GRB.DoubleAttr.Runtime);
-			wallTimes.add(currentWallTime);
-			int timerRepeat = 0;
-			if (currentWallTime <= 1)
-				timerRepeat = 5;
-			else if (currentWallTime <= 10)
-				timerRepeat = 3;
-			for (int i=1; i<=timerRepeat; i++)
-			{
-				// reset the value of variables
-				model.reset(0);
-				model.optimize();
-				// System.out.println("Last Objective Value = "+model.get(GRB.DoubleAttr.ObjVal));
-				wallTimes.add(model.get(GRB.DoubleAttr.Runtime));
-				
-			}
-			//System.out.println("Wall Times (s): "+wallTimes.toString());
-			currOutput.setWallTimeInSeconds(wallTimes.stream().mapToDouble(e -> e).average().getAsDouble());
+//			// find average run time over several optimization calls
+//			List<Double> wallTimes = new ArrayList<>(5);
+//			double currentWallTime = model.get(GRB.DoubleAttr.Runtime);
+//			wallTimes.add(currentWallTime);
+//			int timerRepeat = 0;
+//			if (currentWallTime <= 1)
+//				timerRepeat = 5;
+//			else if (currentWallTime <= 10)
+//				timerRepeat = 3;
+//			for (int i=1; i<=timerRepeat; i++)
+//			{
+//				// reset the value of variables
+//				model.reset(0);
+//				model.optimize();
+//				// System.out.println("Last Objective Value = "+model.get(GRB.DoubleAttr.ObjVal));
+//				wallTimes.add(model.get(GRB.DoubleAttr.Runtime));
+//
+//			}
+//			//System.out.println("Wall Times (s): "+wallTimes.toString());
+//			currOutput.setWallTimeInSeconds(wallTimes.stream().mapToDouble(e -> e).average().getAsDouble());
 			
 			System.out.println("Objective value = "+currOutput.getObjectiveValue());
 			System.out.println("Wall time (second) = "+currOutput.getWallTimeInSeconds());
