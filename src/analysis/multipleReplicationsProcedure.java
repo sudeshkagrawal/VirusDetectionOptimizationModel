@@ -1,12 +1,12 @@
 package analysis;
 
-import algorithm.nodeInMaxRowsGreedyHeuristic;
 import com.opencsv.CSVWriter;
 import dataTypes.algorithmOutput;
 import dataTypes.parameters;
 import dataTypes.statisticalOutput;
 import helper.commonMethods;
 import network.graph;
+import optimization.gurobiSolver;
 import org.apache.commons.math3.distribution.TDistribution;
 import org.javatuples.Pair;
 import org.javatuples.Sextet;
@@ -224,21 +224,26 @@ public class multipleReplicationsProcedure
 					}
 				}
 				
-				// TODO: Implement gap estimates for other algorithms.
-				// solve using algorithm
+				// solve LP relaxation to get an UB on the optimal objective
 				List<parameters> listOfParams = new ArrayList<>();
 				parameters newKey = new parameters(modelName, networkName, t_0, sampleSize, r, p, k, 0);
 				listOfParams.add(newKey);
-				nodeInMaxRowsGreedyHeuristic algoResults;
-				if (algorithm.equals("greedy"))
-				{
-					algoResults = new nodeInMaxRowsGreedyHeuristic();
-					algoResults.runSAAUsingHeuristic(g, observations, listOfParams);
-				}
-				else
-				{
-					throw new Exception("Gap estimate calculation for other algorithms have not been implemented!");
-				}
+//				nodeInMaxRowsGreedyHeuristic algoResults;
+//				if (algorithm.equals("greedy"))
+//				{
+//					algoResults = new nodeInMaxRowsGreedyHeuristic();
+//					algoResults.runSAAUsingHeuristic(g, observations, listOfParams);
+//				}
+//				else
+//				{
+//					throw new Exception("Gap estimate calculation for other algorithms have not been implemented!");
+//				}
+				int threads = 1;
+				int timeLimit = 3600;
+				String lpRelaxationLogFilename = "tmpGapEstimateLPRelaxation.log";
+				gurobiSolver lpRelaxationResults = new gurobiSolver();
+				lpRelaxationResults.solveSAALPRelaxation(g, observations, listOfParams, threads,
+															timeLimit, lpRelaxationLogFilename);
 				
 				// evaluate honeypots on these observations
 				Sextet<String, String, Integer, Integer, Double, Double> key =
@@ -281,8 +286,9 @@ public class multipleReplicationsProcedure
 						.filter(samplePath -> candidates.stream().anyMatch(samplePath::contains)).count();
 				double candidateObjective = frequency*1.0/sampleSize;
 				// calculate gap
-				double gap = algoResults.getOutputMap().get(newKey).getObjectiveValue()
-								- candidateObjective;
+//				double gap = algoResults.getOutputMap().get(newKey).getObjectiveValue()
+//								- candidateObjective;
+				double gap = lpRelaxationResults.getOutputMap().get(newKey).getBestUB() - candidateObjective;
 				gaps.add(gap);
 				System.out.println("--------- End of replication "+i+"---------");
 			}
