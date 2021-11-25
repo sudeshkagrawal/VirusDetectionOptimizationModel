@@ -5,6 +5,7 @@ import com.opencsv.CSVWriter;
 import dataTypes.parameters;
 import helper.commonMethods;
 import network.graph;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.javatuples.Pair;
 import org.javatuples.Sextet;
 import org.javatuples.Triplet;
@@ -21,16 +22,24 @@ import java.util.stream.IntStream;
 /**
  * Compares two sets of honeypot solutions on a larger independent sample.
  *
- * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: February 16, 2021.
+ * @author Sudesh Agrawal.
  */
 public class compareHoneypots
 {
 	/**
-	 * A map from a {@code Triplet} of a pair of {@link parameters} and the out-of-sample size to evolve the two sets of
-	 * honeypots on, to the objective function values of the two sets of honeypots evaluated on this test sample.
+	 * A map from a {@code Triplet} of a pair of {@link parameters} and the out-of-sample size to evaluate the two sets
+	 * of honeypots on, to the objective function values of the two sets of honeypots evaluated on this test sample.
 	 */
 	Map<Triplet<parameters, parameters, Integer>, Pair<Double, Double>> mapParamsPairToObjectiveValues;
+	
+	/**
+	 * A map from a {@code Triplet} of a pair of {@link parameters} and the out-of-sample size to evaluate the two sets
+	 * of honeypots on, to a pair of alpha value and the half-width of corresponding confidence interval on the
+	 * difference in the objective values.
+	 *
+	 * The first value in the pair is alpha, and the second value is the half-width corresponding to that alpha.
+	 */
+	Map<Triplet<parameters, parameters, Integer>, Pair<Double, Double>> mapParamsPairToHalfWidthOfDifference;
 	
 	/**
 	 * A map from a {@code Triplet} of a pair of {@link parameters} and the out-of-sample size to evolve the two sets of
@@ -45,6 +54,7 @@ public class compareHoneypots
 	{
 		this.mapParamsPairToObjectiveValues = new HashMap<>();
 		this.mapParamsPairToSemiHammingDistance = new HashMap<>();
+		this.mapParamsPairToHalfWidthOfDifference = new HashMap<>();
 	}
 	
 	/**
@@ -56,15 +66,19 @@ public class compareHoneypots
 	 */
 	public compareHoneypots(Map<Triplet<parameters, parameters, Integer>,
 							Pair<Double, Double>> mapParamsPairToObjectiveValues,
-	                        Map<Triplet<parameters, parameters, Integer>, Integer> mapParamsPairToSemiHammingDistance)
+	                        Map<Triplet<parameters, parameters, Integer>, Integer> mapParamsPairToSemiHammingDistance,
+	                        Map<Triplet<parameters, parameters, Integer>,
+	                        Pair<Double, Double>> mapParamsPairToHalfWidthOfDifference)
 	{
 		this.mapParamsPairToObjectiveValues = mapParamsPairToObjectiveValues;
+		this.mapParamsPairToSemiHammingDistance = mapParamsPairToSemiHammingDistance;
+		this.mapParamsPairToHalfWidthOfDifference = mapParamsPairToHalfWidthOfDifference;
 	}
 	
 	/**
 	 * Getter.
 	 *
-	 * @return the instance of {@link compareHoneypots#mapParamsPairToObjectiveValues}.
+	 * @return {@link compareHoneypots#mapParamsPairToObjectiveValues}.
 	 */
 	public Map<Triplet<parameters, parameters, Integer>,
 				Pair<Double, Double>> getMapParamsPairToObjectiveValues()
@@ -75,11 +89,21 @@ public class compareHoneypots
 	/**
 	 * Getter.
 	 *
-	 * @return the instance of {@link compareHoneypots#mapParamsPairToSemiHammingDistance}.
+	 * @return {@link compareHoneypots#mapParamsPairToSemiHammingDistance}.
 	 */
 	public Map<Triplet<parameters, parameters, Integer>, Integer> getMapParamsPairToSemiHammingDistance()
 	{
 		return mapParamsPairToSemiHammingDistance;
+	}
+	
+	/**
+	 * Getter.
+	 *
+	 * @return {@link compareHoneypots#mapParamsPairToHalfWidthOfDifference}.
+	 */
+	public Map<Triplet<parameters, parameters, Integer>, Pair<Double, Double>> getMapParamsPairToHalfWidthOfDifference()
+	{
+		return mapParamsPairToHalfWidthOfDifference;
 	}
 	
 	/**
@@ -101,6 +125,10 @@ public class compareHoneypots
 			sb.append("\n\t\t Test Sample Size = ").append(e.getKey().getValue2()).append(">, ");
 			sb.append("\n\t\t<Objective Value for Parameter 1 = ").append(e.getValue().getValue0()).append(", ");
 			sb.append("\n\t\t Objective Value for Parameter 2 = ").append(e.getValue().getValue1()).append(", ");
+			sb.append("\n\t\t alpha = ").append(this.mapParamsPairToHalfWidthOfDifference.get(e.getKey()).getValue0())
+										.append(", ");
+			sb.append("\n\t\t half-width of CI = ").append(this.mapParamsPairToHalfWidthOfDifference.get(e.getKey())
+													.getValue1()).append(", ");
 			sb.append("\n\t\t Semi-hamming distance = ")
 						.append(this.mapParamsPairToSemiHammingDistance.get(e.getKey())).append(">.");
 			count++;
@@ -110,15 +138,16 @@ public class compareHoneypots
 	
 	/**
 	 * Evaluates two sets of honeypots for the pairs of parameters provided on a larger independent sample.
-	 * Assumption: False negative probability in the second parameter of the pair is the correct one.
+	 * Assumption: False-negative probability in the second parameter of the pair is the correct one i.e., true model.
 	 *
 	 * @param g network graph
 	 * @param compareParams list of pairs of parameters for which the set of honeypots are to be compared
-	 * @param outSampleSize number of virus spread sample paths for evaluating the two sets of honeypots.
+	 * @param outSampleSize number of virus spread sample paths for evaluating the two sets of honeypots
+	 * @param alpha significance level of the confidence interval on the difference in the objectives.
 	 * @throws Exception thrown if the label of a node in {@code g} is a negative integer.
 	 */
 	public void evaluateHoneypotsOnFalseNegativeModel(graph g, List<Pair<parameters, parameters>> compareParams,
-	                                                  int outSampleSize) throws Exception
+	                                                  int outSampleSize, double alpha) throws Exception
 	{
 		// minimum label of vertex
 		boolean zeroNode = false;
@@ -130,28 +159,28 @@ public class compareHoneypots
 			if (minNode<0)
 				throw new Exception("Node labels are negative integers!");
 		}
-		for (Pair<parameters, parameters> cparam : compareParams)
+		for (Pair<parameters, parameters> cParam : compareParams)
 		{
 			
-			String spreadModelName1 = cparam.getValue0().getSpreadModelName();
-			String spreadModelName2 = cparam.getValue1().getSpreadModelName();
-			String networkName1 = cparam.getValue0().getNetworkName();
-			String networkName2 = cparam.getValue1().getNetworkName();
-			int timeStep1 = cparam.getValue0().getTimeStep();
-			int timeStep2 = cparam.getValue1().getTimeStep();
-			int numberOfSimulationRepetitions1 = cparam.getValue0().getNumberOfSimulationRepetitions();
-			int numberOfSimulationRepetitions2 = cparam.getValue1().getNumberOfSimulationRepetitions();
-			double falseNegativeProbability1 = cparam.getValue0().getFalseNegativeProbability();
-			double falseNegativeProbability2 = cparam.getValue1().getFalseNegativeProbability();
-			double transmissability1 = cparam.getValue0().getTransmissability();
-			double transmissability2 = cparam.getValue1().getTransmissability();
-			int numberOfHoneypots1 = cparam.getValue0().getNumberOfHoneypots();
-			int numberOfHoneypots2 = cparam.getValue1().getNumberOfHoneypots();
+			String spreadModelName1 = cParam.getValue0().getSpreadModelName();
+			String spreadModelName2 = cParam.getValue1().getSpreadModelName();
+			String networkName1 = cParam.getValue0().getNetworkName();
+			String networkName2 = cParam.getValue1().getNetworkName();
+			int timeStep1 = cParam.getValue0().getTimeStep();
+			int timeStep2 = cParam.getValue1().getTimeStep();
+			int numberOfSimulationRepetitions1 = cParam.getValue0().getNumberOfSimulationRepetitions();
+			int numberOfSimulationRepetitions2 = cParam.getValue1().getNumberOfSimulationRepetitions();
+			double falseNegativeProbability1 = cParam.getValue0().getFalseNegativeProbability();
+			double falseNegativeProbability2 = cParam.getValue1().getFalseNegativeProbability();
+			double transmissability1 = cParam.getValue0().getTransmissability();
+			double transmissability2 = cParam.getValue1().getTransmissability();
+			int numberOfHoneypots1 = cParam.getValue0().getNumberOfHoneypots();
+			int numberOfHoneypots2 = cParam.getValue1().getNumberOfHoneypots();
 			
 			if (!(networkName1.equals(g.getNetworkName())))
 			{
 				System.out.println("Provided graph has a different network name!");
-				System.out.println("Skipping parameter pair: "+cparam.toString());
+				System.out.println("Skipping parameter pair: "+ cParam);
 				continue;
 			}
 			if ((!spreadModelName1.equals(spreadModelName2)) || (!networkName1.equals(networkName2))
@@ -159,13 +188,13 @@ public class compareHoneypots
 					|| transmissability1!=transmissability2 || numberOfHoneypots1!=numberOfHoneypots2)
 			{
 				System.out.println("Some mismatch exists in the parameter pairs!");
-				System.out.println("Skipping parameter pair: "+cparam.toString());
+				System.out.println("Skipping parameter pair: "+ cParam);
 				continue;
 			}
 			if (falseNegativeProbability2 <=0)
 			{
 				System.out.println("False negative for second set of params should be positive!");
-				System.out.println("Skipping parameter pair: "+cparam.toString());
+				System.out.println("Skipping parameter pair: "+ cParam);
 				continue;
 			}
 			
@@ -185,7 +214,7 @@ public class compareHoneypots
 			List<Pair<Integer, Integer>> t0_runs = new ArrayList<>();
 			t0_runs.add(t0_run);
 			
-			int hashCode = cparam.hashCode();       // hashcode for parameter pair
+			int hashCode = cParam.hashCode();       // hashcode for parameter pair
 			int newHashCode = newParam.hashCode();  // hashcode for parameters of actual samples
 			
 			simulationRuns simulationRuns1 = new simulationRuns();      // corresponding to first pair
@@ -196,36 +225,36 @@ public class compareHoneypots
 			{
 				case "TN11C" ->
 				{
-					int[] TN11Cseed = {2507+hashCode, 2101+hashCode, 3567+hashCode};
+					int[] TN11CSeed = {2507+hashCode, 2101+hashCode, 3567+hashCode};
 					int[] seed = {2507+newHashCode+1, 2101+newHashCode+1, 3567+newHashCode+1};
-					simulationRuns1.simulateTN11CRuns(g, t0_runs1, falseNegativeProbability1, TN11Cseed);
-					simulationRuns2.simulateTN11CRuns(g, t0_runs2, falseNegativeProbability2, TN11Cseed);
+					simulationRuns1.simulateTN11CRuns(g, t0_runs1, falseNegativeProbability1, TN11CSeed);
+					simulationRuns2.simulateTN11CRuns(g, t0_runs2, falseNegativeProbability2, TN11CSeed);
 					trueSimulationRuns.simulateTN11CRuns(g, t0_runs, falseNegativeProbability2, seed);
 				}
 				case "RA1PC" ->
 				{
-					int[] RA1PCseed = {2507+hashCode, 2101+hashCode, 2101+hashCode, 3567+hashCode};
+					int[] RA1PCSeed = {2507+hashCode, 2101+hashCode, 2101+hashCode, 3567+hashCode};
 					int[] seed = {2507+newHashCode+1, 2101+newHashCode+1, 2101+newHashCode+1, 3567+newHashCode+1};
 					simulationRuns1.simulateRA1PCRuns(g, t0_runs1, falseNegativeProbability1,
-														transmissability1, RA1PCseed);
+														transmissability1, RA1PCSeed);
 					simulationRuns2.simulateRA1PCRuns(g, t0_runs2, falseNegativeProbability2,
-														transmissability2, RA1PCseed);
+														transmissability2, RA1PCSeed);
 					trueSimulationRuns.simulateRA1PCRuns(g, t0_runs, falseNegativeProbability2, transmissability1, seed);
 				}
 				case "RAEPC" ->
 				{
-					int[] RAEPCseed = {2507+hashCode, 2101+hashCode, 3567+hashCode};
+					int[] RAEPCSeed = {2507+hashCode, 2101+hashCode, 3567+hashCode};
 					int[] seed = {2507+newHashCode+1, 2101+newHashCode+1, 3567+newHashCode+1};
 					simulationRuns1.simulateRAEPCRuns(g, t0_runs1, falseNegativeProbability1,
-														transmissability1, RAEPCseed);
+														transmissability1, RAEPCSeed);
 					simulationRuns2.simulateRAEPCRuns(g, t0_runs2, falseNegativeProbability2,
-														transmissability2, RAEPCseed);
+														transmissability2, RAEPCSeed);
 					trueSimulationRuns.simulateRAEPCRuns(g, t0_runs, falseNegativeProbability2, transmissability1, seed);
 				}
 				default ->
 				{
 					System.out.println("Invalid model name!");
-					System.out.println("Skipping parameter pair: "+cparam.toString());
+					System.out.println("Skipping parameter pair: "+ cParam);
 					continue;
 				}
 			}
@@ -235,14 +264,14 @@ public class compareHoneypots
 			nodeInMaxRowsGreedyHeuristic heuristicResults2 = new nodeInMaxRowsGreedyHeuristic();
 			List<parameters> listOfParams1 = new ArrayList<>();
 			List<parameters> listOfParams2 = new ArrayList<>();
-			listOfParams1.add(cparam.getValue0());
-			listOfParams2.add(cparam.getValue1());
+			listOfParams1.add(cParam.getValue0());
+			listOfParams2.add(cParam.getValue1());
 			heuristicResults1.runSAAUsingHeuristic(g, simulationRuns1, listOfParams1);
 			heuristicResults2.runSAAUsingHeuristic(g, simulationRuns2, listOfParams2);
 			
 			// evaluate solutions on a larger independent set of samples
-			List<Integer> honeypots1 = heuristicResults1.getOutputMap().get(cparam.getValue0()).getHoneypots();
-			List<Integer> honeypots2 = heuristicResults2.getOutputMap().get(cparam.getValue1()).getHoneypots();
+			List<Integer> honeypots1 = heuristicResults1.getOutputMap().get(cParam.getValue0()).getHoneypots();
+			List<Integer> honeypots2 = heuristicResults2.getOutputMap().get(cParam.getValue1()).getHoneypots();
 			
 			Sextet<String, String, Integer, Integer, Double, Double> actualSamplesKey =
 					new Sextet<>(spreadModelName1, networkName1, timeStep1,
@@ -282,10 +311,39 @@ public class compareHoneypots
 									.filter(samplePath -> candidates2.stream().anyMatch(samplePath::contains)).count();
 			double candidateObjective1 = frequency1*1.0/outSampleSize;
 			double candidateObjective2 = frequency2*1.0/outSampleSize;
+			//int n11 = (int) successfulDetectMatrix.stream()
+			//						.filter(samplePath -> (candidates1.stream().anyMatch(samplePath::contains)) &&
+			//								(candidates2.stream().anyMatch(samplePath::contains))).count();
+			int n12 = (int) successfulDetectMatrix.stream()
+									.filter(samplePath -> (candidates1.stream().anyMatch(samplePath::contains)) &&
+											(candidates2.stream().noneMatch(samplePath::contains))).count();
+			int n21 = (int) successfulDetectMatrix.stream()
+									.filter(samplePath -> (candidates1.stream().noneMatch(samplePath::contains)) &&
+											(candidates2.stream().anyMatch(samplePath::contains))).count();
+			//int n22 = (int) successfulDetectMatrix.stream()
+			//						.filter(samplePath -> (candidates1.stream().noneMatch(samplePath::contains)) &&
+			//								(candidates2.stream().noneMatch(samplePath::contains))).count();
 			
-			Triplet<parameters, parameters, Integer> key = new Triplet<>(cparam.getValue0(), cparam.getValue1(),
+			NormalDistribution myNormDist = new NormalDistribution(0, 1);
+			double zValue = myNormDist.inverseCumulativeProbability(1-0.5*alpha);
+			double commonDenominator = 1.0/outSampleSize;
+			//double dHat = (n12-n21)*commonDenominator;
+			double dHat = candidateObjective1-candidateObjective2;
+			double n12term = commonDenominator*n12;
+			double n21term = commonDenominator*n21;
+			double sampleVarFirst = n12term*(1.0-n12term);
+			double sampleVarSecond = n21term*(1.0-n21term);
+			double sampleVarThird = 2.0*n12term*n21term;
+			double sampleVar = commonDenominator*(sampleVarFirst+sampleVarSecond+sampleVarThird);
+			double sampleStDev = Math.sqrt(sampleVar);
+			double halfWidth = zValue * sampleStDev;
+			System.out.println("d^hat: "+ dHat);
+			System.out.println("Half width: "+halfWidth);
+			
+			Triplet<parameters, parameters, Integer> key = new Triplet<>(cParam.getValue0(), cParam.getValue1(),
 																			outSampleSize);
 			mapParamsPairToObjectiveValues.put(key, new Pair<>(candidateObjective1, candidateObjective2));
+			mapParamsPairToHalfWidthOfDifference.put(key, new Pair<>(alpha, halfWidth));
 			
 			// find the semi-hamming distance
 			int semiHammingDistance = getSemiHammingDistance(g, honeypots1, honeypots2);
@@ -318,7 +376,7 @@ public class compareHoneypots
 	}
 	
 	/**
-	 * Writes results of {@link compareHoneypots#evaluateHoneypotsOnFalseNegativeModel(graph, List, int)}
+	 * Writes results of {@link compareHoneypots#evaluateHoneypotsOnFalseNegativeModel(graph, List, int, double)}
 	 * stored in {@link compareHoneypots#mapParamsPairToObjectiveValues}
 	 * and {@link compareHoneypots#mapParamsPairToSemiHammingDistance} to csv file.
 	 *
@@ -332,7 +390,7 @@ public class compareHoneypots
 		String[] header = {"Model", "Network", "t_0", "Simulation repetitions", "transmissability (p)",
 							"no. of honeypots", "FN probability 1", "FN probability 2",  "test sample size",
 							"objective for model with FN 1", "objective for model with FN 2",
-							"difference (FN1-FN2)", "semi-hamming dist.", "UTC"};
+							"difference (FN1-FN2)", "alpha", "lower CI", "upper CI", "semi-hamming dist.", "UTC"};
 		boolean writeHeader = false;
 		if (!fileObj.exists())
 			writeHeader = true;
@@ -348,7 +406,7 @@ public class compareHoneypots
 		for (Map.Entry<Triplet<parameters, parameters, Integer>,
 				Pair<Double, Double>> e: mapParamsPairToObjectiveValues.entrySet())
 		{
-			String[] line = new String[14];
+			String[] line = new String[17];
 			line[0] = e.getKey().getValue0().getSpreadModelName();
 			line[1] = e.getKey().getValue0().getNetworkName();
 			line[2] = String.valueOf(e.getKey().getValue0().getTimeStep());
@@ -360,9 +418,14 @@ public class compareHoneypots
 			line[8] = String.valueOf(e.getKey().getValue2());
 			line[9] = String.valueOf(e.getValue().getValue0());
 			line[10] = String.valueOf(e.getValue().getValue1());
-			line[11] = String.valueOf(e.getValue().getValue0()-e.getValue().getValue1());
-			line[12] = String.valueOf(this.mapParamsPairToSemiHammingDistance.get(e.getKey()));
-			line[13] = now;
+			double diff = e.getValue().getValue0()-e.getValue().getValue1();
+			line[11] = String.valueOf(diff);
+			line[12] = String.valueOf(this.mapParamsPairToHalfWidthOfDifference.get(e.getKey()).getValue0());
+			double halfWidth = this.mapParamsPairToHalfWidthOfDifference.get(e.getKey()).getValue1();
+			line[13] = String.valueOf(diff-halfWidth);
+			line[14] = String.valueOf(diff+halfWidth);
+			line[15] = String.valueOf(this.mapParamsPairToSemiHammingDistance.get(e.getKey()));
+			line[16] = now;
 			writer.writeNext(line);
 		}
 		writer.flush();

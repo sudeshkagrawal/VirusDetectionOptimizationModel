@@ -1,5 +1,4 @@
-import algorithm.nodeInMaxRowsGreedyHeuristic;
-import analysis.multipleReplicationsProcedure;
+import analysis.compareHoneypots;
 import dataTypes.parameters;
 import network.graph;
 import org.javatuples.Pair;
@@ -183,11 +182,11 @@ public class run
 //		lpResults.writeToCSV(lpOutputFilename, append);
 		
 
-		// Heuristic
-		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
-		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
-		//System.out.println(heuristicResults.toString());
-		heuristicResults.writeToCSV(heuristicOutputFilename, append);
+//		// Heuristic
+//		nodeInMaxRowsGreedyHeuristic heuristicResults = new nodeInMaxRowsGreedyHeuristic();
+//		heuristicResults.runSAAUsingHeuristic(network, simulationResults, listOfParams);
+//		//System.out.println(heuristicResults.toString());
+//		heuristicResults.writeToCSV(heuristicOutputFilename, append);
 
 //		// Degree centrality
 //		degreeCentrality degreeCentralityResults = new degreeCentrality();
@@ -202,11 +201,11 @@ public class run
 //		//System.out.println(degreeDiscountResults.toString());
 //		degreeDiscountResults.writeToCSV(degreeDiscountOutputFilename, append);
 //
-		// Multiple Replications Procedure
-		multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
-		MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 50000, 20,
-								"greedy");
-		MRPResults.writeToCSV(MRPOutputFilename, append);
+//		// Multiple Replications Procedure
+//		multipleReplicationsProcedure MRPResults = new multipleReplicationsProcedure();
+//		MRPResults.estimateGap(network, heuristicResults.getOutputMap(), 0.05, 50000, 20,
+//								"greedy");
+//		MRPResults.writeToCSV(MRPOutputFilename, append);
 //
 //		// McNemar's procedure to compare MIP and greedy heuristic
 //		McNemarsProcedure comparisonResults = new McNemarsProcedure();
@@ -223,45 +222,47 @@ public class run
 //				2000000);
 //		statisticalEstimates.writeToCSV(samplingErrorsMIPFilename, append);
 	
-//		// Cost of modeling false negative
-//		int outSampleSize = 5000000;
-//		String compareModelName = "RA1PC";
-//		boolean compareAppend = true;
-//		int[] compareRuns = {50000};
-//		int[] compareT0s= {3};
-//		//int[] compareKs = {100, 200, 250};
-//		int[] compareKs = {25, 50, 100};
-//		double[] compareRs = {0.05, 0.1, 0.25, 0.3, 0.4, 0.5};
-//		//double[] compareRs = {0.05};
-//		double compareP = 0.5;
-//		List<Pair<parameters, parameters>> compareParams = new ArrayList<>();
-//
-//
-//
-//		for (int compareRun: compareRuns)
-//		{
-//			for (int compareT0: compareT0s)
-//			{
-//				for (int compareK: compareKs)
-//				{
-//					for (double compareR: compareRs)
-//					{
-//						parameters param1 = new parameters(compareModelName, networkName, compareT0,
-//												compareRun, 0, compareP, compareK, 0.0);
-//						parameters param2 = new parameters(compareModelName, networkName, compareT0,
-//												compareRun, compareR, compareP, compareK, 0.0);
-//						compareParams.add(new Pair<>(param1, param2));
-//					}
-//				}
-//			}
-//		}
-//
-//		String costOfFNModelFilename = outputFolder + "cost_of_FNmodel_"+networkName+"_"+compareModelName+".csv";
-//		//String costOfFNModelFilename = outputFolder + "cost_of_FNmodel_"+networkName+"_"
-//		//								+compareModelName+"_varyHoneypots_R5_P50.csv";
-//		compareHoneypots costOfFNModel = new compareHoneypots();
-//		costOfFNModel.evaluateHoneypotsOnFalseNegativeModel(network, compareParams, outSampleSize);
-//		costOfFNModel.writeToCSV(costOfFNModelFilename, compareAppend);
+		// Cost of modeling false negative
+		int outSampleSize = 5000000;
+		String compareModelName = "RA1PC";
+		boolean compareAppend = true;
+		int[] compareRuns = {50000};
+		int[] compareT0s= {3};
+		//int[] compareKs = {100, 200, 250};
+		// int[] compareKs = {25, 50, 100};
+		int[] compareKs = {50, 100, 200};
+		//double[] compareRs = {0.05, 0.1, 0.25, 0.3, 0.4, 0.5};
+		double[] compareRs = {0.05, 0.1, 0.25, 0.3};
+		double compareP = 1.0;
+		List<Pair<parameters, parameters>> compareParams = new ArrayList<>();
+		double alphaForDetectorFallibility = 0.05;
+
+
+		for (int compareRun: compareRuns)
+		{
+			for (int compareT0: compareT0s)
+			{
+				for (int compareK: compareKs)
+				{
+					for (double compareR: compareRs)
+					{
+						parameters param1 = new parameters(compareModelName, networkName, compareT0,
+												compareRun, 0, compareP, compareK, 0.0);
+						parameters param2 = new parameters(compareModelName, networkName, compareT0,
+												compareRun, compareR, compareP, compareK, 0.0);
+						compareParams.add(new Pair<>(param1, param2));
+					}
+				}
+			}
+		}
+
+		String costOfFNModelFilename = outputFolder + "cost_of_FNmodel_"+networkName+"_"+compareModelName+".csv";
+		//String costOfFNModelFilename = outputFolder + "cost_of_FNmodel_"+networkName+"_"
+		//								+compareModelName+"_varyHoneypots_R5_P50.csv";
+		compareHoneypots costOfFNModel = new compareHoneypots();
+		costOfFNModel.evaluateHoneypotsOnFalseNegativeModel(network, compareParams,
+															outSampleSize, alphaForDetectorFallibility);
+		costOfFNModel.writeToCSV(costOfFNModelFilename, compareAppend);
 	}
 	
 	private static List<Triple<Integer, Integer, Integer>> getHoneypotsTimeRunTriplet(int[] runs, int[] t_0, int[] k)

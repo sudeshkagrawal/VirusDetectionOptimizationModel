@@ -4,8 +4,7 @@ import java.util.Objects;
 
 /**
  * Represents output of sampling errors (see {@link analysis.samplingErrors}).
- * @author Sudesh Agrawal (sudesh@utexas.edu).
- * Last Updated: September 24, 2020.
+ * @author Sudesh Agrawal.
  */
 public class samplingErrorsOutput
 {
@@ -164,11 +163,11 @@ public class samplingErrorsOutput
 		this.sampleSize = sampleSize;
 	}
 	
-	/**
-	 * Returns a string representation of the object.
-	 *
-	 * @return a string representation of the object.
-	 */
+			/**
+			 * Returns a string representation of the object.
+			 *
+			 * @return a string representation of the object.
+			 */
 	@Override
 	public String toString()
 	{
